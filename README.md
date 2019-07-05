@@ -30,6 +30,10 @@ Your [design product spec](https://hackmd.io/s/H1wGpVUh7) (described in that lin
  * User can favorite activities
  * User receives recommended activities
  * User can input their interests
+ * User can set close friends (higher priority)
+ * User can subscribe to a friend group
+ * Request to hangout button
+ * User time/distance/activity preference 
  
  
  
