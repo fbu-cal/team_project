@@ -7,10 +7,10 @@ Your [design product spec](https://hackmd.io/s/H1wGpVUh7) (described in that lin
 
 **Required Must-have Stories**
 
- * User can login/sinup
+ * User can login/signup
  * User can search for other users
  * User can friend other users
- * User can input schedule
+ * User can input their weekly schedule
  * Users' schedules can be matched
  * User can send messages to other users
  * User receives push notifications
