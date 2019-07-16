@@ -6,10 +6,13 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
+import com.example.team_project.Calendar_Activity;
 import com.example.team_project.R;
 
 public class ProfileFragment extends Fragment {
+    private Button mCalendarButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -21,5 +24,17 @@ public class ProfileFragment extends Fragment {
     // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        mCalendarButton = view.findViewById(R.id.CalendarButton);
+        mCalendarButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchCalendar();
+            }
+        });
+    }
+
+    private void launchCalendar() {
+        final Intent intent = new Intent(getActivity(), Calendar_Activity.class);
+        startActivity(intent);
     }
 }
