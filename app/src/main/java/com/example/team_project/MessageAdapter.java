@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.team_project.model.Message;
+import com.example.team_project.models.Message;
 
 import java.util.List;
 

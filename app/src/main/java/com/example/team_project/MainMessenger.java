@@ -8,7 +8,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.example.team_project.model.Message;
+import com.example.team_project.models.Message;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package com.example.team_project.model;
+package com.example.team_project.models;
 
 public class Message {
 
