@@ -8,21 +8,18 @@ public class User implements Serializable {
     private String password;
     private String photoUrl;
     private String uid;
-    private Calendar calendar;
-
 
     public User() {
         //Empty Constructor For Firebase
     }
 
-    public User(String username, String email, String password, String photoUrl, String uid, Calendar calendar)
+    public User(String username, String email, String password, String photoUrl, String uid)
     {
         this.username = username; //Parameterized for Program-Inhouse objects.
         this.email = email;
         this.password = password;
         this.photoUrl = photoUrl;
         this.uid = uid;
-        this.calendar = calendar;
     }
 
     //Getters and Setters
@@ -65,13 +62,5 @@ public class User implements Serializable {
 
     public void setUid(String uid) {
         this.uid = uid;
-    }
-
-    public Calendar getCalendar() {
-        return calendar;
-    }
-
-    public void setCalendar(Calendar calendar) {
-        this.calendar = calendar;
     }
 }
