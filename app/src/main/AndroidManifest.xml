@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.team_project">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".TeamApp"
         android:allowBackup="true"
@@ -10,15 +12,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+<<<<<<< HEAD
         <activity android:name=".Calendar_Activity"></activity>
         <activity android:name=".ComposeMessageActivity"></activity>
         <activity android:name=".MainMessenger" />
         <activity android:name=".MainActivity">
+=======
+        <activity android:name=".LoginActivity"></activity>
+        <activity android:name=".FirstActivity">
+>>>>>>> 54a96875f467c4451a4a23f9d33ae685285db8fa
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".SignupActivity" />
+        <activity android:name=".MainMessenger" />
+        <activity android:name=".MainActivity">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
         </activity>
     </application>
 
