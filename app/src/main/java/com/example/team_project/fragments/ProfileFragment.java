@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.example.team_project.Calendar_Activity;
+import com.example.team_project.CalendarActivity;
 import com.example.team_project.LoginActivity;
 import com.example.team_project.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -48,7 +48,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void launchCalendar() {
-        final Intent intent = new Intent(getActivity(), Calendar_Activity.class);
+        final Intent intent = new Intent(getActivity(), CalendarActivity.class);
         startActivity(intent);
     }
 }
