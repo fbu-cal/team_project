@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.example.team_project.CalendarActivity;
+import com.example.team_project.FirstActivity;
 import com.example.team_project.LoginActivity;
 import com.example.team_project.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,7 +42,7 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 FirebaseAuth.getInstance().signOut();
-                Intent i = new Intent(getActivity(), LoginActivity.class);
+                Intent i = new Intent(getActivity(), FirstActivity.class);
                 startActivity(i);
             }
         });
