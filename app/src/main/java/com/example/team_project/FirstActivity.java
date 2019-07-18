@@ -6,9 +6,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class FirstActivity extends AppCompatActivity {
 
     TextView mSignupButton, mLoginButton;
+
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,6 +21,13 @@ public class FirstActivity extends AppCompatActivity {
 
         mSignupButton = findViewById(R.id.signup_button);
         mLoginButton = findViewById(R.id.login_button);
+
+        mAuth = FirebaseAuth.getInstance();
+
+        if (mAuth.getCurrentUser() != null) {
+            startActivity(new Intent(FirstActivity.this, MainActivity.class));
+            finish();
+        }
 
         mSignupButton.setOnClickListener(new View.OnClickListener() {
             @Override

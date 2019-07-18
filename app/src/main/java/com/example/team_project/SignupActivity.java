@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,6 +16,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -24,12 +26,14 @@ public class SignupActivity extends AppCompatActivity {
     private Button mSignupButton;
 
     private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
 
         initializeUI();
@@ -63,31 +67,32 @@ public class SignupActivity extends AppCompatActivity {
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        Toast.makeText(SignupActivity.this, "createUserWithEmail:onComplete:" + task.isSuccessful(), Toast.LENGTH_SHORT).show();
-                        generateUser(username, email, password);
+                        Log.d("SignupActivity", "createUser:onComplete:" + task.isSuccessful());
+//                        hideProgressDialog();
                         if (task.isSuccessful()) {
-                            Toast.makeText(getApplicationContext(), "Registration successful!", Toast.LENGTH_LONG).show();
-                            // hide progress bar
-
-                            Intent intent = new Intent(SignupActivity.this, MainActivity.class);
-                            startActivity(intent);
-                        }
-                        else {
-                            Toast.makeText(getApplicationContext(), "Registration failed! Please try again later", Toast.LENGTH_LONG).show();
-                            // hide progress bar
+                            onAuthSuccess(task.getResult().getUser());
+                        } else {
+                            Toast.makeText(SignupActivity.this, "Sign Up Failed",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
-    public void generateUser(String username, String email, String password)
-    {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference users = database.getReference("users"); //users is a node in your Firebase Database.
-        User user = new User(username, email, password, null, null); //ObjectClass for Users
-        users.push().setValue(user);
-
+    private void onAuthSuccess(FirebaseUser user) {
+        String username = mUsername.getText().toString();
+        // Write new user
+        writeNewUser(user.getUid(), username, user.getEmail());
+        // Go to MainActivity
+        startActivity(new Intent(SignupActivity.this, MainActivity.class));
+        finish();
     }
+
+    private void writeNewUser(String userId, String name, String email) {
+        User user = new User(name, email);
+        mDatabase.child("users").child(userId).setValue(user);
+    }
+
 
     private void initializeUI() {
         mUsername = findViewById(R.id.username_edittext);
