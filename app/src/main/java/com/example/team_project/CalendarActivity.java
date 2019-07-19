@@ -1,8 +1,12 @@
 package com.example.team_project;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -10,11 +14,16 @@ import android.widget.Toast;
 
 import com.example.team_project.models.Calendar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CalendarActivity extends AppCompatActivity implements View.OnClickListener {
     //These buttons will pass in the data to the server
@@ -30,14 +39,15 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     private ImageButton mSundayEveningImageButton;
     DatabaseReference mReference;
     Calendar mCalendar;
-    public List<String> mUserFreeTime;
+    public ArrayList<String> mFreeTime = new ArrayList<String>();
     private FirebaseAuth mAuth;
+    String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
-        mUserFreeTime = new ArrayList<>();
+        mFreeTime = new ArrayList<String>();
         //set up the variables with their buttons
         mSubmitCalendarButton = findViewById(R.id.submitCalendarButton);
         mFridayEveningMoonImageButton = findViewById(R.id.fridayEveningMoonImageButton);
@@ -63,23 +73,25 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         mSundayAfternoonsunsetImageButton.setOnClickListener(this);
         mSundayEveningImageButton.setOnClickListener(this);
         //Pass in information to Calendar class so then can be packaged to FireBase
-        mReference = FirebaseDatabase.getInstance().getReference().child("Calendar");
+        mReference = FirebaseDatabase.getInstance().getReference();
         //link the user with there calendar using there uid
         mAuth = FirebaseAuth.getInstance();
-        String userId = mAuth.getCurrentUser().getUid();
-        mCalendar = new Calendar();
-        mCalendar.setUserId(userId);
+        userId = mAuth.getCurrentUser().getUid();
+        mCalendar = new Calendar(userId, mFreeTime);
+        //mCalendar.setUserId(userId);
         /**
          * when clicked data will be sent from ArrayList here to the other
          * file one and then push to data base
          */
+
         mSubmitCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCalendar.setmFreeTime(mUserFreeTime);
-                mReference.push().setValue(mCalendar);
-                Toast.makeText(CalendarActivity.this, "data inserted successfully", Toast.LENGTH_LONG).show();
-
+                    //mCalendar.setmFreeTime(mFreeTime);
+                    // mReference.push().setValue(mCalendar);
+                    writeNewPost(userId, mFreeTime);
+                    Toast.makeText(CalendarActivity.this, "data inserted successfully", Toast.LENGTH_LONG).show();
+                    getUserCalendar();
             }
         });
     }
@@ -87,7 +99,12 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     /**
      * when dates selected it will be sent to a function that will
      * add the time to an arrayList of the Users free time
+     * this got more complicated because if the user wants
+     * to add time there would be a different calendar model
+     * created so I had to go through my arrayList to check
+     * if it already contains an item so there is no duplicates
      */
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -132,14 +149,72 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+
     /**
      * After this the on Click for the selection is made
      * it will call this function and it will add
      * to the times the user is available
      */
+
     private void addToAvailableTimes(String freeTime) {
-        if (!mUserFreeTime.contains(freeTime)) {
-            mUserFreeTime.add(freeTime);
-        }
+        mFreeTime.add(freeTime);
+    }
+
+    /**
+     * This allows to access the data of a user and there calendar
+     * through the map in the calendar class
+     * the logs are for testing of the data is being gotten
+     */
+    private void getUserCalendar() {
+        final Query query = mReference.child("calendar");
+        query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    Map<String, Object> newCalendar = (Map<String, Object>) dataSnapshot.getValue();
+                    Log.i("CalendarActivity", "Free Time: " + newCalendar.get("mFreeTime"));
+                    Log.i("CalendarActivity", "UserId: " + newCalendar.get("userId"));
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    /**
+     *  this method adds the data to the calender class
+     *  which then later puts it in toMap in the class
+     *  the structure of the data base is decided with the
+     *  child updates , then it launches to the home screen
+     */
+    private void writeNewPost(String userId, ArrayList mFreeTime) {
+        String key = mReference.push().getKey();
+        Calendar calendar = new Calendar(userId, mFreeTime);
+        Map<String, Object> postValues = calendar.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/calendar/" + key, postValues);
+        childUpdates.put("/user-calendar/" + userId + "/" + key, postValues);
+        mReference.updateChildren(childUpdates);
+        //Toast.makeText(this, "Post Successful!", Toast.LENGTH_LONG).show();
+        Intent launchPosts = new Intent(this, MainActivity.class);
+        startActivity(launchPosts);
     }
 }
