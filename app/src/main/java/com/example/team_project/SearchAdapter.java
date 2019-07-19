@@ -3,6 +3,7 @@ package com.example.team_project;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +63,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             super(itemView);
             // perform findViewById lookups
             tvUsername = (TextView) itemView.findViewById(R.id.username_text_view);
+            itemView.setOnClickListener(this);
         }
 
         // binds the view elements to the post
@@ -76,18 +78,14 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             // make sure the position is valid, i.e. actually exists in the view
             if (position != RecyclerView.NO_POSITION) {
                 // get the movie at the position, this won't work if the class is static
-                Map<String, Object> user = mSearches.get(position);
-                // create intent for the new activity
-                Intent intent = new Intent(context, MainActivity.class);
-//                // serialize the movie using parceler, use its short name as a key
-//                intent.putExtra(User.class.getSimpleName(), user);
+                Map<String, Object> tempUser = mSearches.get(position);
+                Intent intent = new Intent(context, OtherUserProfileActivity.class);
+                intent.putExtra("uid", tempUser.get("uid").toString());
                 // show the activity
                 context.startActivity(intent);
             }
         }
     }
-
-
 
     // Clean all elements of the recycler
     public void clear() {
