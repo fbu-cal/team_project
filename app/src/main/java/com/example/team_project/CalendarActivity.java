@@ -47,9 +47,10 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
+
         mFreeTime = new ArrayList<String>();
         //set up the variables with their buttons
-        mSubmitCalendarButton = findViewById(R.id.submitCalendarButton);
+        mSubmitCalendarButton = findViewById(R.id.editCalendarButton);
         mFridayEveningMoonImageButton = findViewById(R.id.fridayEveningMoonImageButton);
         mFridayAfternoonSunsetImageButton = findViewById(R.id.fridayAfternoonSunsetImageButton);
         mFridayMorningSunImageButton = findViewById(R.id.fridayMorningSunImageButton);
@@ -78,12 +79,15 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
         mCalendar = new Calendar(userId, mFreeTime);
-        //mCalendar.setUserId(userId);
+
+        if (mCalendar.toMap() != null) {
+            editRoute();
+        }
+
         /**
          * when clicked data will be sent from ArrayList here to the other
          * file one and then push to data base
          */
-
         mSubmitCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -94,6 +98,10 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                     getUserCalendar();
             }
         });
+    }
+
+    private void editRoute() {
+        getUserCalendar();
     }
 
     /**
@@ -179,22 +187,18 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
             }
 
             @Override
             public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
     }
@@ -217,4 +221,5 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         Intent launchPosts = new Intent(this, MainActivity.class);
         startActivity(launchPosts);
     }
+
 }

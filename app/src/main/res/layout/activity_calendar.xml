@@ -239,7 +239,7 @@
         app:layout_constraintTop_toBottomOf="@+id/saturdayMorningSunImageButton" />
 
     <Button
-        android:id="@+id/submitCalendarButton"
+        android:id="@+id/editCalendarButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"

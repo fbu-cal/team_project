@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.example.team_project.CalendarActivity;
-import com.example.team_project.LoginActivity;
+import com.example.team_project.FirstActivity;
 import com.example.team_project.R;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -30,6 +30,8 @@ public class ProfileFragment extends Fragment {
         mCalendarButton = view.findViewById(R.id.calendar_button);
         mLogoutButton = view.findViewById(R.id.logout_button);
 
+        //mCalendarButton.setText("Edit Calendar");
+
         mCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -41,10 +43,11 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 FirebaseAuth.getInstance().signOut();
-                Intent i = new Intent(getActivity(), LoginActivity.class);
+                Intent i = new Intent(getActivity(), FirstActivity.class);
                 startActivity(i);
             }
         });
+
     }
 
     private void launchCalendar() {

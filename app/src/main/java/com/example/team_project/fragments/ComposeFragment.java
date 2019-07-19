@@ -98,7 +98,7 @@ public class ComposeFragment extends Fragment {
         Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
         mDescription.setText("");
 
-            Intent launchPosts = new Intent(getActivity(), MainActivity.class);
+        Intent launchPosts = new Intent(getActivity(), MainActivity.class);
         startActivity(launchPosts);
     }
 }

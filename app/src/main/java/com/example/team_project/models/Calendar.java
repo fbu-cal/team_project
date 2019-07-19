@@ -2,7 +2,6 @@ package com.example.team_project.models;
 
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,5 +48,4 @@ public class Calendar {
         result.put("userId", userId);
         return result;
     }
-
 }
