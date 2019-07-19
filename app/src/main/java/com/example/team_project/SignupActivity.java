@@ -20,6 +20,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.Map;
+
 public class SignupActivity extends AppCompatActivity {
 
     private EditText mUsername, mEmail, mPassword;
@@ -89,7 +91,7 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void writeNewUser(String userId, String name, String email) {
-        User user = new User(name, email);
+        Map<String, Object> user = (new User(userId, name, email)).toMap();
         mDatabase.child("users").child(userId).setValue(user);
     }
 
