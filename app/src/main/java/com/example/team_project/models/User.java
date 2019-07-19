@@ -2,14 +2,10 @@ package com.example.team_project.models;
 
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
-
-<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.List;
-=======
 import java.util.HashMap;
 import java.util.Map;
->>>>>>> 4fe91584bf3db215247efc6d4ba57f1854255ee2
 
 @IgnoreExtraProperties
 public class User {
@@ -35,11 +31,10 @@ public class User {
         return mFreeTime;
     }
 
-<<<<<<< HEAD
     public void setmFreeTime(List<String> mFreeTime) {
         this.mFreeTime = mFreeTime;
     }
-=======
+
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
@@ -48,6 +43,4 @@ public class User {
         result.put("email", email);
         return result;
     }
-
->>>>>>> 4fe91584bf3db215247efc6d4ba57f1854255ee2
 }

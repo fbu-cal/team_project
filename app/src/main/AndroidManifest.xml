@@ -12,10 +12,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-<<<<<<< HEAD
-=======
+
         <activity android:name=".SearchActivity"></activity>
->>>>>>> 4fe91584bf3db215247efc6d4ba57f1854255ee2
+
+        <activity android:name=".OtherUserProfileActivity"></activity>
         <activity android:name=".CalendarActivity" />
         <activity android:name=".ComposeMessageActivity" />
         <activity android:name=".MainMessenger" />
