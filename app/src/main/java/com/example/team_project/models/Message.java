@@ -1,30 +1,35 @@
 package com.example.team_project.models;
 
+import com.google.firebase.database.Exclude;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class Message {
 
-    private String mUsername;
-    private String mMessageText;
+    private String username;
+    private String messageText;
     private long mMessageTimeStamp;
 
     public Message(String username, String messageText){
-        this.mUsername= username;
-        this.mMessageText= messageText;
+        this.username = username;
+        this.messageText = messageText;
     }
 
     public String getUsername(){
-        return mUsername;
+        return username;
     }
 
     public void setUsername(String username){
-        this.mUsername=username;
+        this.username =username;
     }
 
     public String getMessageText(){
-        return mMessageText;
+        return messageText;
     }
 
     public void setMessageText(String messageText){
-        this.mMessageText=messageText;
+        this.messageText =messageText;
     }
 
     public long getMessageTimeStamp(){
@@ -34,4 +39,16 @@ public class Message {
     public void setMessageTimeStamp(long timeStamp){
         this.mMessageTimeStamp = timeStamp;
     }
+
+    // [START post_to_map]
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("username", username);
+        result.put("messageText", messageText);
+//        result.put("starCount", starCount);
+//        result.put("stars", stars);
+        return result;
+    }
+    // [END post_to_map]
 }

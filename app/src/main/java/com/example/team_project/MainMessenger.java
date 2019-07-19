@@ -1,23 +1,26 @@
 package com.example.team_project;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 
 import com.example.team_project.models.Message;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class MainMessenger extends AppCompatActivity {
 
     private MessageAdapter mAdapter;
     RecyclerView mRecyclerViewMessages;
     FloatingActionButton mComposeMessageButton;
-    ArrayList<Message> mMessages;
+    FloatingActionButton mStopGapMessageDetailsButton;
+    ArrayList<Map<String,Object>> mMessages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +29,7 @@ public class MainMessenger extends AppCompatActivity {
 
         mRecyclerViewMessages = findViewById(R.id.rvMessages);
         mComposeMessageButton = findViewById(R.id.btnComposeMessage);
+        mStopGapMessageDetailsButton = findViewById(R.id.btnStopGap);
 
         mMessages = new ArrayList<>();
 
@@ -37,6 +41,14 @@ public class MainMessenger extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainMessenger.this, ComposeMessageActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        mStopGapMessageDetailsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainMessenger.this, MessageDetailsActivity.class);
                 startActivity(intent);
             }
         });

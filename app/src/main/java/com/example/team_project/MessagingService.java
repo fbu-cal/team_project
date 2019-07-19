@@ -8,6 +8,9 @@ import android.util.Log;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+
 
 
 public class MessagingService extends FirebaseMessagingService {
@@ -17,7 +20,7 @@ public class MessagingService extends FirebaseMessagingService {
 
     }
 
-    //@Override
+//    @Override
 //    public IBinder onBind(Intent intent) {
 //        // TODO: Return the communication channel to the service.
 //        throw new UnsupportedOperationException("Not yet implemented");
@@ -25,10 +28,9 @@ public class MessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // ...
 
-        // TODO(developer): Handle FCM messages here.
-        // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
+         //TODO(developer): Handle FCM messages here.
+         //Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
         // Check if message contains a data payload.

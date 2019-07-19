@@ -1,8 +1,8 @@
 package com.example.team_project;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,14 +11,16 @@ import android.widget.TextView;
 
 import com.example.team_project.models.Message;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
-    private List<Message> mMessages;
+    private ArrayList<Map<String, Object>> mMessages;
     private Context context;
 
-    public MessageAdapter(Context context, List<Message> messages) {
+    public MessageAdapter(Context context, ArrayList<Map<String, Object>> messages) {
         mMessages = messages;
     }
 
@@ -34,12 +36,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull MessageAdapter.ViewHolder viewHolder, int position) {
-        Message message = mMessages.get(position);
+        final Map<String, Object> message = mMessages.get(position);
 
         //populate the view according to Message model
-        viewHolder.mUsername.setText(message.getUsername());
-        viewHolder.mMessageText.setText(message.getMessageText());
-        viewHolder.mMessageTimeStamp.setText((int) message.getMessageTimeStamp());
+        viewHolder.mUsername.setText(message.get("username").toString());
+        viewHolder.mMessageText.setText(message.get("messageText").toString());
+        //viewHolder.mMessageTimeStamp.setText((int) message.getMessageTimeStamp());
     }
 
     @Override
