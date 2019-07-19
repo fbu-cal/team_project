@@ -2,19 +2,36 @@ package com.example.team_project.models;
 
 public class Message {
 
-    private static final String USERNAME = "username";
-    private static final String MESSAGE_TEXT = "message_text";
-    private static final String MESSAGE_TIME_AGO = "message_time_ago";
+    private String mUsername;
+    private String mMessageText;
+    private long mMessageTimeStamp;
+
+    public Message(String username, String messageText){
+        this.mUsername= username;
+        this.mMessageText= messageText;
+    }
 
     public String getUsername(){
-        return USERNAME;
+        return mUsername;
+    }
+
+    public void setUsername(String username){
+        this.mUsername=username;
     }
 
     public String getMessageText(){
-        return MESSAGE_TEXT;
+        return mMessageText;
     }
 
-    public String getMessageTimeStamp(){
-        return MESSAGE_TIME_AGO;
+    public void setMessageText(String messageText){
+        this.mMessageText=messageText;
+    }
+
+    public long getMessageTimeStamp(){
+        return mMessageTimeStamp;
+    }
+
+    public void setMessageTimeStamp(long timeStamp){
+        this.mMessageTimeStamp = timeStamp;
     }
 }

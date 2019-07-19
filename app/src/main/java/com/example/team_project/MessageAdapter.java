@@ -39,7 +39,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         //populate the view according to Message model
         viewHolder.mUsername.setText(message.getUsername());
         viewHolder.mMessageText.setText(message.getMessageText());
-        viewHolder.mMessageTimeStamp.setText(message.getMessageTimeStamp());
+        viewHolder.mMessageTimeStamp.setText((int) message.getMessageTimeStamp());
     }
 
     @Override
