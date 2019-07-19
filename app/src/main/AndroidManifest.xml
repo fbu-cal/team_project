@@ -16,7 +16,8 @@
         <activity android:name=".CalendarActivity"></activity>
         <activity android:name=".ComposeMessageActivity"></activity>
         <activity android:name=".MainMessenger" />
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".MainActivity"
+            android:windowSoftInputMode="adjustPan"/>
 
         <activity android:name=".LoginActivity"></activity>
         <activity android:name=".FirstActivity">

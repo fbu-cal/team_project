@@ -1,7 +1,13 @@
 package com.example.team_project.models;
 
-import java.util.List;
+import com.google.firebase.database.Exclude;
+import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@IgnoreExtraProperties
 public class Calendar {
     public List<String> mFreeTime;
     public String userId;
@@ -27,5 +33,13 @@ public class Calendar {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("mFreeTime", mFreeTime);
+        result.put("userId", userId);
+        return result;
     }
 }
