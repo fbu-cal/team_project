@@ -7,24 +7,27 @@ import java.util.Map;
 
 public class Message {
 
-    private String username;
+    private String userId;
     private String messageText;
-    private long mMessageTimeStamp;
+    private String username;
+    private long messageTimeStamp;
 
-    public Message(String username, String messageText){
-        this.username = username;
+    public Message(String userId, String username, String messageText){
+        this.userId = userId;
         this.messageText = messageText;
+        this.username = username;
     }
 
     public String getUsername(){
-        return username;
+        return userId;
     }
 
     public void setUsername(String username){
-        this.username =username;
+        this.userId =username;
     }
 
     public String getMessageText(){
+        System.out.println("Yeah"+messageText);
         return messageText;
     }
 
@@ -33,21 +36,19 @@ public class Message {
     }
 
     public long getMessageTimeStamp(){
-        return mMessageTimeStamp;
+        return messageTimeStamp;
     }
 
     public void setMessageTimeStamp(long timeStamp){
-        this.mMessageTimeStamp = timeStamp;
+        this.messageTimeStamp = timeStamp;
     }
 
     // [START post_to_map]
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        result.put("username", username);
+        result.put("userId", userId);
         result.put("messageText", messageText);
-//        result.put("starCount", starCount);
-//        result.put("stars", stars);
         return result;
     }
     // [END post_to_map]
