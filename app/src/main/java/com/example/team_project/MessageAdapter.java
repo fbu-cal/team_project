@@ -1,9 +1,8 @@
 package com.example.team_project;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
+import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.database.DataSetObserver;
 import android.view.LayoutInflater;
 import android.view.View;
