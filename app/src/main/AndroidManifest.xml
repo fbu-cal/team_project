@@ -17,16 +17,20 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <activity android:name=".CalendarActivity" />
-        <activity android:name=".ComposeMessageActivity" />
         <activity android:name=".MessageDetailsActivity" />
 
-        <activity android:name=".MainMessenger" />
-        <activity android:name=".MainActivity"
-            android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".SearchActivity"></activity>
 
-        <activity android:name=".LoginActivity"></activity>
+        <activity android:name=".OtherUserProfileActivity"></activity>
+        <activity android:name=".CalendarActivity" />
+        <activity android:name=".ComposeMessageActivity" />
+        <activity android:name=".MainMessenger" />
+        <activity
+            android:name=".MainActivity"
+            android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".LoginActivity" />
         <activity android:name=".FirstActivity">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -34,6 +38,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SignupActivity" />
+
     </application>
 
 </manifest>

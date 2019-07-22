@@ -30,6 +30,8 @@ public class ProfileFragment extends Fragment {
         mCalendarButton = view.findViewById(R.id.calendar_button);
         mLogoutButton = view.findViewById(R.id.logout_button);
 
+        //mCalendarButton.setText("Edit Calendar");
+
         mCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -45,6 +47,7 @@ public class ProfileFragment extends Fragment {
                 startActivity(i);
             }
         });
+
     }
 
     private void launchCalendar() {

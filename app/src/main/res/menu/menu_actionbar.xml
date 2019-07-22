@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_search"
-        android:orderInCategory="5"
-        android:title="Search"
-        android:icon="@android:drawable/ic_menu_search"
-        app:showAsAction="always|collapseActionView"
-        app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
     <item
         android:id="@+id/miMessenger"
@@ -15,4 +9,13 @@
         android:title="Compose"
         android:tint="@android:color/white">
     </item>
+
+    <item
+        android:id="@+id/miSearch"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="ifRoom"
+        android:title="Search"
+        android:tint="@android:color/white">
+    </item>
+
 </menu>
