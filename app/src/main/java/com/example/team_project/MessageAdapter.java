@@ -12,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -43,7 +45,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         //populate the view according to Message model
         viewHolder.mUsername.setText(message.get("username").toString());
         viewHolder.mMessageText.setText(message.get("messageText").toString());
-        //viewHolder.mMessageTimeStamp.setText(getRelativeTimeAgo());
+
+        String sDate1=message.get("timeSent").toString();
+        Date date1 = new Date();
+        try {
+            date1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy").parse(sDate1);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        viewHolder.mMessageTimeStamp.setText(getRelativeTimeAgo(date1));
     }
 
     @Override
