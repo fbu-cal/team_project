@@ -112,4 +112,3 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(toMessenger, MESSENGER_REQUEST_CODE);
     }
 }
-

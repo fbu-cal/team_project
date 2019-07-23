@@ -26,7 +26,6 @@ public class SignupActivity extends AppCompatActivity {
 
     private EditText mUsername, mEmail, mPassword, mFullname;
     private Button mSignupButton;
-
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
 

@@ -1,24 +1,26 @@
 package com.example.team_project;
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.example.team_project.models.Message;
+import java.util.ArrayList;
+import java.util.Map;
 
-import java.util.List;
+public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> implements ListAdapter {
 
-public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
+    private ArrayList<Map<String, Object>> mMessages;
+    Context context;
 
-    private List<Message> mMessages;
-    private Context context;
-
-    public MessageAdapter(Context context, List<Message> messages) {
+    public MessageAdapter(Context context, ArrayList<Map<String, Object>> messages) {
+        this.context=context;
         mMessages = messages;
     }
 
@@ -34,12 +36,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull MessageAdapter.ViewHolder viewHolder, int position) {
-        Message message = mMessages.get(position);
+        final Map<String, Object> message = mMessages.get(position);
 
         //populate the view according to Message model
-        viewHolder.mUsername.setText(message.getUsername());
-        viewHolder.mMessageText.setText(message.getMessageText());
-        viewHolder.mMessageTimeStamp.setText(message.getMessageTimeStamp());
+        viewHolder.mUsername.setText(message.get("userId").toString());
+        viewHolder.mMessageText.setText(message.get("messageText").toString());
+        //viewHolder.mMessageTimeStamp.setText((int) message.getMessageTimeStamp());
     }
 
     @Override
@@ -47,12 +49,57 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return mMessages.size();
     }
 
+    @Override
+    public boolean areAllItemsEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled(int position) {
+        return false;
+    }
+
+    @Override
+    public void registerDataSetObserver(DataSetObserver observer) {
+
+    }
+
+    @Override
+    public void unregisterDataSetObserver(DataSetObserver observer) {
+
+    }
+
+    @Override
+    public int getCount() {
+        return 0;
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return null;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        return null;
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 1;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView mUsername;
         public TextView mMessageText;
         public TextView mMessageTimeStamp;
         public ImageView mProfileImage;
-
+        
         public ViewHolder(View itemView) {
             super(itemView);
 

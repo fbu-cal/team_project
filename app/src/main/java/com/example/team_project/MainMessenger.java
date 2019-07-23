@@ -11,13 +11,15 @@ import android.view.View;
 import com.example.team_project.models.Message;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class MainMessenger extends AppCompatActivity {
 
     private MessageAdapter mAdapter;
     RecyclerView mRecyclerViewMessages;
-    FloatingActionButton mComposeButton;
-    ArrayList<Message> mMessages;
+    FloatingActionButton mComposeMessageButton;
+    FloatingActionButton mStopGapMessageDetailsButton;
+    ArrayList<Map<String,Object>> mMessages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +27,8 @@ public class MainMessenger extends AppCompatActivity {
         setContentView(R.layout.activity_main_messenger);
 
         mRecyclerViewMessages = findViewById(R.id.rvMessages);
-        mComposeButton = findViewById(R.id.btnComposeMessage);
+        mComposeMessageButton = findViewById(R.id.btnComposeMessage);
+        mStopGapMessageDetailsButton = findViewById(R.id.btnStopGap);
 
         mMessages = new ArrayList<>();
 
@@ -33,10 +36,18 @@ public class MainMessenger extends AppCompatActivity {
         mRecyclerViewMessages.setAdapter(mAdapter);
         mRecyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
 
-        mComposeButton.setOnClickListener(new View.OnClickListener() {
+        mComposeMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainMessenger.this, ComposeMessageActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        mStopGapMessageDetailsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainMessenger.this, MessageDetailsActivity.class);
                 startActivity(intent);
             }
         });
