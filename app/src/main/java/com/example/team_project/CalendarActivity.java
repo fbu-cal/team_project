@@ -86,7 +86,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
 
         getUserCalendar();
         /**
-         * when clicked data will be sent from ArrayList here to the other
+         * when clicked data will be sent from ArraƒyList here to the other
          * file one and then push to data base
          */
 
@@ -126,7 +126,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fridayMorningSunImageButton:
-                if (mPosts.contains("fridayMorning")) {
+                if (mPosts.get(0).equals("fridayMorning")) {
                     mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
                 } else {
                     addToAvailableTimes("fridayMorning");

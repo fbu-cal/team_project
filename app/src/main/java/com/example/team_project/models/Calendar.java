@@ -9,7 +9,7 @@ import java.util.Map;
 
 @IgnoreExtraProperties
 public class Calendar {
-    public ArrayList<String> mFreeTime = new ArrayList<String>();
+    public Map<String, Boolean> mFreeTime = new HashMap<>();
     public String userId;
 
 
@@ -17,19 +17,19 @@ public class Calendar {
         // Default constructor required
     }
 
-    public Calendar(String userId, ArrayList mFreeTime) {
+    public Calendar(String userId, Map mFreeTime) {
         this.userId = userId;
         this.mFreeTime = mFreeTime;
     }
 
-    public List<String> getmFreeTime() {
+    public Map<String, Boolean> getmFreeTime() {
         return mFreeTime;
     }
 
     //gets values from CalendarActivity
 
 
-    public void setmFreeTime(ArrayList<String> mFreeTime) {
+    public void setmFreeTime(Map<String, Boolean> mFreeTime) {
         this.mFreeTime = mFreeTime;
     }
 
