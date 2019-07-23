@@ -84,9 +84,9 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                             try {
                                 // set profile picture
                                 Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-//                                Bitmap circularImage = getCircleBitmap(realImage);
+                                Bitmap circularImage = getCircleBitmap(realImage);
                                 Log.i("PostViewHolder", "realImage: " + realImage);
-                                mProfilePicture.setImageBitmap(realImage);
+                                mProfilePicture.setImageBitmap(circularImage);
                             } catch (IOException e) {
                                 e.printStackTrace();
                                 Log.e("PostViewHolder", "Profile pic issue", e);

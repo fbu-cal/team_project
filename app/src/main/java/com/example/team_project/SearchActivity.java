@@ -1,5 +1,6 @@
 package com.example.team_project;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,7 +12,11 @@ import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
+import com.example.team_project.models.Post;
+import com.example.team_project.models.User;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -21,6 +26,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -28,12 +34,11 @@ public class SearchActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
 
-    private ArrayList<Map<String, Object>> mSearches;
-    private String[] usernameArray;
-    private RecyclerView mRecyclerView;
-    private SearchAdapter mSearchAdapter;
+
     private SearchView mSearchView;
-    private LinearLayoutManager mLinearLayoutManager;
+    private FirebaseRecyclerAdapter<User, SearchViewHolder> mAdapter;
+    private RecyclerView mRecycler;
+    private LinearLayoutManager mManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,19 +51,12 @@ public class SearchActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search_actionbar, menu);
         // Set up Layout Manager, reverse layout
-        mLinearLayoutManager = new LinearLayoutManager(this);
-        mLinearLayoutManager.setReverseLayout(true);
-        mLinearLayoutManager.setStackFromEnd(true);
-        // find the RecyclerView
-        mRecyclerView = (RecyclerView) findViewById(R.id.post_recycler_view);
-        // init the arraylist (data source)
-        mSearches = new ArrayList<Map<String, Object>>();
-        // construct the adapter from this data source
-        mSearchAdapter = new SearchAdapter(this, mSearches);
-        // RecyclerView setup (layout manager, use adapter)
-        mRecyclerView.setLayoutManager(mLinearLayoutManager);
-        // set the adapter
-        mRecyclerView.setAdapter(mSearchAdapter);
+        mRecycler = (RecyclerView) findViewById(R.id.post_recycler_view);
+        mManager = new LinearLayoutManager(this);
+        mManager.setReverseLayout(true);
+        mManager.setStackFromEnd(true);
+        mRecycler.setLayoutManager(mManager);
+
         MenuItem searchItem = menu.findItem(R.id.action_search);
         mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -66,52 +64,56 @@ public class SearchActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String query) {
                 // perform query here
                 searchUser(query);
-                mSearchAdapter.notifyDataSetChanged();
-                // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
-                // see https://code.google.com/p/android/issues/detail?id=24599
                 mSearchView.clearFocus();
-
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 searchUser(newText);
-                mSearchAdapter.notifyDataSetChanged();
                 return false;
             }
         });
+
         return super.onCreateOptionsMenu(menu);
     }
 
     private void searchUser(String s) {
-        mSearches.clear();
-        final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        Query query = FirebaseDatabase.getInstance().getReference("users").orderByChild("username")
+        // Set up FirebaseRecyclerAdapter with the Query
+        Query postsQuery = getQuery(s);
+        mAdapter = new FirebaseRecyclerAdapter<User, SearchViewHolder>(User.class, R.layout.item_search,
+                SearchViewHolder.class, postsQuery) {
+            @Override
+            protected void populateViewHolder(SearchViewHolder viewHolder, final User model, int position) {
+                final DatabaseReference postRef = getRef(position);
+
+                // Set click listener for the whole post view
+                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Launch OtherUserProfileActivity
+                        Intent intent = new Intent(SearchActivity.this, OtherUserProfileActivity.class);
+                        intent.putExtra("uid", model.uid);
+                        // show the activity
+                        startActivity(intent);
+                    }
+                });
+                // Bind Post to ViewHolder, setting OnClickListener for the star button
+                try {
+                    viewHolder.bindToPost(model);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        mRecycler.setAdapter(mAdapter);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    public Query getQuery(String s) {
+        Query recentPostsQuery = FirebaseDatabase.getInstance().getReference("users").orderByChild("username")
                 .startAt(s)
                 .endAt(s + "\uf8ff");
-        query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
-            @Override
-            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-                Log.i("MainActivity", "User Id: " + newUser.get("uid"));
-                Log.i("MainActivity", "Username: " + newUser.get("username"));
-                mSearches.add(newUser);
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
+        return recentPostsQuery;
     }
 }

@@ -27,11 +27,9 @@ import java.io.IOException;
 
 public class PostsFragment extends Fragment {
 
-    private static final String TAG = "PostListFragment";
+    private static final String TAG = "PostsFragment";
 
-    // [START define_database_reference]
     private DatabaseReference mDatabase;
-    // [END define_database_reference]
 
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private RecyclerView mRecycler;
@@ -45,9 +43,7 @@ public class PostsFragment extends Fragment {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_posts, container, false);
 
-        // [START create_database_reference]
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        // [END create_database_reference]
 
         mRecycler = (RecyclerView) rootView.findViewById(R.id.post_recycler_view);
         mRecycler.setHasFixedSize(true);
@@ -122,11 +118,11 @@ public class PostsFragment extends Fragment {
                 }
 
                 if (p.likes.containsKey(getUid())) {
-                    // Unstar the post and remove self from stars
+                    // Unlike the post and remove self from likes
                     p.likeCount = p.likeCount - 1;
                     p.likes.remove(getUid());
                 } else {
-                    // Star the post and add self to stars
+                    // Like the post and add self to likes
                     p.likeCount = p.likeCount + 1;
                     p.likes.put(getUid(), true);
                 }

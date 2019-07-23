@@ -2,6 +2,7 @@ package com.example.team_project.fragments;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -104,8 +105,10 @@ public class ComposeFragment extends Fragment {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            encodeBitmap(imageBitmap);
-            mPostImage.setImageBitmap(imageBitmap);
+            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
+            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
+            encodeBitmap(croppedBitmap);
+            mPostImage.setImageBitmap(croppedBitmap);
         }
     }
 
@@ -142,5 +145,11 @@ public class ComposeFragment extends Fragment {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
          imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+    }
+
+    public int getSquareCropDimensionForBitmap(Bitmap bitmap)
+    {
+        //use the smallest dimension of the image to crop to
+        return Math.min(bitmap.getWidth(), bitmap.getHeight());
     }
 }

@@ -3,6 +3,7 @@ package com.example.team_project;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,8 +48,10 @@ public class ProfilePictureActivity extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == this.RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            profileImageView.setImageBitmap(imageBitmap);
-            encodeBitmapAndSaveToFirebase(imageBitmap);
+            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
+            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
+            profileImageView.setImageBitmap(croppedBitmap);
+            encodeBitmapAndSaveToFirebase(croppedBitmap);
             finish();
             Intent toProfile = new Intent(this, MainActivity.class);
             startActivity(toProfile);
@@ -72,5 +75,11 @@ public class ProfilePictureActivity extends AppCompatActivity {
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child("profile_picture");
         ref.setValue(imageEncoded);
+    }
+
+    public int getSquareCropDimensionForBitmap(Bitmap bitmap)
+    {
+        //use the smallest dimension of the image to crop to
+        return Math.min(bitmap.getWidth(), bitmap.getHeight());
     }
 }
