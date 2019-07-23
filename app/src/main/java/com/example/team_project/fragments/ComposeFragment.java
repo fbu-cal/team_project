@@ -1,15 +1,20 @@
 package com.example.team_project.fragments;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.text.format.DateUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.team_project.MainActivity;
@@ -23,15 +28,23 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.ByteArrayOutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class ComposeFragment extends Fragment {
 
+    private static final int REQUEST_IMAGE_CAPTURE = 111;
     private DatabaseReference mDatabase;
+    String imageEncoded;
 
     EditText mDescription;
     Button mPostButton;
+    ImageView mPostImage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -45,8 +58,11 @@ public class ComposeFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         mDescription = view.findViewById(R.id.description_edit_text);
         mPostButton = view.findViewById(R.id.post_button);
+        mPostImage = view.findViewById(R.id.post_image_view);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        onLaunchCamera(view);
 
         mPostButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,7 +85,7 @@ public class ComposeFragment extends Fragment {
                                             Toast.LENGTH_SHORT).show();
                                 } else {
                                     // Write new post
-                                    writeNewPost(userId, user.username, description);
+                                    writeNewPost(userId, user.username, description, imageEncoded);
                                 }
                             }
 
@@ -83,9 +99,29 @@ public class ComposeFragment extends Fragment {
         });
     }
 
-    private void writeNewPost(String userId, String username, String description) {
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            encodeBitmap(imageBitmap);
+            mPostImage.setImageBitmap(imageBitmap);
+        }
+    }
+
+    public void onLaunchCamera(View view) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    private void writeNewPost(String userId, String username, String description, String postImageUrl) {
         String key = mDatabase.child("posts").push().getKey();
-        Post post = new Post(userId, username, description);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+        String timestamp = simpleDateFormat.format(new Date());
+        Log.d("MainActivity", "Current Timestamp: " + timestamp);
+        Post post = new Post(userId, username, description, postImageUrl, timestamp);
         Map<String, Object> postValues = post.toMap();
 
         Map<String, Object> childUpdates = new HashMap<>();
@@ -99,5 +135,12 @@ public class ComposeFragment extends Fragment {
 
         Intent launchPosts = new Intent(getActivity(), MainActivity.class);
         startActivity(launchPosts);
+    }
+
+    public void encodeBitmap(Bitmap bitmap) {
+        // save image to firebase
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+         imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
     }
 }

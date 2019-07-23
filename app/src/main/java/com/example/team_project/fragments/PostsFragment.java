@@ -23,6 +23,8 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 
+import java.io.IOException;
+
 public class PostsFragment extends Fragment {
 
     private static final String TAG = "PostListFragment";
@@ -72,7 +74,6 @@ public class PostsFragment extends Fragment {
                 final DatabaseReference postRef = getRef(position);
 
                 // Set click listener for the whole post view
-                final String postKey = postRef.getKey();
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -91,17 +92,21 @@ public class PostsFragment extends Fragment {
                 }
 
                 // Bind Post to ViewHolder, setting OnClickListener for the star button
-                viewHolder.bindToPost(model, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View starView) {
-                        // Need to write to both places the post is stored
-                        DatabaseReference globalPostRef = mDatabase.child("posts").child(postRef.getKey());
-                        DatabaseReference userPostRef = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                        // Run two transactions
-                        onLikeClicked(globalPostRef);
-                        onLikeClicked(userPostRef);
-                    }
-                });
+                try {
+                    viewHolder.bindToPost(model, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View starView) {
+                            // Need to write to both places the post is stored
+                            DatabaseReference globalPostRef = mDatabase.child("posts").child(postRef.getKey());
+                            DatabaseReference userPostRef = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+                            // Run two transactions
+                            onLikeClicked(globalPostRef);
+                            onLikeClicked(userPostRef);
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         };
         mRecycler.setAdapter(mAdapter);
