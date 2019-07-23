@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.DataSetObserver;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> implements ListAdapter {
@@ -39,9 +41,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         final Map<String, Object> message = mMessages.get(position);
 
         //populate the view according to Message model
-        viewHolder.mUsername.setText(message.get("userId").toString());
+        viewHolder.mUsername.setText(message.get("username").toString());
         viewHolder.mMessageText.setText(message.get("messageText").toString());
-        //viewHolder.mMessageTimeStamp.setText((int) message.getMessageTimeStamp());
+        //viewHolder.mMessageTimeStamp.setText(getRelativeTimeAgo());
     }
 
     @Override
@@ -113,5 +115,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         public void onClick(View v) {
 
         }
+    }
+
+    public static String getRelativeTimeAgo(Date date) {
+        String relativeDate = "";
+        long dateMillis = date.getTime();
+        relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
+                System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString();
+        return relativeDate;
     }
 }

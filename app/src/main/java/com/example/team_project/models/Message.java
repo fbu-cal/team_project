@@ -19,11 +19,11 @@ public class Message {
     }
 
     public String getUsername(){
-        return userId;
+        return username;
     }
 
     public void setUsername(String username){
-        this.userId =username;
+        this.username =username;
     }
 
     public String getMessageText(){
@@ -49,6 +49,7 @@ public class Message {
         HashMap<String, Object> result = new HashMap<>();
         result.put("userId", userId);
         result.put("messageText", messageText);
+        result.put("username", username);
         return result;
     }
     // [END post_to_map]

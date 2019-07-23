@@ -10,8 +10,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.team_project.models.Message;
+import com.example.team_project.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -19,6 +21,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,15 +59,39 @@ public class MessageDetailsActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
         mRecyclerView.setAdapter(mMessageAdapter);
 
-        final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final String messageText = mMessageTextInput.getText().toString();
-        final String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+
 
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                final String messageText = mMessageTextInput.getText().toString();
+
+                mDatabaseReference.child("users").child(userId).addListenerForSingleValueEvent(
+                        new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                // Get user value
+                                User user = dataSnapshot.getValue(User.class);
+                                // [START_EXCLUDE]
+                                if (user == null) {
+                                    // User is null, error out
+                                    Log.e("MessageDetailsActivity", "User " + userId + " is unexpectedly null");
+                                } else {
+                                    // Write new post
+                                    writeNewPost(userId, user.username, messageText);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                Log.w("MessageDetailsActivity", "getUser:onCancelled", databaseError.toException());
+                            }
+                        }
+                );
+                final String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
                 //sendMessage();
-                writeNewPost(userId,username, messageText);
+                //writeNewPost(userId,username, messageText);
             }
         });
 
