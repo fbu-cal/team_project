@@ -1,9 +1,9 @@
 package com.example.team_project;
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.database.DataSetObserver;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,10 +11,7 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.example.team_project.models.Message;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> implements ListAdapter {
@@ -42,7 +39,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         final Map<String, Object> message = mMessages.get(position);
 
         //populate the view according to Message model
-        viewHolder.mUsername.setText(message.get("username").toString());
+        viewHolder.mUsername.setText(message.get("userId").toString());
         viewHolder.mMessageText.setText(message.get("messageText").toString());
         //viewHolder.mMessageTimeStamp.setText((int) message.getMessageTimeStamp());
     }
