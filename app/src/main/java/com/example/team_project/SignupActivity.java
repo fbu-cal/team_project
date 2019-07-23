@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class SignupActivity extends AppCompatActivity {
 
-    private EditText mUsername, mEmail, mPassword;
+    private EditText mUsername, mEmail, mPassword, mFullname;
     private Button mSignupButton;
 
     private FirebaseAuth mAuth;
@@ -51,7 +51,8 @@ public class SignupActivity extends AppCompatActivity {
     private void registerNewUser() {
         // show progress bar
 
-        final String username, email, password;
+        final String fullname, username, email, password;
+        fullname = mFullname.getText().toString();
         username = mUsername.getText().toString();
         email = mEmail.getText().toString();
         password = mPassword.getText().toString();
@@ -83,23 +84,25 @@ public class SignupActivity extends AppCompatActivity {
 
     private void onAuthSuccess(FirebaseUser user) {
         String username = mUsername.getText().toString();
+        String fullname = mFullname.getText().toString();
         // Write new user
-        writeNewUser(user.getUid(), username, user.getEmail());
+        writeNewUser(fullname, user.getUid(), username, user.getEmail());
         // Go to MainActivity
         startActivity(new Intent(SignupActivity.this, MainActivity.class));
         finish();
     }
 
-    private void writeNewUser(String userId, String name, String email) {
-        Map<String, Object> user = (new User(userId, name, email)).toMap();
+    private void writeNewUser(String fullname, String userId, String name, String email) {
+        Map<String, Object> user = (new User(fullname, userId, name, email)).toMap();
         mDatabase.child("users").child(userId).setValue(user);
     }
 
 
     private void initializeUI() {
-        mUsername = findViewById(R.id.username_edittext);
-        mEmail = findViewById(R.id.email_edittext);
-        mPassword = findViewById(R.id.password_edittext);
+        mFullname = findViewById(R.id.fullname_edit_text);
+        mUsername = findViewById(R.id.username_edit_text);
+        mEmail = findViewById(R.id.email_edit_text);
+        mPassword = findViewById(R.id.password_edit_text);
         mSignupButton = findViewById(R.id.signup_button);
         // progress bar
     }

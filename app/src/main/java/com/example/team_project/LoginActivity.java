@@ -85,9 +85,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initializeUI() {
-        mUsername = findViewById(R.id.username_edittext);
-        mEmail = findViewById(R.id.email_edittext);
-        mPassword = findViewById(R.id.password_edittext);
+        mUsername = findViewById(R.id.username_edit_text);
+        mEmail = findViewById(R.id.email_edit_text);
+        mPassword = findViewById(R.id.password_edit_text);
         mLoginButton = findViewById(R.id.login_button);
         mProgressBar = findViewById(R.id.progressBar);
     }

@@ -12,9 +12,9 @@ public class Post {
 
     public String uid;
     public String author;
-    public String description;
-    public int starCount = 0;
-//    public Map<String, Boolean> stars = new HashMap<>();
+    public String body;
+    public int likeCount = 0;
+    public Map<String, Boolean> likes = new HashMap<>();
 
     public Post() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
@@ -23,7 +23,7 @@ public class Post {
     public Post(String uid, String author, String body) {
         this.uid = uid;
         this.author = author;
-        this.description = body;
+        this.body = body;
     }
 
     // [START post_to_map]
@@ -32,9 +32,9 @@ public class Post {
         HashMap<String, Object> result = new HashMap<>();
         result.put("uid", uid);
         result.put("author", author);
-        result.put("body", description);
-//        result.put("starCount", starCount);
-//        result.put("stars", stars);
+        result.put("body", body);
+        result.put("likeCount", likeCount);
+        result.put("likes", likes);
         return result;
     }
     // [END post_to_map]

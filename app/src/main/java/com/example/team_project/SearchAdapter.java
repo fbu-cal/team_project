@@ -42,12 +42,10 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final Map<String, Object> search = mSearches.get(position);
-        User user = new User (search.get("uid").toString(),
+        User user = new User (search.get("fullname").toString(), search.get("uid").toString(),
                 search.get("username").toString(), search.get("email").toString());
         holder.bind(user);
     }
-
-
 
     @Override
     public int getItemCount() {

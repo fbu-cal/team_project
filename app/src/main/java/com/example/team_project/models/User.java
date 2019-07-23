@@ -3,6 +3,7 @@ package com.example.team_project.models;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,15 +13,20 @@ public class User {
     public String uid;
     public String username;
     public String email;
+    public String fullname;
+    public String profilePicture;
+    public Map<String, Boolean> friends = new HashMap<>();
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String uid, String username, String email) {
+    public User(String fullname, String uid, String username, String email) {
+        this.fullname = fullname;
         this.uid = uid;
         this.username = username;
         this.email = email;
+        this.profilePicture = "";
     }
 
     @Exclude
@@ -29,6 +35,9 @@ public class User {
         result.put("uid", uid);
         result.put("username", username);
         result.put("email", email);
+        result.put("fullname", fullname);
+        result.put("profile_picture", profilePicture);
+        result.put("friends", friends);
         return result;
     }
 
