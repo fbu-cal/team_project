@@ -34,8 +34,6 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
     private EditText mMessageTextInput;
     private Button mSendButton;
-    //private FirebaseListAdapter<Message> adapter;
-    //private RecyclerView mRecycelerView;
     private RecyclerView mRecyclerView;
     private ArrayList<Map<String, Object>> mMessages;
     private MessageAdapter mMessageAdapter;
@@ -43,7 +41,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
     private LinearLayoutManager mLinearLayoutManager;
 
 
-    DatabaseReference mDatabaseReference;
+    private DatabaseReference mDatabaseReference;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,10 +54,10 @@ public class MessageDetailsActivity extends AppCompatActivity {
         mMessages = new ArrayList<Map<String, Object>>();
         // construct the adapter from this data source
         mMessageAdapter = new MessageAdapter(this, mMessages);
-        // RecyclerView setup (layout manager, use adapter)
-         //set the adapter
+        // RecyclerView setup (layout manager, adapter)
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
+        //set the adapter
         mRecyclerView.setAdapter(mMessageAdapter);
 
 

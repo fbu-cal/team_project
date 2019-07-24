@@ -46,14 +46,14 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         viewHolder.mUsername.setText(message.get("username").toString());
         viewHolder.mMessageText.setText(message.get("messageText").toString());
 
-        String sDate1=message.get("timeSent").toString();
-        Date date1 = new Date();
+        String stringDate = message.get("timeSent").toString();
+        Date date = new Date();
         try {
-            date1 = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy").parse(sDate1);
+            date = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy").parse(stringDate);
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        viewHolder.mMessageTimeStamp.setText(getRelativeTimeAgo(date1));
+        viewHolder.mMessageTimeStamp.setText(getRelativeTimeAgo(date));
     }
 
     @Override

@@ -28,7 +28,6 @@ public class Message {
     }
 
     public String getMessageText(){
-        System.out.println("Yeah"+messageText);
         return messageText;
     }
 
