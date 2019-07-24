@@ -16,7 +16,7 @@ public class ComposeMessageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.message_compose);
+        setContentView(R.layout.activity_compose_message);
 
         mMessageTextInput = findViewById(R.id.etMessageText);
         mSendButton = findViewById(R.id.btnSend);

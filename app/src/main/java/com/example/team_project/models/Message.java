@@ -7,14 +7,16 @@ import java.util.Map;
 
 public class Message {
 
-    private String userId;
+    private String senderId;
+    private String receiverId;
     private String messageText;
     private String username;
     private Date timeSent;
     private long messageTimeStamp;
 
-    public Message(String userId, String username, String messageText){
-        this.userId = userId;
+    public Message(String senderId, String receiverId, String username, String messageText){
+        this.senderId = senderId;
+        this.receiverId = receiverId;
         this.messageText = messageText;
         this.username = username;
     }
@@ -55,7 +57,8 @@ public class Message {
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        result.put("userId", userId);
+        result.put("senderId", senderId);
+        result.put("receiverId", receiverId);
         result.put("messageText", messageText);
         result.put("username", username);
         result.put("timeSent", timeSent.toString());
