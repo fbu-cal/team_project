@@ -139,7 +139,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.fridayAfternoonSunsetImageButton:
                 if (mPosts.get("fridayAfternoon")) {
                     mFreeTime.remove("fridayAfternoon");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("fridayAfternoon");
                     mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -148,7 +148,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.fridayEveningMoonImageButton:
                 if (mPosts.get("fridayEvening")) {
                     mFreeTime.remove("fridayEvening");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("fridayEvening");
                     mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -157,7 +157,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.saturdayMorningSunImageButton:
                 if (mPosts.get("saturdayMorning")) {
                     mFreeTime.remove("saturdayMorning");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("saturdayMorning");
                     mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -166,7 +166,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.saturdayAfternoonSunsetImageButton:
                 if (mPosts.get("saturdayAfternoon")) {
                     mFreeTime.remove("saturdayAfternoon");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("saturdayAfternoon");
                     mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -175,7 +175,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.saturdayEveningImageButton:
                 if (mPosts.get("saturdayEvening")) {
                     mFreeTime.remove("saturdayEvening");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("saturdayEvening");
                     mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -184,7 +184,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.sundayMorningSunImageButton:
                 if (mPosts.get("sundayMorning")) {
                     mFreeTime.remove("sundayMorning");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 }
                 addToAvailableTimes("sundayMorning");
                 mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -192,7 +192,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.sundayAfternoonSunsetImageButton:
                 if (mPosts.get("sundayAfternoon")) {
                     mFreeTime.remove("sundayAfternoon");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("sundayAfternoon");
                     mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -201,7 +201,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             case R.id.sundayEveningImageButton:
                 if (mPosts.get("sundayEvening")) {
                     mFreeTime.remove("sundayEvening");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                    mSundayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("sundayEvening");
                     mSundayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
@@ -228,16 +228,16 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      * the logs are for testing of the data is being gotten
      */
     private void getUserCalendar() {
-        final Query query = mReference.child("calendar");
+        final Query query = mReference.child("user-calendar/" + userId);
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                //for (DataSnapshot data : dataSnapshot.getChildren()) {
                     mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
                     Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
                     Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
                     Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
-                }
+                //}
             }
 
             @Override
@@ -352,7 +352,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      *  child updates , then it launches to the home screen
      */
     private void writeNewPost(String userId, HashMap mFreeTime) {
-        String calendarKey = mReference.child("calendar").push().getKey();
+        String calendarKey = mReference.child("user-calendar").push().getKey();
         Calendar calendar = new Calendar(userId, mFreeTime);
         Map<String, Object> postValues = calendar.toMap();
 

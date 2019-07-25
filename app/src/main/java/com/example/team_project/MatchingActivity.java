@@ -1,46 +1,58 @@
 package com.example.team_project;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
-import com.example.team_project.MainActivity;
-import com.example.team_project.R;
+
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class MatchingActivity extends Activity {
 
-    private ArrayList<String> al;
+    private ArrayList<String> mMatches;
     private ArrayAdapter<String> arrayAdapter;
     private int i;
+    public HashMap<String, Object> mNewCalendar;
+    DatabaseReference mReference;
+    private HashMap<String, Boolean> mPosts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_matching);
-
+        mReference = FirebaseDatabase.getInstance().getReference();
+        mPosts = new HashMap<String, Boolean>();
+        getUserCalendar();
         /**
-         * Adding to al is the name card,
+         * Adding to mMatches is the name card,
          * i should keep the userId here and
          * add a new box with info about the user
          * maybe profile image
          */
-        al = new ArrayList<>();
-        al.add("php");
-        al.add("c");
-        al.add("python");
-        al.add("java");
-        al.add("html");
-        al.add("c++");
-        al.add("css");
-        al.add("javascript");
+        mMatches = new ArrayList<>();
+        mMatches.add("php");
+        mMatches.add("c");
+        mMatches.add("python");
+        mMatches.add("java");
+        mMatches.add("html");
+        mMatches.add("c++");
+        mMatches.add("css");
+        mMatches.add("javascript");
 
-        arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, al );
+        arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, mMatches);
 
         /**
          * Removes the cards from the array here
@@ -52,7 +64,7 @@ public class MatchingActivity extends Activity {
             public void removeFirstObjectInAdapter() {
                 // this is the simplest way to delete an object from the Adapter (/AdapterView)
                 Log.d("LIST", "removed object!");
-                al.remove(0);
+                mMatches.remove(0);
                 arrayAdapter.notifyDataSetChanged();
             }
 
@@ -86,7 +98,7 @@ public class MatchingActivity extends Activity {
             @Override
             public void onAdapterAboutToEmpty(int itemsInAdapter) {
                 // Ask for more data here
-                al.add("XML ".concat(String.valueOf(i)));
+                mMatches.add("XML ".concat(String.valueOf(i)));
                 arrayAdapter.notifyDataSetChanged();
                 Log.d("LIST", "notified");
                 i++;
@@ -106,6 +118,50 @@ public class MatchingActivity extends Activity {
         flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
             @Override
             public void onItemClicked(int itemPosition, Object dataObject) {
+
+            }
+        });
+    }
+
+    private void getUserCalendar() {
+        final Query query = mReference.child("calendar");
+        query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                    Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
+                    Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
+                    Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
+        mReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (mNewCalendar != null) {
+                    mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
         });
