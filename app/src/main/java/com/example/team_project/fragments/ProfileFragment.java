@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.example.team_project.CalendarActivity;
 import com.example.team_project.FirstActivity;
 import com.example.team_project.LoginActivity;
+import com.example.team_project.MatchingActivity;
 import com.example.team_project.ProfilePictureActivity;
 import com.example.team_project.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,7 +36,7 @@ import java.util.Map;
 
 
 public class ProfileFragment extends Fragment {
-    private Button mCalendarButton, mLogoutButton, mUploadPictureButton;
+    private Button mCalendarButton, mLogoutButton, mUploadPictureButton, mSwipeButton;
     private ImageView mProfileImage;
     private TextView mFullname, mUsername;
     // context for rendering
@@ -62,11 +63,19 @@ public class ProfileFragment extends Fragment {
         mProfileImage = view.findViewById(R.id.profile_image_view);
         mFullname = view.findViewById(R.id.fullname_text_view);
         mUsername = view.findViewById(R.id.username_text_view);
+        mSwipeButton = view.findViewById(R.id.mSwipeButton);
 
         mCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 launchCalendar();
+            }
+        });
+
+        mSwipeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchSwipe();
             }
         });
 
@@ -88,6 +97,11 @@ public class ProfileFragment extends Fragment {
         });
 
         setUserInformation();
+    }
+
+    private void launchSwipe() {
+        final Intent intent = new Intent(getActivity(), MatchingActivity.class);
+        startActivity(intent);
     }
 
     private void launchCalendar() {

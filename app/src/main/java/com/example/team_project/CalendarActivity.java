@@ -20,6 +20,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,18 +41,19 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     private ImageButton mSundayEveningImageButton;
     DatabaseReference mReference;
     Calendar mCalendar;
-    public ArrayList<String> mFreeTime = new ArrayList<String>();
+    public HashMap<String, Boolean> mFreeTime;
     private FirebaseAuth mAuth;
     String userId;
-    private ArrayList<Map<String, Object>> mPosts;
+    private HashMap<String, Boolean> mPosts;
     public List<String> mUserFreeTime;
+    public HashMap<String, Object> mNewCalendar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
 
-        mPosts = new ArrayList<Map<String, Object>>();
-        mFreeTime = new ArrayList<String>();
+        mPosts = new HashMap<String, Boolean>();
+        mFreeTime = new HashMap<String, Boolean>();
         //set up the variables with their buttons
         mSubmitCalendarButton = findViewById(R.id.editCalendarButton);
         mUserFreeTime = new ArrayList<>();
@@ -86,7 +88,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
 
         getUserCalendar();
         /**
-         * when clicked data will be sent from ArraƒyList here to the other
+         * when clicked data will be sent from ArrayList here to the other
          * file one and then push to data base
          */
 
@@ -95,12 +97,11 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             public void onClick(View v) {
                 if (mFreeTime.size() != 0) {
                     writeNewPost(userId, mFreeTime);
+                    //Log.i("CalendarActivity", "!!!Map22!!: " + mNewCalendar.get("mFreeTime"));
                     Toast.makeText(CalendarActivity.this, "data inserted successfully", Toast.LENGTH_LONG).show();
-                    Log.i("CalendarActivity", "!!!Map22: " + mPosts);
-                } else {
-                    Toast.makeText(CalendarActivity.this, "nothing is in calendar", Toast.LENGTH_LONG).show();
+                    //Log.i("CalendarActivity", "!!!Map22: " + mNewCalendar);
+                    }
                 }
-            }
         });
     }
     /**private void editRoute() {
@@ -126,45 +127,85 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fridayMorningSunImageButton:
-                if (mPosts.get(0).equals("fridayMorning")) {
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                //it is in calendar so remove
+                if (mPosts.get("fridayMorning")) {
+                    mFreeTime.remove("fridayMorning");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
                 } else {
                     addToAvailableTimes("fridayMorning");
                     mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
                 }
                 break;
             case R.id.fridayAfternoonSunsetImageButton:
-                addToAvailableTimes("fridayAfternoon");
-                mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.get("fridayAfternoon")) {
+                    mFreeTime.remove("fridayAfternoon");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                } else {
+                    addToAvailableTimes("fridayAfternoon");
+                    mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                }
                 break;
             case R.id.fridayEveningMoonImageButton:
-                addToAvailableTimes("fridayEvening");
-                mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.get("fridayEvening")) {
+                    mFreeTime.remove("fridayEvening");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                } else {
+                    addToAvailableTimes("fridayEvening");
+                    mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                }
                 break;
             case R.id.saturdayMorningSunImageButton:
-                addToAvailableTimes("saturdayMorning");
-                mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.get("saturdayMorning")) {
+                    mFreeTime.remove("saturdayMorning");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                } else {
+                    addToAvailableTimes("saturdayMorning");
+                    mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                }
                 break;
             case R.id.saturdayAfternoonSunsetImageButton:
-                addToAvailableTimes("saturdayAfternoon");
-                mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.get("saturdayAfternoon")) {
+                    mFreeTime.remove("saturdayAfternoon");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                } else {
+                    addToAvailableTimes("saturdayAfternoon");
+                    mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                }
                 break;
             case R.id.saturdayEveningImageButton:
-                addToAvailableTimes("saturdayEvening");
-                mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.get("saturdayEvening")) {
+                    mFreeTime.remove("saturdayEvening");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                } else {
+                    addToAvailableTimes("saturdayEvening");
+                    mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                }
                 break;
             case R.id.sundayMorningSunImageButton:
+                if (mPosts.get("sundayMorning")) {
+                    mFreeTime.remove("sundayMorning");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                }
                 addToAvailableTimes("sundayMorning");
                 mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
                 break;
             case R.id.sundayAfternoonSunsetImageButton:
-                addToAvailableTimes("sundayAfternoon");
-                mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.get("sundayAfternoon")) {
+                    mFreeTime.remove("sundayAfternoon");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                } else {
+                    addToAvailableTimes("sundayAfternoon");
+                    mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                }
                 break;
             case R.id.sundayEveningImageButton:
-                addToAvailableTimes("sundayEvening");
-                mSundayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
-                addToAvailableTimes("fridayMorning");
+                if (mPosts.get("sundayEvening")) {
+                    mFreeTime.remove("sundayEvening");
+                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                } else {
+                    addToAvailableTimes("sundayEvening");
+                    mSundayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                }
                 break;
             default:
                 break;
@@ -178,7 +219,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      */
 
     private void addToAvailableTimes(String freeTime) {
-        mFreeTime.add(freeTime);
+        mFreeTime.put(freeTime, true);
     }
 
     /**
@@ -192,11 +233,10 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    Map<String, Object> newCalendar = (Map<String, Object>) dataSnapshot.getValue();
-                    Log.i("CalendarActivity", "Free Time: " + newCalendar.get("mFreeTime"));
-                    Log.i("CalendarActivity", "UserId: " + newCalendar.get("userId"));
-                    mPosts.add(newCalendar);
-                    Log.i("CalendarActivity", "!!!Map: " + mPosts);
+                    mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                    Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
+                    Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
+                    Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
                 }
             }
 
@@ -216,6 +256,93 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
+        mReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (mNewCalendar != null) {
+                    mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
+                }
+                makeComplete();
+                Log.i("CalendarActivity", "mPosts: " + mPosts);
+                checkData();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void makeComplete() {
+        if (!mPosts.containsKey("fridayMorning")) {
+            mPosts.put("fridayMorning", false);
+        }
+        if (!mPosts.containsKey("fridayAfternoon")) {
+            mPosts.put("fridayAfternoon", false);
+        }
+        if (!mPosts.containsKey("fridayEvening")) {
+            mPosts.put("fridayEvening", false);
+        }
+        if (!mPosts.containsKey("saturdayMorning")) {
+            mPosts.put("saturdayMorning", false);
+        }
+        if (!mPosts.containsKey("saturdayAfternoon")) {
+            mPosts.put("saturdayAfternoon", false);
+        }
+        if (!mPosts.containsKey("saturdayEvening")) {
+            mPosts.put("saturdayEvening", false);
+        }
+        if (!mPosts.containsKey("sundayMorning")) {
+            mPosts.put("sundayMorning", false);
+        }
+        if (!mPosts.containsKey("sundayAfternoon")) {
+            mPosts.put("sundayAfternoon", false);
+        }
+        if (!mPosts.containsKey("sundayEvening")) {
+            mPosts.put("sundayEvening", false);
+        }
+    }
+
+    private void checkData() {
+        Log.i("CalendarActivity", "mPosts: " + mPosts.get("fridayMorning"));
+        Log.i("CalendarActivity", "mPosts: " + mPosts);
+        if (mPosts.get("fridayMorning")) {
+            addToAvailableTimes("fridayMorning");
+            mFridayMorningSunImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("fridayAfternoon")) {
+            addToAvailableTimes("fridayAfternoon");
+            mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("fridayEvening")) {
+            addToAvailableTimes("fridayEvening");
+            mFridayEveningMoonImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("saturdayMorning")) {
+            addToAvailableTimes("saturdayMorning");
+            mSaturdayMorningSunImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("saturdayAfternoon")) {
+            addToAvailableTimes("saturdayAfternoon");
+            mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("saturdayEvening")) {
+            addToAvailableTimes("saturdayEvening");
+            mSaturdayEveningImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("sundayMorning")) {
+            addToAvailableTimes("sundayMorning");
+            mSundayMorningSunImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("sundayAfternoon")) {
+            addToAvailableTimes("sundayAfternoon");
+            mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
+        if (mPosts.get("sundayEvening")) {
+            addToAvailableTimes("sundayEvening");
+            mSundayEveningImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+        }
     }
 
     /**
@@ -224,13 +351,15 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      *  the structure of the data base is decided with the
      *  child updates , then it launches to the home screen
      */
-    private void writeNewPost(String userId, ArrayList mFreeTime) {
-        String calendarKey = mReference.push().getKey();
+    private void writeNewPost(String userId, HashMap mFreeTime) {
+        String calendarKey = mReference.child("calendar").push().getKey();
         Calendar calendar = new Calendar(userId, mFreeTime);
         Map<String, Object> postValues = calendar.toMap();
+
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/calendar/" + calendarKey, postValues);
         childUpdates.put("/user-calendar/" + userId + "/" + calendarKey, postValues);
+
         Log.i("CalendarActivity", "Key: " + calendarKey);
         mReference.updateChildren(childUpdates);
         //Toast.makeText(this, "Post Successful!", Toast.LENGTH_LONG).show();
