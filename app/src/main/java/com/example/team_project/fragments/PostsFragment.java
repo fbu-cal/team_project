@@ -22,8 +22,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PostsFragment extends Fragment {
 
@@ -87,7 +90,7 @@ public class PostsFragment extends Fragment {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
                 }
 
-                // Bind Post to ViewHolder, setting OnClickListener for the star button
+                // Bind Post to ViewHolder, setting OnClickListener for the like button
                 try {
                     viewHolder.bindToPost(model, new View.OnClickListener() {
                         @Override
@@ -136,7 +139,7 @@ public class PostsFragment extends Fragment {
             public void onComplete(DatabaseError databaseError, boolean b,
                                    DataSnapshot dataSnapshot) {
                 // Transaction completed
-                Log.d(TAG, "postTransaction onComplete: " + databaseError);
+                Log.d("PostsFragment", "postTransaction onComplete: " + databaseError);
             }
         });
     }
@@ -154,12 +157,10 @@ public class PostsFragment extends Fragment {
     }
 
     public Query getQuery(DatabaseReference databaseReference) {
-        // [START recent_posts_query]
         // Last 100 posts, these are automatically the 100 most recent
         // due to sorting by push() keys
         Query recentPostsQuery = databaseReference.child("posts")
-                .limitToFirst(20);
-        // [END recent_posts_query]
+                .limitToFirst(100);
 
         return recentPostsQuery;
     }

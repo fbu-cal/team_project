@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @IgnoreExtraProperties
-public class Friends {
+public class Friend {
 
     public String uid;
     public boolean outboundRequest;
@@ -15,14 +15,14 @@ public class Friends {
     public boolean friends;
     public String timestamp;
 
-    public Friends() {
+    public Friend() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Friends(String uid, Boolean outboundRequest, boolean inboundRequest) {
+    public Friend(String uid, Boolean outboundRequest) {
         this.uid = uid;
         this.outboundRequest = outboundRequest;
-        this.inboundRequest = inboundRequest;
+        this.inboundRequest = false;
         this.friends = false;
     }
 

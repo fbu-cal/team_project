@@ -66,6 +66,14 @@ public class SignupActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Please enter password!", Toast.LENGTH_LONG).show();
             return;
         }
+        if (TextUtils.isEmpty(fullname)) {
+            Toast.makeText(getApplicationContext(), "Please enter fullname!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (TextUtils.isEmpty(username)) {
+            Toast.makeText(getApplicationContext(), "Please enter username!", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {

@@ -36,59 +36,59 @@ import java.util.Map;
 
 public class SearchViewHolder extends RecyclerView.ViewHolder {
 
-    public TextView tvUsername;
-
+    public TextView mUsername;
+    public ImageView mProfileImage;
 
     public SearchViewHolder(View itemView) {
         super(itemView);
 
-        tvUsername = (TextView) itemView.findViewById(R.id.username_text_view);
+        mUsername = (TextView) itemView.findViewById(R.id.username_text_view);
+        mProfileImage = itemView.findViewById(R.id.profile_image_view);
     }
 
     public void bindToPost(final User user) throws IOException {
-        tvUsername.setText(user.username);
+        mUsername.setText(user.username);
 
-        // TODO - add picture next to username for search
-//        Query query = FirebaseDatabase.getInstance().getReference("users")
-//                .orderByChild("username");
-//        query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
-//            @Override
-//            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-//                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-//                // check if user is the current user
-//                if (newUser.get("uid").toString().equals(post.uid)) {
-//                    if (newUser.get("profile_picture") != null) {
-//                        String imageUrl = newUser.get("profile_picture").toString();
-//                        // if profile pic is already set
-//                        if (!imageUrl.equals("")) {
-//                            Log.i("PostViewHolder", "imageUrl: " + imageUrl);
-//                            try {
-//                                // set profile picture
-//                                Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-//                                Bitmap circularImage = getCircleBitmap(realImage);
-//                                Log.i("PostViewHolder", "realImage: " + realImage);
-//                                mProfilePicture.setImageBitmap(circularImage);
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                                Log.e("PostViewHolder", "Profile pic issue", e);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            @Override
-//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//            }
-//            @Override
-//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-//            }
-//            @Override
-//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//            }
-//        });
+        Query query = FirebaseDatabase.getInstance().getReference("users")
+                .orderByChild("username");
+        query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
+            @Override
+            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
+                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
+                // check if user is the current user
+                if (newUser.get("uid").toString().equals(user.uid)) {
+                    if (newUser.get("profile_picture") != null) {
+                        String imageUrl = newUser.get("profile_picture").toString();
+                        // if profile pic is already set
+                        if (!imageUrl.equals("")) {
+                            Log.i("PostViewHolder", "imageUrl: " + imageUrl);
+                            try {
+                                // set profile picture
+                                Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
+                                Bitmap circularImage = getCircleBitmap(realImage);
+                                Log.i("PostViewHolder", "realImage: " + realImage);
+                                mProfileImage.setImageBitmap(circularImage);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Log.e("PostViewHolder", "Profile pic issue", e);
+                            }
+                        }
+                    }
+                }
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+            }
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
 
     }
 

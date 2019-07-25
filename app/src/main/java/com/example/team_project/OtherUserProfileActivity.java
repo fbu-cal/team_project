@@ -2,13 +2,10 @@ package com.example.team_project;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -19,7 +16,6 @@ import android.widget.TextView;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,18 +23,19 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class OtherUserProfileActivity extends AppCompatActivity {
 
-    private String uid;
+    private String mProfileOwnerUid;
+    private String mCurrentUserUid;
     private String username;
 
-    private TextView mUsername, mFullname;
+    private TextView mUsernameText, mFullnameText;
     private ImageView mProfileImage;
     private Button mAddFriendButton;
     private RecyclerView mRecyclerView;
@@ -47,20 +44,19 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private LinearLayoutManager mManager;
 
-    String tempUsername;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_other_user_profile);
 
-        mUsername = findViewById(R.id.username_text_view);
-        mFullname = findViewById(R.id.fullname_text_view);
+        mUsernameText = findViewById(R.id.username_text_view);
+        mFullnameText = findViewById(R.id.fullname_text_view);
         mProfileImage = findViewById(R.id.profile_image_view);
         mAddFriendButton = findViewById(R.id.add_friend_button);
-
         mRecyclerView = findViewById(R.id.post_recycler_view);
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        // get current logged in user uid
+        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         mRecyclerView.setHasFixedSize(true);
         // Set up Layout Manager, reverse layout
@@ -68,6 +64,15 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         mManager.setReverseLayout(true);
         mManager.setStackFromEnd(true);
         mRecyclerView.setLayoutManager(mManager);
+
+        // unwrap the post passed in via intent, using its simple name as a key
+        mProfileOwnerUid = getIntent().getStringExtra("uid");
+        // set variables with content from post
+        findUser();
+
+
+        // update mAddFriend button to reflect current friend status
+        updateTextButton();
 
         // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = getQuery(mDatabase);
@@ -87,14 +92,12 @@ public class OtherUserProfileActivity extends AppCompatActivity {
 //                        startActivity(intent);
                     }
                 });
-
                 // Determine if the current user has liked this post and set UI accordingly
-                if (model.likes.containsKey(getUid())) {
+                if (model.likes.containsKey(mCurrentUserUid)) {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                 } else {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
                 }
-
                 // Bind Post to ViewHolder, setting OnClickListener for the star button
                 try {
                     viewHolder.bindToPost(model, new View.OnClickListener() {
@@ -115,64 +118,230 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         };
         mRecyclerView.setAdapter(mAdapter);
 
-        // unwrap the post passed in via intent, using its simple name as a key
-        uid = getIntent().getStringExtra("uid");
-        // set variables with content from post
-        findUser();
-
-
-        Log.i("OtherUser", "EEEP: "+tempUsername);
+        // TODO
+        // Set button to "Add friend" if both haven't sent request
+        // Set button to "Request sent" if user sent and disable button
+        // Set button to "Accept request" if other sent
+        // Set button to "Message friend" if users are friends
 
         mAddFriendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("OtherUser", "Maybe one day you will be friends :')");
+                String buttonText = mAddFriendButton.getText().toString();
+                if (buttonText.equals("Add Friend")) {
+                    addFriend();
+                }
+                else if (buttonText.equals("Accept Request")) {
+                    acceptRequest();
+                }
+                // check button text
+                // if button text = "add friend"
+                    // create new friend object and post to firebase for both users
+                    // change button text to "Request sent"
+                // if button text = "accept request"
+                    // update friend object for both users
+                    // change button text to "Message friend"
+                // if button text = "message friend"
+                    // redirect user to message
+            }
+        });
+    }
+
+    private void acceptRequest() {
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        final DatabaseReference reference = firebaseDatabase.getReference();
+        // update for current user
+        Query query = reference.child("users").child(mCurrentUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String statusPath = "/users/" + mCurrentUserUid + "/friendStatuses";
+                Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
+                userFriends.put(mProfileOwnerUid, "Already Friends");
+                reference.child(statusPath).updateChildren(userFriends);
+                String listPath = "/users/" + mCurrentUserUid + "/friendList";
+                Map<String, Object> userFriendsList = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                if (userFriendsList == null) {
+                    userFriendsList = new HashMap<>();
+                    userFriendsList.put(mProfileOwnerUid, true);
+                    reference.child(listPath).updateChildren(userFriendsList);
+                }
+                else {
+                    userFriendsList.put(mProfileOwnerUid, true);
+                    reference.child(listPath).updateChildren(userFriendsList);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+        // update for other user
+        query = reference.child("users").child(mProfileOwnerUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String statusPath = "/users/" + mProfileOwnerUid + "/friendStatuses";
+                Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
+                userFriends.put(mCurrentUserUid, "Already Friends");
+                reference.child(statusPath).updateChildren(userFriends);
+                String listPath = "/users/" + mProfileOwnerUid + "/friendList";
+                Map<String, Object> userFriendsList = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                if (userFriendsList == null) {
+                    userFriendsList = new HashMap<>();
+                    userFriendsList.put(mCurrentUserUid, true);
+                    reference.child(listPath).updateChildren(userFriendsList);
+                }
+                else {
+                    userFriendsList.put(mCurrentUserUid, true);
+                    reference.child(listPath).updateChildren(userFriendsList);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+        mAddFriendButton.setText("Already Friends");
+        mAddFriendButton.setEnabled(false);
+    }
+
+    public void updateTextButton () {
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        final DatabaseReference reference = firebaseDatabase.getReference();
+        Query query = reference.child("users").child(mCurrentUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String path = "/users/" + mCurrentUserUid + "/friendStatuses";
+                Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
+                if (userFriends == null) {
+                    mAddFriendButton.setText("Add Friend");
+                }
+                else {
+                    if (!userFriends.containsKey(mProfileOwnerUid)) {
+                        mAddFriendButton.setText("Add Friend");
+                    }
+                    else {
+                        if (userFriends.get(mProfileOwnerUid).equals("Sent Request")) {
+                            mAddFriendButton.setText("Request Sent");
+                            mAddFriendButton.setEnabled(false);
+                        }
+                        else if (userFriends.get(mProfileOwnerUid).equals("Received Request")) {
+                            mAddFriendButton.setText("Accept Request");
+                        }
+                        else if (userFriends.get(mProfileOwnerUid).equals("Already Friends")) {
+                            mAddFriendButton.setText("Already Friends");
+                            mAddFriendButton.setEnabled(false);
+                        }
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+
+    public void addFriend () {
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        final DatabaseReference reference = firebaseDatabase.getReference();
+        Query query = reference.child("users").child(mCurrentUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String path = "/users/" + mCurrentUserUid + "/friendStatuses";
+                Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
+                if (userFriends == null) {
+                    HashMap<String, Object> result = new HashMap<>();
+                    result.put(mProfileOwnerUid, "Sent Request");
+                    reference.child(path).updateChildren(result);
+                    mAddFriendButton.setText("Sent Request");
+                    mAddFriendButton.setEnabled(false);
+                    updateOtherUser("Received Request");
+                }
+                else {
+                    if (!userFriends.containsKey(mProfileOwnerUid)) {
+                        userFriends.put(mProfileOwnerUid, "Sent Request");
+                        reference.child(path).updateChildren(userFriends);
+                        mAddFriendButton.setText("Sent Request");
+                        mAddFriendButton.setEnabled(false);
+                        updateOtherUser("Received Request");
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+    public void updateOtherUser (final String status) {
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        final DatabaseReference reference = firebaseDatabase.getReference();
+        Query query = reference.child("users").child(mProfileOwnerUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String path = "/users/" + mProfileOwnerUid + "/friendStatuses";
+                Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
+                if (userFriends == null) {
+                    HashMap<String, Object> result = new HashMap<>();
+                    result.put(mCurrentUserUid, status);
+                    reference.child(path).updateChildren(result);
+                    mAddFriendButton.setText(status);
+                    mAddFriendButton.setEnabled(false);
+                }
+                else {
+                    if (!userFriends.containsKey(mCurrentUserUid)) {
+                        userFriends.put(mCurrentUserUid, status);
+                        reference.child(path).updateChildren(userFriends);
+                        mAddFriendButton.setText(status);
+                        mAddFriendButton.setEnabled(false);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
     }
 
     public void findUser () {
-        Query query = FirebaseDatabase.getInstance().getReference("users")
-                .orderByChild("username");
-            query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        final DatabaseReference reference = firebaseDatabase.getReference();
+        Query query = reference.child("users").child(mProfileOwnerUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-                if (newUser.get("uid").toString().equals(uid)) {
-                    uid = newUser.get("uid").toString();
-                    username = newUser.get("username").toString();
-                    mUsername.setText(username);
-                    tempUsername = username;
-
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                mProfileOwnerUid = newUser.get("uid").toString();
+                username = newUser.get("username").toString();
+                mUsernameText.setText(username);
+                mFullnameText.setText(newUser.get("fullname").toString());
+                if (newUser.get("profile_picture")!=null) {
                     String imageUrl = newUser.get("profile_picture").toString();
                     // if profile pic is already set
                     if (!imageUrl.equals("")) {
-                        Log.i("PostViewHolder", "imageUrl: " + imageUrl);
                         try {
                             // set profile picture
                             Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-//                                Bitmap circularImage = getCircleBitmap(realImage);
-                            Log.i("PostViewHolder", "realImage: " + realImage);
+//                          Bitmap circularImage = getCircleBitmap(realImage);
                             mProfileImage.setImageBitmap(realImage);
                         } catch (IOException e) {
                             e.printStackTrace();
                             Log.e("PostViewHolder", "Profile pic issue", e);
                         }
                     }
-                    mFullname.setText(newUser.get("fullname").toString());
                 }
             }
             @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
     }
@@ -191,16 +360,15 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     return Transaction.success(mutableData);
                 }
 
-                if (p.likes.containsKey(getUid())) {
+                if (p.likes.containsKey(mCurrentUserUid)) {
                     // Unlike the post and remove self from likes
                     p.likeCount = p.likeCount - 1;
-                    p.likes.remove(getUid());
+                    p.likes.remove(mCurrentUserUid);
                 } else {
                     // Unlike the post and add self to likes
                     p.likeCount = p.likeCount + 1;
-                    p.likes.put(getUid(), true);
+                    p.likes.put(mCurrentUserUid, true);
                 }
-
                 // Set value and report transaction success
                 mutableData.setValue(p);
                 return Transaction.success(mutableData);
@@ -223,19 +391,12 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         }
     }
 
-    public String getUid() {
-        return FirebaseAuth.getInstance().getCurrentUser().getUid();
-    }
-
     public Query getQuery(DatabaseReference databaseReference) {
-        // [START recent_posts_query]
         // Last 100 posts, these are automatically the 100 most recent
-        // due to sorting by push() keys
         Query recentPostsQuery = databaseReference.child("posts")
                 .orderByChild("uid")
-                .equalTo(getUid())
+                .equalTo(mProfileOwnerUid)
                 .limitToFirst(20);
-        // [END recent_posts_query]
 
         return recentPostsQuery;
     }

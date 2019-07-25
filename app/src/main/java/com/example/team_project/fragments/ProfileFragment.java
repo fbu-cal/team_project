@@ -171,18 +171,20 @@ public class ProfileFragment extends Fragment {
                     // set fullname and username
                     mFullname.setText(newUser.get("fullname").toString());
                     mUsername.setText("@" + newUser.get("username").toString());
-                    String imageUrl = newUser.get("profile_picture").toString();
-                    // if profile pic is already set
-                    if (!imageUrl.equals("")) {
-                        Log.i("ProfileFragment", "imageUrl: " + imageUrl);
-                        try {
-                            // set profile picture
-                            Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-                            Log.i("ProfileFragment", "realImage: " + realImage);
-                            mProfileImage.setImageBitmap(realImage);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            Log.e("ProfileFragment", "Profile pic issue", e);
+                    if (newUser.get("profile_picture")!=null) {
+                        String imageUrl = newUser.get("profile_picture").toString();
+                        // if profile pic is already set
+                        if (!imageUrl.equals("")) {
+                            Log.i("ProfileFragment", "imageUrl: " + imageUrl);
+                            try {
+                                // set profile picture
+                                Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
+                                Log.i("ProfileFragment", "realImage: " + realImage);
+                                mProfileImage.setImageBitmap(realImage);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Log.e("ProfileFragment", "Profile pic issue", e);
+                            }
                         }
                     }
                 }

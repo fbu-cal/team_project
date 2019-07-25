@@ -15,6 +15,8 @@ public class User {
     public String email;
     public String fullname;
     public String profilePicture;
+    public Map<String, String> friendStatuses = new HashMap<String, String>();
+    public Map<String, Boolean> friendList = new HashMap<String, Boolean>();
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -36,6 +38,8 @@ public class User {
         result.put("email", email);
         result.put("fullname", fullname);
         result.put("profile_picture", profilePicture);
+        result.put("friendStatuses", friendStatuses);
+        result.put("friendList", friendList);
         return result;
     }
 
