@@ -38,8 +38,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -49,7 +51,7 @@ public class ProfileFragment extends Fragment {
     private TextView mFullname, mUsername;
     // context for rendering
     Context context;
-    private String uid;
+    private String mCurrentUserUid;
 
     private RecyclerView mRecyclerView;
     private DatabaseReference mDatabase;
@@ -68,7 +70,7 @@ public class ProfileFragment extends Fragment {
     // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         mCalendarButton = view.findViewById(R.id.calendar_button);
         mProfileImage = view.findViewById(R.id.profile_image_view);
@@ -122,7 +124,7 @@ public class ProfileFragment extends Fragment {
                 });
 
                 // Determine if the current user has liked this post and set UI accordingly
-                if (model.likes.containsKey(getUid())) {
+                if (model.likes.containsKey(mCurrentUserUid)) {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                 } else {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
@@ -134,11 +136,13 @@ public class ProfileFragment extends Fragment {
                         @Override
                         public void onClick(View starView) {
                             // Need to write to both places the post is stored
-                            DatabaseReference globalPostRef = mDatabase.child("posts").child(postRef.getKey());
-                            DatabaseReference userPostRef = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            // Run two transactions
-                            onLikeClicked(globalPostRef);
-                            onLikeClicked(userPostRef);
+                            Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                            Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+                            String globalPostPath = "/posts/" + postRef.getKey();
+                            String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
+                            onLikeClicked(globalPostQuery, globalPostPath);
+                            onLikeClicked(userPostQuery, userPostPath);
+                            updateAllFeedsLikes(postRef.getKey());
                         }
                     });
                 } catch (IOException e) {
@@ -167,7 +171,7 @@ public class ProfileFragment extends Fragment {
             public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
                 Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
                 // check if user is the current user
-                if (newUser.get("uid").toString().equals(uid)) {
+                if (newUser.get("uid").toString().equals(mCurrentUserUid)) {
                     // set fullname and username
                     mFullname.setText(newUser.get("fullname").toString());
                     mUsername.setText("@" + newUser.get("username").toString());
@@ -209,53 +213,74 @@ public class ProfileFragment extends Fragment {
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
     }
 
-    public String getUid() {
-        return FirebaseAuth.getInstance().getCurrentUser().getUid();
-    }
-
     public Query getQuery(DatabaseReference databaseReference) {
         // [START recent_posts_query]
         // Last 100 posts, these are automatically the 100 most recent
         // due to sorting by push() keys
-        Query recentPostsQuery = databaseReference.child("posts")
-                .orderByChild("uid")
-                .equalTo(getUid())
+        Query recentPostsQuery = databaseReference.child("user-posts")
+                .child(mCurrentUserUid)
                 .limitToFirst(20);
         // [END recent_posts_query]
 
         return recentPostsQuery;
     }
 
-
-    private void onLikeClicked(DatabaseReference postRef) {
-        postRef.runTransaction(new Transaction.Handler() {
+    private void onLikeClicked (Query query, final String path) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public Transaction.Result doTransaction(MutableData mutableData) {
-                Post p = mutableData.getValue(Post.class);
-                if (p == null) {
-                    return Transaction.success(mutableData);
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String likesPath = path + "/likes";
+                String likeCountPath = path + "/likeCount";
+                Map<String, Object> likesMap = (Map<String, Object>) dataSnapshot.child("likes").getValue();
+                Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
+                if (likesMap == null) {
+                    likesMap = new HashMap<>();
+                    likeCount = likeCount + 1;
+                    likesMap.put(mCurrentUserUid, true);
                 }
-
-                if (p.likes.containsKey(getUid())) {
-                    // Unlike the post and remove self from likes
-                    p.likeCount = p.likeCount - 1;
-                    p.likes.remove(getUid());
-                } else {
-                    // Unlike the post and add self to likes
-                    p.likeCount = p.likeCount + 1;
-                    p.likes.put(getUid(), true);
+                else {
+                    if (likesMap.containsKey(mCurrentUserUid)) {
+                        likeCount = likeCount - 1;
+                        likesMap.remove(mCurrentUserUid);
+                        mDatabase.child(likesPath).removeValue();
+                    }
+                    else {
+                        likeCount = likeCount + 1;
+                        likesMap.put(mCurrentUserUid, true);
+                    }
                 }
-
-                // Set value and report transaction success
-                mutableData.setValue(p);
-                return Transaction.success(mutableData);
+                mDatabase.child(likesPath).updateChildren(likesMap);
+                mDatabase.child(likeCountPath).setValue(likeCount);
             }
 
             @Override
-            public void onComplete(DatabaseError databaseError, boolean b,
-                                   DataSnapshot dataSnapshot) {
-                // Transaction completed
-                Log.d("OtherUser", "postTransaction onComplete: " + databaseError);
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    // updates likes for post in all user feeds
+    private void updateAllFeedsLikes(final String postRefKey) {
+        Query query = mDatabase.child("users").child(mCurrentUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // update current user's feed
+                Query userTempQuery = mDatabase.child("user-feed").child(mCurrentUserUid).child(postRefKey);
+                String userTempPath = "/user-feed/" + mCurrentUserUid + "/" + postRefKey;
+                onLikeClicked(userTempQuery, userTempPath);
+                // update current user's friend's feeds
+                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                for (String friend : friendMap.keySet()) {
+                    Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
+                    String tempPath = "/user-feed/" + friend + "/" + postRefKey;
+                    onLikeClicked(tempQuery, tempPath);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
     }

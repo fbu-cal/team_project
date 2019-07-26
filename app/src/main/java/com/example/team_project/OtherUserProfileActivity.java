@@ -2,6 +2,14 @@ package com.example.team_project;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.team_project.models.Post;
+import com.example.team_project.models.User;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -41,6 +50,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
 
     private DatabaseReference mDatabase;
+
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private LinearLayoutManager mManager;
 
@@ -81,7 +91,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             @Override
             protected void populateViewHolder(final PostViewHolder viewHolder, final Post model, final int position) {
                 final DatabaseReference postRef = getRef(position);
-
                 // Set click listener for the whole post view
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -104,11 +113,13 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View starView) {
                             // Need to write to both places the post is stored
-                            DatabaseReference globalPostRef = mDatabase.child("posts").child(postRef.getKey());
-                            DatabaseReference userPostRef = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            // Run two transactions
-                            onLikeClicked(globalPostRef);
-                            onLikeClicked(userPostRef);
+                            Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                            Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+                            String globalPostPath = "/posts/" + postRef.getKey();
+                            String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
+                            onLikeClicked(globalPostQuery, globalPostPath);
+                            onLikeClicked(userPostQuery, userPostPath);
+                            updateAllFeedsLikes(postRef.getKey());
                         }
                     });
                 } catch (IOException e) {
@@ -147,29 +158,25 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
 
+    // Method for accepting friend requests. Will update friendStatuses and friendList for both users.
     private void acceptRequest() {
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        final DatabaseReference reference = firebaseDatabase.getReference();
         // update for current user
-        Query query = reference.child("users").child(mCurrentUserUid);
+        Query query = mDatabase.child("users").child(mCurrentUserUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                // update friendStatus
                 String statusPath = "/users/" + mCurrentUserUid + "/friendStatuses";
                 Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
                 userFriends.put(mProfileOwnerUid, "Already Friends");
-                reference.child(statusPath).updateChildren(userFriends);
+                mDatabase.child(statusPath).updateChildren(userFriends);
+                // update friendList
                 String listPath = "/users/" + mCurrentUserUid + "/friendList";
                 Map<String, Object> userFriendsList = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                if (userFriendsList == null) {
+                if (userFriendsList == null)
                     userFriendsList = new HashMap<>();
-                    userFriendsList.put(mProfileOwnerUid, true);
-                    reference.child(listPath).updateChildren(userFriendsList);
-                }
-                else {
-                    userFriendsList.put(mProfileOwnerUid, true);
-                    reference.child(listPath).updateChildren(userFriendsList);
-                }
+                userFriendsList.put(mProfileOwnerUid, true);
+                mDatabase.child(listPath).updateChildren(userFriendsList);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -177,25 +184,20 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             }
         });
         // update for other user
-        query = reference.child("users").child(mProfileOwnerUid);
+        query = mDatabase.child("users").child(mProfileOwnerUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String statusPath = "/users/" + mProfileOwnerUid + "/friendStatuses";
                 Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
                 userFriends.put(mCurrentUserUid, "Already Friends");
-                reference.child(statusPath).updateChildren(userFriends);
+                mDatabase.child(statusPath).updateChildren(userFriends);
                 String listPath = "/users/" + mProfileOwnerUid + "/friendList";
                 Map<String, Object> userFriendsList = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                if (userFriendsList == null) {
+                if (userFriendsList == null)
                     userFriendsList = new HashMap<>();
-                    userFriendsList.put(mCurrentUserUid, true);
-                    reference.child(listPath).updateChildren(userFriendsList);
-                }
-                else {
-                    userFriendsList.put(mCurrentUserUid, true);
-                    reference.child(listPath).updateChildren(userFriendsList);
-                }
+                userFriendsList.put(mCurrentUserUid, true);
+                mDatabase.child(listPath).updateChildren(userFriendsList);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -204,12 +206,13 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
         mAddFriendButton.setText("Already Friends");
         mAddFriendButton.setEnabled(false);
+        // TODO - update feeds for both users
+        updateFriendsFeed(mCurrentUserUid, mProfileOwnerUid);
+        updateFriendsFeed(mProfileOwnerUid, mCurrentUserUid);
     }
 
     public void updateTextButton () {
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        final DatabaseReference reference = firebaseDatabase.getReference();
-        Query query = reference.child("users").child(mCurrentUserUid);
+        Query query = mDatabase.child("users").child(mCurrentUserUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -244,7 +247,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
 
-
+    // updates current user's friendStatuses when they add another user
     public void addFriend () {
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
         final DatabaseReference reference = firebaseDatabase.getReference();
@@ -254,23 +257,13 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String path = "/users/" + mCurrentUserUid + "/friendStatuses";
                 Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
-                if (userFriends == null) {
-                    HashMap<String, Object> result = new HashMap<>();
-                    result.put(mProfileOwnerUid, "Sent Request");
-                    reference.child(path).updateChildren(result);
-                    mAddFriendButton.setText("Sent Request");
-                    mAddFriendButton.setEnabled(false);
-                    updateOtherUser("Received Request");
-                }
-                else {
-                    if (!userFriends.containsKey(mProfileOwnerUid)) {
-                        userFriends.put(mProfileOwnerUid, "Sent Request");
-                        reference.child(path).updateChildren(userFriends);
-                        mAddFriendButton.setText("Sent Request");
-                        mAddFriendButton.setEnabled(false);
-                        updateOtherUser("Received Request");
-                    }
-                }
+                if (userFriends == null)
+                    userFriends = new HashMap<>();
+                userFriends.put(mProfileOwnerUid, "Sent Request");
+                reference.child(path).updateChildren(userFriends);
+                mAddFriendButton.setText("Sent Request");
+                mAddFriendButton.setEnabled(false);
+                updateAddedUser("Received Request");
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -279,30 +272,20 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
 
-    public void updateOtherUser (final String status) {
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        final DatabaseReference reference = firebaseDatabase.getReference();
-        Query query = reference.child("users").child(mProfileOwnerUid);
+    // updates friendStatuses for the user that got added by the current user
+    public void updateAddedUser (final String status) {
+        Query query = mDatabase.child("users").child(mProfileOwnerUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String path = "/users/" + mProfileOwnerUid + "/friendStatuses";
                 Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
-                if (userFriends == null) {
-                    HashMap<String, Object> result = new HashMap<>();
-                    result.put(mCurrentUserUid, status);
-                    reference.child(path).updateChildren(result);
-                    mAddFriendButton.setText(status);
-                    mAddFriendButton.setEnabled(false);
-                }
-                else {
-                    if (!userFriends.containsKey(mCurrentUserUid)) {
-                        userFriends.put(mCurrentUserUid, status);
-                        reference.child(path).updateChildren(userFriends);
-                        mAddFriendButton.setText(status);
-                        mAddFriendButton.setEnabled(false);
-                    }
-                }
+                if (userFriends == null)
+                    userFriends = new HashMap<>();
+                userFriends.put(mCurrentUserUid, status);
+                mDatabase.child(path).updateChildren(userFriends);
+                mAddFriendButton.setText(status);
+                mAddFriendButton.setEnabled(false);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -312,9 +295,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     }
 
     public void findUser () {
-        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        final DatabaseReference reference = firebaseDatabase.getReference();
-        Query query = reference.child("users").child(mProfileOwnerUid);
+        Query query = mDatabase.child("users").child(mProfileOwnerUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -330,8 +311,8 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                         try {
                             // set profile picture
                             Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-//                          Bitmap circularImage = getCircleBitmap(realImage);
-                            mProfileImage.setImageBitmap(realImage);
+                            Bitmap circularImage = getCircleBitmap(realImage);
+                            mProfileImage.setImageBitmap(circularImage);
                         } catch (IOException e) {
                             e.printStackTrace();
                             Log.e("PostViewHolder", "Profile pic issue", e);
@@ -351,38 +332,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
     }
 
-    private void onLikeClicked(DatabaseReference postRef) {
-        postRef.runTransaction(new Transaction.Handler() {
-            @Override
-            public Transaction.Result doTransaction(MutableData mutableData) {
-                Post p = mutableData.getValue(Post.class);
-                if (p == null) {
-                    return Transaction.success(mutableData);
-                }
-
-                if (p.likes.containsKey(mCurrentUserUid)) {
-                    // Unlike the post and remove self from likes
-                    p.likeCount = p.likeCount - 1;
-                    p.likes.remove(mCurrentUserUid);
-                } else {
-                    // Unlike the post and add self to likes
-                    p.likeCount = p.likeCount + 1;
-                    p.likes.put(mCurrentUserUid, true);
-                }
-                // Set value and report transaction success
-                mutableData.setValue(p);
-                return Transaction.success(mutableData);
-            }
-
-            @Override
-            public void onComplete(DatabaseError databaseError, boolean b,
-                                   DataSnapshot dataSnapshot) {
-                // Transaction completed
-                Log.d("OtherUser", "postTransaction onComplete: " + databaseError);
-            }
-        });
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -393,11 +342,123 @@ public class OtherUserProfileActivity extends AppCompatActivity {
 
     public Query getQuery(DatabaseReference databaseReference) {
         // Last 100 posts, these are automatically the 100 most recent
-        Query recentPostsQuery = databaseReference.child("posts")
-                .orderByChild("uid")
-                .equalTo(mProfileOwnerUid)
+        Query recentPostsQuery = databaseReference.child("user-posts")
+                .child(mProfileOwnerUid)
                 .limitToFirst(20);
 
         return recentPostsQuery;
     }
+
+    private Bitmap getCircleBitmap(Bitmap bitmap) {
+        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(output);
+
+        final int color = Color.RED;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        final RectF rectF = new RectF(rect);
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawOval(rectF, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        bitmap.recycle();
+
+        return output;
+    }
+
+    private void onLikeClicked (Query query, final String path) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String likesPath = path + "/likes";
+                String likeCountPath = path + "/likeCount";
+                Map<String, Object> likesMap = (Map<String, Object>) dataSnapshot.child("likes").getValue();
+                Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
+                if (likesMap == null) {
+                    likesMap = new HashMap<>();
+                    likeCount = likeCount + 1;
+                    likesMap.put(mCurrentUserUid, true);
+                }
+                else {
+                    if (likesMap.containsKey(mCurrentUserUid)) {
+                        likeCount = likeCount - 1;
+                        likesMap.remove(mCurrentUserUid);
+                        mDatabase.child(likesPath).removeValue();
+                    }
+                    else {
+                        likeCount = likeCount + 1;
+                        likesMap.put(mCurrentUserUid, true);
+                    }
+                }
+                mDatabase.child(likesPath).updateChildren(likesMap);
+                mDatabase.child(likeCountPath).setValue(likeCount);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    // updates likes for post in all user feeds
+    private void updateAllFeedsLikes (final String postRefKey) {
+        Query query = mDatabase.child("users").child(mCurrentUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // update current user's feed
+                Query userTempQuery = mDatabase.child("user-feed").child(mCurrentUserUid).child(postRefKey);
+                String userTempPath = "/user-feed/" + mCurrentUserUid + "/" + postRefKey;
+                onLikeClicked(userTempQuery, userTempPath);
+                // update current user's friend's feeds
+                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                for (String friend : friendMap.keySet()) {
+                    Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
+                    String tempPath = "/user-feed/" + friend + "/" + postRefKey;
+                    onLikeClicked(tempQuery, tempPath);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+
+    // TODO
+    // updates new friend's feed with their new friend's posts
+    private void updateFriendsFeed (final String feedOwnerUid, String postOwnerUid) {
+        FirebaseDatabase.getInstance().getReference().child("user-posts").child(postOwnerUid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Post post = snapshot.getValue(Post.class);
+                            // TODO - FIND HOW TO GET REF KEY
+                            writePostToFeed(feedOwnerUid, post, snapshot.getKey());
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+        // read all of the posts from the user
+        // write each of the post's to their friend's feed
+    }
+
+    private void writePostToFeed(String feedOwnerUid, Post post, String key) {
+        Map<String, Object> postValues = post.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/user-feed/" + feedOwnerUid + "/" + key, postValues);
+        mDatabase.updateChildren(childUpdates);
+    }
+
 }

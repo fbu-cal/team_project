@@ -27,9 +27,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,6 +43,7 @@ public class ComposeFragment extends Fragment {
 
     private static final int REQUEST_IMAGE_CAPTURE = 111;
     private DatabaseReference mDatabase;
+    private String mCurrentUser;
     String imageEncoded;
 
     EditText mDescription;
@@ -62,6 +65,7 @@ public class ComposeFragment extends Fragment {
         mPostImage = view.findViewById(R.id.post_image_view);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         onLaunchCamera(view);
 
@@ -120,24 +124,51 @@ public class ComposeFragment extends Fragment {
     }
 
     private void writeNewPost(String userId, String username, String description, String postImageUrl) {
+        // update posts and user-posts
         String key = mDatabase.child("posts").push().getKey();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
         String timestamp = simpleDateFormat.format(new Date());
         Log.d("MainActivity", "Current Timestamp: " + timestamp);
         Post post = new Post(userId, username, description, postImageUrl, timestamp);
         Map<String, Object> postValues = post.toMap();
-
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/posts/" + key, postValues);
         childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
-
         mDatabase.updateChildren(childUpdates);
-
+        // update user-feed
+        updateAllFeeds(postValues, key);
         Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
         mDescription.setText("");
 
         Intent launchPosts = new Intent(getActivity(), MainActivity.class);
         startActivity(launchPosts);
+    }
+
+    // updates user feeds for all the friends of the current user when a new post is made
+    private void updateAllFeeds(final Map<String, Object> postValues, final String key) {
+        updateIndividualFeed(postValues, key, mCurrentUser);
+        Query query = mDatabase.child("users").child(mCurrentUser);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                if (friendMap!=null) {
+                    for (String friend : friendMap.keySet()) {
+                        updateIndividualFeed(postValues, key, friend);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+    public void updateIndividualFeed (Map<String, Object> postValues, String key, String friend) {
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/user-feed/" + friend + "/" + key, postValues);
+        mDatabase.updateChildren(childUpdates);
     }
 
     public void encodeBitmap(Bitmap bitmap) {

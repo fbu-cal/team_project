@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.team_project.models.Post;
 import com.example.team_project.models.User;
@@ -91,11 +92,16 @@ public class SearchActivity extends AppCompatActivity {
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // Launch OtherUserProfileActivity
-                        Intent intent = new Intent(SearchActivity.this, OtherUserProfileActivity.class);
-                        intent.putExtra("uid", model.uid);
-                        // show the activity
-                        startActivity(intent);
+                        if (model.uid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                            Toast.makeText(SearchActivity.this, "Clicking on your own profile", Toast.LENGTH_SHORT);
+                        }
+                        else {
+                            // Launch OtherUserProfileActivity
+                            Intent intent = new Intent(SearchActivity.this, OtherUserProfileActivity.class);
+                            intent.putExtra("uid", model.uid);
+                            // show the activity
+                            startActivity(intent);
+                        }
                     }
                 });
                 // Bind Post to ViewHolder, setting OnClickListener for the star button
