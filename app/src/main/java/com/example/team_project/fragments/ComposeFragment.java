@@ -7,15 +7,17 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.text.format.DateUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.team_project.MainActivity;
@@ -31,12 +33,9 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class ComposeFragment extends Fragment {
@@ -44,11 +43,11 @@ public class ComposeFragment extends Fragment {
     private static final int REQUEST_IMAGE_CAPTURE = 111;
     private DatabaseReference mDatabase;
     private String mCurrentUser;
-    String imageEncoded;
+    private String mImageEncoded;
 
-    EditText mDescription;
-    Button mPostButton;
-    ImageView mPostImage;
+    private EditText mDescription;
+    private Button mPostButton, mTagButton;
+    private ImageView mPostImage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -90,7 +89,7 @@ public class ComposeFragment extends Fragment {
                                             Toast.LENGTH_SHORT).show();
                                 } else {
                                     // Write new post
-                                    writeNewPost(userId, user.username, description, imageEncoded);
+                                    writeNewPost(userId, user.username, description, mImageEncoded);
                                 }
                             }
 
@@ -103,6 +102,7 @@ public class ComposeFragment extends Fragment {
             }
         });
     }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -175,7 +175,7 @@ public class ComposeFragment extends Fragment {
         // save image to firebase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+        mImageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
     }
 
     public int getSquareCropDimensionForBitmap(Bitmap bitmap)

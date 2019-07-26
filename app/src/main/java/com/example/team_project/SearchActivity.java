@@ -35,7 +35,6 @@ public class SearchActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
 
-
     private SearchView mSearchView;
     private FirebaseRecyclerAdapter<User, SearchViewHolder> mAdapter;
     private RecyclerView mRecycler;
