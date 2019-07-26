@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,6 +29,8 @@ public class MatchingActivity extends Activity {
     public HashMap<String, Object> mNewCalendar;
     DatabaseReference mReference;
     private HashMap<String, Boolean> mPosts;
+    private String mUserId;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +38,8 @@ public class MatchingActivity extends Activity {
         setContentView(R.layout.activity_matching);
         mReference = FirebaseDatabase.getInstance().getReference();
         mPosts = new HashMap<String, Boolean>();
+        mAuth = FirebaseAuth.getInstance();
+        mUserId = mAuth.getCurrentUser().getUid();
         getUserCalendar();
         /**
          * Adding to mMatches is the name card,
@@ -124,16 +129,16 @@ public class MatchingActivity extends Activity {
     }
 
     private void getUserCalendar() {
-        final Query query = mReference.child("calendar");
+        final Query query = mReference.child("user-calendar/" + mUserId);
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
-                    Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
-                    Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
-                    Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
-                }
+                //for (DataSnapshot data : dataSnapshot.getChildren()) {
+                mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
+                Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
+                Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
+                //}
             }
 
             @Override

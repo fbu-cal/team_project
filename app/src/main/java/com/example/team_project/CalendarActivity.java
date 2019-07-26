@@ -87,6 +87,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         userId = mAuth.getCurrentUser().getUid();
 
         getUserCalendar();
+
         /**
          * when clicked data will be sent from ArrayList here to the other
          * file one and then push to data base
@@ -232,12 +233,10 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                //for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
-                    Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
-                    Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
-                    Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
-                //}
+                mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
+                Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
+                Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
             }
 
             @Override
@@ -272,6 +271,15 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
 
             }
         });
+    }
+
+    public void deleteCalendar() {
+        DatabaseReference deleteCalendar = FirebaseDatabase.getInstance().getReference
+                ("/calendar/" + mReference.child("calendar").push().getKey());
+        DatabaseReference deleteUserCalendar = FirebaseDatabase.getInstance().getReference
+                ("/user-calendar/" + userId);
+        deleteCalendar.removeValue();
+        deleteUserCalendar.removeValue();
     }
 
     private void makeComplete() {
@@ -352,7 +360,8 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      *  child updates , then it launches to the home screen
      */
     private void writeNewPost(String userId, HashMap mFreeTime) {
-        String calendarKey = mReference.child("user-calendar").push().getKey();
+        deleteCalendar();
+        String calendarKey = mReference.child("calendar").push().getKey();
         Calendar calendar = new Calendar(userId, mFreeTime);
         Map<String, Object> postValues = calendar.toMap();
 
@@ -361,6 +370,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         childUpdates.put("/user-calendar/" + userId + "/" + calendarKey, postValues);
 
         Log.i("CalendarActivity", "Key: " + calendarKey);
+        Log.i("CalendarActivity", "Key: " + userId);
         mReference.updateChildren(childUpdates);
         //Toast.makeText(this, "Post Successful!", Toast.LENGTH_LONG).show();
         Intent launchPosts = new Intent(this, MainActivity.class);
