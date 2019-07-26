@@ -98,9 +98,9 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             public void onClick(View v) {
                 if (mFreeTime.size() != 0) {
                     writeNewPost(userId, mFreeTime);
-                    //Log.i("CalendarActivity", "!!!Map22!!: " + mNewCalendar.get("mFreeTime"));
+                    //Log.i("CalendarActivity", "!!!Map22!!: " + mCurrentUserNewCalendar.get("mFreeTime"));
                     Toast.makeText(CalendarActivity.this, "data inserted successfully", Toast.LENGTH_LONG).show();
-                    //Log.i("CalendarActivity", "!!!Map22: " + mNewCalendar);
+                    //Log.i("CalendarActivity", "!!!Map22: " + mCurrentUserNewCalendar);
                     }
                 }
         });

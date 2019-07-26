@@ -1,6 +1,7 @@
 package com.example.team_project;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import com.example.team_project.models.Calendar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -19,6 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class MatchingActivity extends Activity {
@@ -26,9 +29,11 @@ public class MatchingActivity extends Activity {
     private ArrayList<String> mMatches;
     private ArrayAdapter<String> arrayAdapter;
     private int i;
-    public HashMap<String, Object> mNewCalendar;
+    public HashMap<String, Object> mCurrentUserNewCalendar;
+    public HashMap<String, Object> mOtherUserNewCalendar;
     DatabaseReference mReference;
-    private HashMap<String, Boolean> mPosts;
+    private HashMap<String, Boolean> mCurrentUserTime;
+    private HashMap<String, Boolean> mOtherUserTime;
     private String mUserId;
     private FirebaseAuth mAuth;
 
@@ -37,7 +42,8 @@ public class MatchingActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_matching);
         mReference = FirebaseDatabase.getInstance().getReference();
-        mPosts = new HashMap<String, Boolean>();
+        mCurrentUserTime = new HashMap<String, Boolean>();
+        mOtherUserTime = new HashMap<String, Boolean>();
         mAuth = FirebaseAuth.getInstance();
         mUserId = mAuth.getCurrentUser().getUid();
         getUserCalendar();
@@ -48,14 +54,6 @@ public class MatchingActivity extends Activity {
          * maybe profile image
          */
         mMatches = new ArrayList<>();
-        mMatches.add("php");
-        mMatches.add("c");
-        mMatches.add("python");
-        mMatches.add("java");
-        mMatches.add("html");
-        mMatches.add("c++");
-        mMatches.add("css");
-        mMatches.add("javascript");
 
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, mMatches);
 
@@ -129,15 +127,42 @@ public class MatchingActivity extends Activity {
     }
 
     private void getUserCalendar() {
-        final Query query = mReference.child("user-calendar/" + mUserId);
-        query.addChildEventListener(new ChildEventListener() {
+        final Query otherQuery = mReference.child("user-calendar/OIFAGk70sfPS81IjUNvsOwZTTmf2");
+        otherQuery.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                mOtherUserNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        final Query currentQuery = mReference.child("user-calendar/" + mUserId);
+        currentQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 //for (DataSnapshot data : dataSnapshot.getChildren()) {
-                mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
-                Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
-                Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
-                Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
+                mCurrentUserNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                Log.i("CalendarActivity", "Free Time: " + mCurrentUserNewCalendar.get("mFreeTime"));
+                Log.i("CalendarActivity", "UserId: " + mCurrentUserNewCalendar.get("userId"));
+                Log.i("CalendarActivity", "!!!Map: " + mCurrentUserNewCalendar);
                 //}
             }
 
@@ -160,8 +185,11 @@ public class MatchingActivity extends Activity {
         mReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (mNewCalendar != null) {
-                    mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
+                if (mCurrentUserNewCalendar != null && mOtherUserNewCalendar != null) {
+                    mCurrentUserTime = (HashMap<String, Boolean>) mCurrentUserNewCalendar.get("mFreeTime");
+                    mOtherUserTime = (HashMap<String, Boolean>) mOtherUserNewCalendar.get("mFreeTime");
+                    makeComplete();
+                    checkFunc();
                 }
             }
 
@@ -171,6 +199,91 @@ public class MatchingActivity extends Activity {
             }
         });
     }
+
+    private void makeComplete() {
+        if (!mCurrentUserTime.containsKey("fridayMorning")) {
+            mCurrentUserTime.put("fridayMorning", false);
+        }
+        if (!mCurrentUserTime.containsKey("fridayAfternoon")) {
+            mCurrentUserTime.put("fridayAfternoon", false);
+        }
+        if (!mCurrentUserTime.containsKey("fridayEvening")) {
+            mCurrentUserTime.put("fridayEvening", false);
+        }
+        if (!mCurrentUserTime.containsKey("saturdayMorning")) {
+            mCurrentUserTime.put("saturdayMorning", false);
+        }
+        if (!mCurrentUserTime.containsKey("saturdayAfternoon")) {
+            mCurrentUserTime.put("saturdayAfternoon", false);
+        }
+        if (!mCurrentUserTime.containsKey("saturdayEvening")) {
+            mCurrentUserTime.put("saturdayEvening", false);
+        }
+        if (!mCurrentUserTime.containsKey("sundayMorning")) {
+            mCurrentUserTime.put("sundayMorning", false);
+        }
+        if (!mCurrentUserTime.containsKey("sundayAfternoon")) {
+            mCurrentUserTime.put("sundayAfternoon", false);
+        }
+        if (!mCurrentUserTime.containsKey("sundayEvening")) {
+            mCurrentUserTime.put("sundayEvening", false);
+        }
+
+        //I could not add an and because the users data is different
+        if (!mOtherUserTime.containsKey("fridayMorning")) {
+            mOtherUserTime.put("fridayMorning", false);
+        }
+        if (!mOtherUserTime.containsKey("fridayAfternoon")) {
+            mOtherUserTime.put("fridayAfternoon", false);
+        }
+        if (!mOtherUserTime.containsKey("fridayEvening")) {
+            mOtherUserTime.put("fridayEvening", false);
+        }
+        if (!mOtherUserTime.containsKey("saturdayMorning")) {
+            mOtherUserTime.put("saturdayMorning", false);
+        }
+        if (!mOtherUserTime.containsKey("saturdayAfternoon")) {
+            mOtherUserTime.put("saturdayAfternoon", false);
+        }
+        if (!mOtherUserTime.containsKey("saturdayEvening")) {
+            mOtherUserTime.put("saturdayEvening", false);
+        }
+        if (!mOtherUserTime.containsKey("sundayMorning")) {
+            mOtherUserTime.put("sundayMorning", false);
+        }
+        if (!mOtherUserTime.containsKey("sundayAfternoon")) {
+            mOtherUserTime.put("sundayAfternoon", false);
+        }
+        if (!mOtherUserTime.containsKey("sundayEvening")) {
+            mOtherUserTime.put("sundayEvening", false);
+        }
+    }
+
+    private void checkFunc() {
+        Log.i("CalendarActivity", "!!!Map: " + mCurrentUserTime);
+        if (mCurrentUserTime.get("fridayMorning") == mOtherUserTime.get("fridayMorning")) {
+            if (!mMatches.contains("OIFAGk70sfPS81IjUNvsOwZTTmf2")) {
+                mMatches.add("OIFAGk70sfPS81IjUNvsOwZTTmf2");
+            }
+        }
+    }
+
+    /**private void writeNewPost(String Status, HashMap userFreeMatchBefore, HashMap userFreeMatchFinal) {
+        String calendarKey = mReference.child("calendar").push().getKey();
+        Calendar calendar = new Calendar(mUserId, mFreeTime);
+        Map<String, Object> postValues = calendar.toMap();
+
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/calendar/" + calendarKey, postValues);
+        childUpdates.put("/user-calendar/" + userId + "/" + calendarKey, postValues);
+
+        Log.i("CalendarActivity", "Key: " + calendarKey);
+        Log.i("CalendarActivity", "Key: " + userId);
+        mReference.updateChildren(childUpdates);
+        //Toast.makeText(this, "Post Successful!", Toast.LENGTH_LONG).show();
+        Intent launchPosts = new Intent(this, MainActivity.class);
+        startActivity(launchPosts);
+    }*/
 
 }
 
