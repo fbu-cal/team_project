@@ -1,5 +1,7 @@
 package com.example.team_project;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,7 +12,9 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -459,17 +463,15 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
-                if (newUser.get("profile_picture")!=null) {
-                    String imageUrl = newUser.get("profile_picture").toString();
-                    String title = newUser.get("username").toString();
-                    // if profile pic is already set
-                    if (!imageUrl.equals("")) {
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
-                        String timestamp = simpleDateFormat.format(new Date());
-                        Notification notif = new Notification
-                                ("friend", imageUrl, title, body, timestamp, toUid, fromUid);updateNotification(toUid, notif);
-                    }
-                }
+                String title = newUser.get("username").toString();
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+                String timestamp = simpleDateFormat.format(new Date());
+                String imageUrl = "";
+                if (newUser.get("profile_picture")!=null)
+                    imageUrl = newUser.get("profile_picture").toString();
+                Notification notif = new Notification
+                        ("friend", imageUrl, title, body, timestamp, toUid, fromUid);
+                updateNotification(toUid, notif);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -489,11 +491,5 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
     }
 
-    public String encodeBitmap(Bitmap bitmap) {
-        // save image to firebase
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-    }
 
 }

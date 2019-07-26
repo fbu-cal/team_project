@@ -16,6 +16,7 @@ public class Notification {
     public String timestamp;
     public String toUid;
     public String fromUid;
+    public Boolean seen = false;
 
     public Notification() {
         // Default constructor required for calls to DataSnapshot.getValue(Notification.class)
@@ -41,6 +42,7 @@ public class Notification {
         result.put("timestamp", timestamp);
         result.put("toUid", toUid);
         result.put("fromUid", fromUid);
+        result.put("seen", seen);
         return result;
     }
 }

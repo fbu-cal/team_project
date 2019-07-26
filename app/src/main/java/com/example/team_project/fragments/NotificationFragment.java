@@ -1,10 +1,13 @@
 package com.example.team_project.fragments;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +20,16 @@ import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NotificationFragment extends Fragment {
 
@@ -65,7 +73,7 @@ public class NotificationFragment extends Fragment {
                 NotificationViewHolder.class, notifQuery) {
             @Override
             protected void populateViewHolder(final NotificationViewHolder viewHolder, final Notification model, final int position) {
-                final DatabaseReference postRef = getRef(position);
+                final DatabaseReference notifRef = getRef(position);
                 // Set click listener for the whole post view
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -74,11 +82,16 @@ public class NotificationFragment extends Fragment {
                             Intent intent = new Intent(getActivity(), OtherUserProfileActivity.class);
                             intent.putExtra("uid", model.fromUid);
                             startActivity(intent);
+                            markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                         }
                         // TODO - implement on click for other types (Calendar Match & Message)
                     }
                 });
                 try {
+                    if (!model.seen) {
+                        viewHolder.itemView.setBackgroundColor(Color.parseColor("#D3D3D3"));
+                        Log.i("Notification Fragment", "hello");
+                    }
                     viewHolder.bindToPost(model);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -87,6 +100,16 @@ public class NotificationFragment extends Fragment {
         };
         mRecycler.setAdapter(mAdapter);
 
+    }
+
+    private void markNotifAsSeen(Notification model, final String postRefKey, View itemView) {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                .getReference("user-notifications")
+                .child(mCurrentUserUid)
+                .child(postRefKey)
+                .child("seen");
+        ref.setValue(true);
+        itemView.setBackgroundColor(Color.parseColor("#D3D3D3"));
     }
 
     public Query getQuery(DatabaseReference databaseReference) {
