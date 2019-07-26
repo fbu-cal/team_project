@@ -132,7 +132,7 @@ public class ComposeFragment extends Fragment {
         Post post = new Post(userId, username, description, postImageUrl, timestamp);
         Map<String, Object> postValues = post.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/posts/" + key, postValues);
+        //childUpdates.put("/posts/" + key, postValues);
         childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
         mDatabase.updateChildren(childUpdates);
         // update user-feed

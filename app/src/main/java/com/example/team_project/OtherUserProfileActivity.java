@@ -113,11 +113,11 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View starView) {
                             // Need to write to both places the post is stored
-                            Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                            //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
                             Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            String globalPostPath = "/posts/" + postRef.getKey();
+                            //String globalPostPath = "/posts/" + postRef.getKey();
                             String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                            onLikeClicked(globalPostQuery, globalPostPath);
+                            //onLikeClicked(globalPostQuery, globalPostPath);
                             onLikeClicked(userPostQuery, userPostPath);
                             updateAllFeedsLikes(postRef.getKey());
                         }
@@ -206,7 +206,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
         mAddFriendButton.setText("Already Friends");
         mAddFriendButton.setEnabled(false);
-        // TODO - update feeds for both users
+        // updates feed for both users
         updateFriendsFeed(mCurrentUserUid, mProfileOwnerUid);
         updateFriendsFeed(mProfileOwnerUid, mCurrentUserUid);
     }
@@ -341,11 +341,9 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     }
 
     public Query getQuery(DatabaseReference databaseReference) {
-        // Last 100 posts, these are automatically the 100 most recent
         Query recentPostsQuery = databaseReference.child("user-posts")
                 .child(mProfileOwnerUid)
                 .limitToFirst(20);
-
         return recentPostsQuery;
     }
 
@@ -382,7 +380,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
                 if (likesMap == null) {
                     likesMap = new HashMap<>();
-                    likeCount = likeCount + 1;
+                    likeCount = Long.valueOf(1);
                     likesMap.put(mCurrentUserUid, true);
                 }
                 else {
@@ -442,7 +440,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             Post post = snapshot.getValue(Post.class);
-                            // TODO - FIND HOW TO GET REF KEY
                             writePostToFeed(feedOwnerUid, post, snapshot.getKey());
                         }
                     }

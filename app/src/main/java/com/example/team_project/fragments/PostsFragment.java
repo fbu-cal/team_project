@@ -96,11 +96,11 @@ public class PostsFragment extends Fragment {
                     viewHolder.bindToPost(model, new View.OnClickListener() {
                         @Override
                         public void onClick(View starView) {
-                            Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                            //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
                             Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            String globalPostPath = "/posts/" + postRef.getKey();
+                            //String globalPostPath = "/posts/" + postRef.getKey();
                             String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                            onLikeClicked(globalPostQuery, globalPostPath);
+                            //onLikeClicked(globalPostQuery, globalPostPath);
                             onLikeClicked(userPostQuery, userPostPath);
                             updateAllFeedsLikes(postRef.getKey());
                         }
@@ -160,10 +160,12 @@ public class PostsFragment extends Fragment {
                 onLikeClicked(userTempQuery, userTempPath);
                 // update current user's friend's feeds
                 Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                for (String friend : friendMap.keySet()) {
-                    Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
-                    String tempPath = "/user-feed/" + friend + "/" + postRefKey;
-                    onLikeClicked(tempQuery, tempPath);
+                if (friendMap!=null) {
+                    for (String friend : friendMap.keySet()) {
+                        Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
+                        String tempPath = "/user-feed/" + friend + "/" + postRefKey;
+                        onLikeClicked(tempQuery, tempPath);
+                    }
                 }
             }
             @Override

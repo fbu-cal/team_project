@@ -136,11 +136,11 @@ public class ProfileFragment extends Fragment {
                         @Override
                         public void onClick(View starView) {
                             // Need to write to both places the post is stored
-                            Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                            //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
                             Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            String globalPostPath = "/posts/" + postRef.getKey();
+                            //String globalPostPath = "/posts/" + postRef.getKey();
                             String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                            onLikeClicked(globalPostQuery, globalPostPath);
+                            //onLikeClicked(globalPostQuery, globalPostPath);
                             onLikeClicked(userPostQuery, userPostPath);
                             updateAllFeedsLikes(postRef.getKey());
                         }
