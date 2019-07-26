@@ -175,7 +175,7 @@ public class ComposeFragment extends Fragment {
         // save image to firebase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-         imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+        imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
     }
 
     public int getSquareCropDimensionForBitmap(Bitmap bitmap)

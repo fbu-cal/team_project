@@ -1,5 +1,6 @@
 package com.example.team_project;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -20,7 +21,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
 import com.example.team_project.models.User;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -34,7 +37,10 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,7 +85,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         mProfileOwnerUid = getIntent().getStringExtra("uid");
         // set variables with content from post
         findUser();
-
 
         // update mAddFriend button to reflect current friend status
         updateTextButton();
@@ -129,12 +134,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         };
         mRecyclerView.setAdapter(mAdapter);
 
-        // TODO
-        // Set button to "Add friend" if both haven't sent request
-        // Set button to "Request sent" if user sent and disable button
-        // Set button to "Accept request" if other sent
-        // Set button to "Message friend" if users are friends
-
         mAddFriendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -145,13 +144,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 else if (buttonText.equals("Accept Request")) {
                     acceptRequest();
                 }
-                // check button text
-                // if button text = "add friend"
-                    // create new friend object and post to firebase for both users
-                    // change button text to "Request sent"
-                // if button text = "accept request"
-                    // update friend object for both users
-                    // change button text to "Message friend"
+                // TODO
                 // if button text = "message friend"
                     // redirect user to message
             }
@@ -198,6 +191,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     userFriendsList = new HashMap<>();
                 userFriendsList.put(mCurrentUserUid, true);
                 mDatabase.child(listPath).updateChildren(userFriendsList);
+                sendNotification(mCurrentUserUid, mProfileOwnerUid, "has accepted your friend request");
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -211,6 +205,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         updateFriendsFeed(mProfileOwnerUid, mCurrentUserUid);
     }
 
+    // update the text on the button depending on the current user's relationship with the profile owner
     public void updateTextButton () {
         Query query = mDatabase.child("users").child(mCurrentUserUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -264,6 +259,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 mAddFriendButton.setText("Sent Request");
                 mAddFriendButton.setEnabled(false);
                 updateAddedUser("Received Request");
+                sendNotification(mCurrentUserUid, mProfileOwnerUid, "has sent you a friend request");
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -294,6 +290,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
 
+    // find the profile owner's info and set information on screen
     public void findUser () {
         Query query = mDatabase.child("users").child(mProfileOwnerUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -370,6 +367,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         return output;
     }
 
+    // updates likes for post in Firebase (user-posts, user-feed)
     private void onLikeClicked (Query query, final String path) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -430,8 +428,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
 
-
-    // TODO
     // updates new friend's feed with their new friend's posts
     private void updateFriendsFeed (final String feedOwnerUid, String postOwnerUid) {
         FirebaseDatabase.getInstance().getReference().child("user-posts").child(postOwnerUid)
@@ -447,15 +443,57 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     public void onCancelled(DatabaseError databaseError) {
                     }
                 });
-        // read all of the posts from the user
-        // write each of the post's to their friend's feed
     }
 
+    // helper method to write post to feed for updateFriendsFeed
     private void writePostToFeed(String feedOwnerUid, Post post, String key) {
         Map<String, Object> postValues = post.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/user-feed/" + feedOwnerUid + "/" + key, postValues);
         mDatabase.updateChildren(childUpdates);
+    }
+
+    private void sendNotification(final String fromUid, final String toUid, final String body) {
+        Query query = mDatabase.child("users").child(fromUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                if (newUser.get("profile_picture")!=null) {
+                    String imageUrl = newUser.get("profile_picture").toString();
+                    String title = newUser.get("username").toString();
+                    // if profile pic is already set
+                    if (!imageUrl.equals("")) {
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+                        String timestamp = simpleDateFormat.format(new Date());
+                        Notification notif = new Notification
+                                ("friend", imageUrl, title, body, timestamp, toUid, fromUid);updateNotification(toUid, notif);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+    private void updateNotification(String toUid, Notification notif) {
+        String key = mDatabase.child("notification").push().getKey();
+        Map<String, Object> notifValues = notif.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        //childUpdates.put("/posts/" + key, postValues);
+        childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
+        mDatabase.updateChildren(childUpdates);
+        // update user-feed
+        Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
+    }
+
+    public String encodeBitmap(Bitmap bitmap) {
+        // save image to firebase
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
     }
 
 }
