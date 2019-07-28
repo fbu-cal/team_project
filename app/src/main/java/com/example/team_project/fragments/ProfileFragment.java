@@ -54,7 +54,7 @@ import java.util.Map;
 
 
 public class ProfileFragment extends Fragment {
-    private Button mCalendarButton, mLogoutButton, mUploadPictureButton, mSwipeButton;
+    private Button mCalendarButton, mUploadPictureButton, mSwipeButton;
     private Button mSettingsButton;
     private ImageView mProfileImage;
     private TextView mFullname, mUsername;
@@ -66,7 +66,7 @@ public class ProfileFragment extends Fragment {
     private DatabaseReference mDatabase;
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private LinearLayoutManager mManager;
-    private String uid;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -80,10 +80,10 @@ public class ProfileFragment extends Fragment {
     // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         mCalendarButton = view.findViewById(R.id.calendar_button);
-        mLogoutButton = view.findViewById(R.id.logout_button);
+        mSettingsButton = view.findViewById(R.id.settings_button);
         mUploadPictureButton = view.findViewById(R.id.upload_picture_button);
         mProfileImage = view.findViewById(R.id.profile_image_view);
         mFullname = view.findViewById(R.id.fullname_text_view);
@@ -104,7 +104,7 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        mLogoutButton.setOnClickListener(new View.OnClickListener() {
+        mSettingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 launchSettings();

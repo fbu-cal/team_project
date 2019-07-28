@@ -63,7 +63,7 @@ public class MatchingActivity extends Activity {
         mUserId = mAuth.getCurrentUser().getUid();
         mOtherUserId = this.mOtherUserId;
 
-        getCurrentUserData();
+
         /**
          * Adding to mMatches is the name card,
          * i should keep the userId here and
@@ -145,6 +145,7 @@ public class MatchingActivity extends Activity {
 
             }
         });
+        getCurrentUserData();
     }
 
     /**
@@ -538,7 +539,7 @@ public class MatchingActivity extends Activity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //Map<String, Boolean> friendList = (Map<String, Boolean>) dataSnapshot.child("friendList").getValue();
-                writeNewPost(mUserId, status);
+                //writeNewPost(mUserId, status);
                 for (String friendUid : mCurrentUserData.keySet()) {
                    if (status.get(friendUid).isEmpty()) {
                        mOtherUserId = friendUid;

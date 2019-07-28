@@ -107,10 +107,6 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             }
         });
     }
-    /**private void editRoute() {
-     getUserCalendar();
-     }*/
-
     /**
      * when dates selected it will be sent to a function that will
      * add the time to an arrayList of the Users free time
@@ -126,97 +122,117 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      * add the time to an arrayList of the Users free time
      */
 
+
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fridayMorningSunImageButton:
                 //it is in calendar so remove
-                if (mPosts.get("fridayMorning")) {
-                    mFreeTime.remove("fridayMorning");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("fridayMorning");
-                    mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("fridayMorning")) {
+                    if (mPosts.get("fridayMorning")) {
+                        mFreeTime.remove("fridayMorning");
+                        mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("fridayMorning");
+                        mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             case R.id.fridayAfternoonSunsetImageButton:
-                if (mPosts.get("fridayAfternoon")) {
-                    mFreeTime.remove("fridayAfternoon");
-                    mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("fridayAfternoon");
-                    mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("fridayAfternoon")) {
+                    if (mPosts.get("fridayAfternoon")) {
+                        mFreeTime.remove("fridayAfternoon");
+                        mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("fridayAfternoon");
+                        mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             case R.id.fridayEveningMoonImageButton:
-                if (mPosts.get("fridayEvening")) {
-                    mFreeTime.remove("fridayEvening");
-                    mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("fridayEvening");
-                    mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("fridayEvening")) {
+                    if (mPosts.get("fridayEvening")) {
+                        mFreeTime.remove("fridayEvening");
+                        mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("fridayEvening");
+                        mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             case R.id.saturdayMorningSunImageButton:
-                if (mPosts.get("saturdayMorning")) {
-                    mFreeTime.remove("saturdayMorning");
-                    mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("saturdayMorning");
-                    mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("saturdayMorning")) {
+                    if (mPosts.get("saturdayMorning")) {
+                        mFreeTime.remove("saturdayMorning");
+                        mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("saturdayMorning");
+                        mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             case R.id.saturdayAfternoonSunsetImageButton:
-                if (mPosts.get("saturdayAfternoon")) {
-                    mFreeTime.remove("saturdayAfternoon");
-                    mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("saturdayAfternoon");
-                    mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("saturdayAfternoon")) {
+                    if (mPosts.get("saturdayAfternoon")) {
+                        mFreeTime.remove("saturdayAfternoon");
+                        mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("saturdayAfternoon");
+                        mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             case R.id.saturdayEveningImageButton:
-                if (mPosts.get("saturdayEvening")) {
-                    mFreeTime.remove("saturdayEvening");
-                    mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("saturdayEvening");
-                    mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("saturdayEvening")) {
+                    if (mPosts.get("saturdayEvening")) {
+                        mFreeTime.remove("saturdayEvening");
+                        mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("saturdayEvening");
+                        mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             case R.id.sundayMorningSunImageButton:
-                if (mPosts.get("sundayMorning")) {
-                    mFreeTime.remove("sundayMorning");
-                    mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
+                if (mPosts.containsKey("sundayMorning")) {
+                    if (mPosts.get("sundayMorning")) {
+                        mFreeTime.remove("sundayMorning");
+                        mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    }
+                    addToAvailableTimes("sundayMorning");
+                    mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
                 }
-                addToAvailableTimes("sundayMorning");
-                mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
                 break;
             case R.id.sundayAfternoonSunsetImageButton:
-                if (mPosts.get("sundayAfternoon")) {
-                    mFreeTime.remove("sundayAfternoon");
-                    mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("sundayAfternoon");
-                    mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("sundayMorning")) {
+                    if (mPosts.get("sundayAfternoon")) {
+                        mFreeTime.remove("sundayAfternoon");
+                        mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("sundayAfternoon");
+                        mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             case R.id.sundayEveningImageButton:
-                if (mPosts.get("sundayEvening")) {
-                    mFreeTime.remove("sundayEvening");
-                    mSundayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
-                    deleteCount++;
-                } else {
-                    addToAvailableTimes("sundayEvening");
-                    mSundayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                if (mPosts.containsKey("sundayEvening")) {
+                    if (mPosts.get("sundayEvening")) {
+                        mFreeTime.remove("sundayEvening");
+                        mSundayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        deleteCount++;
+                    } else {
+                        addToAvailableTimes("sundayEvening");
+                        mSundayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+                    }
                 }
                 break;
             default:
@@ -275,6 +291,8 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 makeComplete();
                 Log.i("CalendarActivity", "mPosts: " + mPosts);
                 checkData();
+
+
             }
 
             @Override
