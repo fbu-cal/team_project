@@ -1,16 +1,20 @@
 package com.example.team_project;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.team_project.models.Post;
 import com.example.team_project.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -20,6 +24,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SignupActivity extends AppCompatActivity {
@@ -64,6 +70,14 @@ public class SignupActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Please enter password!", Toast.LENGTH_LONG).show();
             return;
         }
+        if (TextUtils.isEmpty(fullname)) {
+            Toast.makeText(getApplicationContext(), "Please enter fullname!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (TextUtils.isEmpty(username)) {
+            Toast.makeText(getApplicationContext(), "Please enter username!", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -92,7 +106,9 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void writeNewUser(String fullname, String userId, String name, String email) {
-        Map<String, Object> user = (new User(fullname, userId, name, email)).toMap();
+        String image = encodeBitmap(BitmapFactory.decodeResource(getResources(),
+                R.drawable.instagram_user_filled_24));
+        Map<String, Object> user = (new User(fullname, userId, name, email, image)).toMap();
         mDatabase.child("users").child(userId).setValue(user);
     }
 
@@ -104,5 +120,12 @@ public class SignupActivity extends AppCompatActivity {
         mPassword = findViewById(R.id.password_edit_text);
         mSignupButton = findViewById(R.id.signup_button);
         // progress bar
+    }
+
+    public String encodeBitmap(Bitmap bitmap) {
+        // save image to firebase
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
     }
 }

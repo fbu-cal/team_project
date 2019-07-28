@@ -2,6 +2,7 @@ package com.example.team_project.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -22,14 +23,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PostsFragment extends Fragment {
 
-    private static final String TAG = "PostListFragment";
+    private static final String TAG = "PostsFragment";
 
-    // [START define_database_reference]
     private DatabaseReference mDatabase;
-    // [END define_database_reference]
 
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private RecyclerView mRecycler;
@@ -43,9 +47,7 @@ public class PostsFragment extends Fragment {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_posts, container, false);
 
-        // [START create_database_reference]
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        // [END create_database_reference]
 
         mRecycler = (RecyclerView) rootView.findViewById(R.id.post_recycler_view);
         mRecycler.setHasFixedSize(true);
@@ -72,7 +74,6 @@ public class PostsFragment extends Fragment {
                 final DatabaseReference postRef = getRef(position);
 
                 // Set click listener for the whole post view
-                final String postKey = postRef.getKey();
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -90,52 +91,86 @@ public class PostsFragment extends Fragment {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
                 }
 
-                // Bind Post to ViewHolder, setting OnClickListener for the star button
-                viewHolder.bindToPost(model, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View starView) {
-                        // Need to write to both places the post is stored
-                        DatabaseReference globalPostRef = mDatabase.child("posts").child(postRef.getKey());
-                        DatabaseReference userPostRef = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                        // Run two transactions
-                        onLikeClicked(globalPostRef);
-                        onLikeClicked(userPostRef);
-                    }
-                });
+                // Bind Post to ViewHolder, setting OnClickListener for the like button
+                try {
+                    viewHolder.bindToPost(model, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View starView) {
+                            //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                            Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+                            //String globalPostPath = "/posts/" + postRef.getKey();
+                            String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
+                            //onLikeClicked(globalPostQuery, globalPostPath);
+                            onLikeClicked(userPostQuery, userPostPath);
+                            updateAllFeedsLikes(postRef.getKey());
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         };
         mRecycler.setAdapter(mAdapter);
     }
 
-    private void onLikeClicked(DatabaseReference postRef) {
-        postRef.runTransaction(new Transaction.Handler() {
+    private void onLikeClicked (Query query, final String path) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public Transaction.Result doTransaction(MutableData mutableData) {
-                Post p = mutableData.getValue(Post.class);
-                if (p == null) {
-                    return Transaction.success(mutableData);
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String likesPath = path + "/likes";
+                String likeCountPath = path + "/likeCount";
+                Map<String, Object> likesMap = (Map<String, Object>) dataSnapshot.child("likes").getValue();
+                Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
+                if (likesMap == null) {
+                    likesMap = new HashMap<>();
+                    likeCount = Long.valueOf(1);
+                    likesMap.put(getUid(), true);
                 }
-
-                if (p.likes.containsKey(getUid())) {
-                    // Unstar the post and remove self from stars
-                    p.likeCount = p.likeCount - 1;
-                    p.likes.remove(getUid());
-                } else {
-                    // Star the post and add self to stars
-                    p.likeCount = p.likeCount + 1;
-                    p.likes.put(getUid(), true);
+                else {
+                    if (likesMap.containsKey(getUid())) {
+                        likeCount = likeCount - 1;
+                        likesMap.remove(getUid());
+                        mDatabase.child(likesPath).removeValue();
+                    }
+                    else {
+                        likeCount = likeCount + 1;
+                        likesMap.put(getUid(), true);
+                    }
                 }
-
-                // Set value and report transaction success
-                mutableData.setValue(p);
-                return Transaction.success(mutableData);
+                mDatabase.child(likesPath).updateChildren(likesMap);
+                mDatabase.child(likeCountPath).setValue(likeCount);
             }
 
             @Override
-            public void onComplete(DatabaseError databaseError, boolean b,
-                                   DataSnapshot dataSnapshot) {
-                // Transaction completed
-                Log.d(TAG, "postTransaction onComplete: " + databaseError);
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    // updates likes for post in all user feeds
+    private void updateAllFeedsLikes(final String postRefKey) {
+        Query query = mDatabase.child("users").child(getUid());
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // update current user's feed
+                Query userTempQuery = mDatabase.child("user-feed").child(getUid()).child(postRefKey);
+                String userTempPath = "/user-feed/" + getUid() + "/" + postRefKey;
+                onLikeClicked(userTempQuery, userTempPath);
+                // update current user's friend's feeds
+                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                if (friendMap!=null) {
+                    for (String friend : friendMap.keySet()) {
+                        Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
+                        String tempPath = "/user-feed/" + friend + "/" + postRefKey;
+                        onLikeClicked(tempQuery, tempPath);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
     }
@@ -153,13 +188,11 @@ public class PostsFragment extends Fragment {
     }
 
     public Query getQuery(DatabaseReference databaseReference) {
-        // [START recent_posts_query]
         // Last 100 posts, these are automatically the 100 most recent
         // due to sorting by push() keys
-        Query recentPostsQuery = databaseReference.child("posts")
-                .limitToFirst(20);
-        // [END recent_posts_query]
-
+        Query recentPostsQuery = databaseReference.child("user-feed")
+                .child(getUid())
+                .limitToFirst(100);
         return recentPostsQuery;
     }
 }

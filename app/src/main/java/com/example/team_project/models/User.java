@@ -15,18 +15,19 @@ public class User {
     public String email;
     public String fullname;
     public String profilePicture;
-    public Map<String, Boolean> friends = new HashMap<>();
+    public Map<String, String> friendStatuses = new HashMap<String, String>();
+    public Map<String, Boolean> friendList = new HashMap<String, Boolean>();
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String fullname, String uid, String username, String email) {
+    public User(String fullname, String uid, String username, String email, String profilePicture) {
         this.fullname = fullname;
         this.uid = uid;
         this.username = username;
         this.email = email;
-        this.profilePicture = "";
+        this.profilePicture = profilePicture;
     }
 
     @Exclude
@@ -37,7 +38,8 @@ public class User {
         result.put("email", email);
         result.put("fullname", fullname);
         result.put("profile_picture", profilePicture);
-        result.put("friends", friends);
+        result.put("friendStatuses", friendStatuses);
+        result.put("friendList", friendList);
         return result;
     }
 

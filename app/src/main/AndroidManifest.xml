@@ -14,15 +14,16 @@
         android:theme="@style/AppTheme">
         <activity android:name=".MatchingActivity"></activity>
         <activity android:name=".ProfilePictureActivity" />
+        <activity android:name=".TagFriendActivity"></activity>
+        <activity android:name=".UserSettingsActivity" />
+        <activity android:name=".ProfilePictureActivity" />
         <activity android:name=".OtherUserProfileActivity" />
         <activity android:name=".SearchActivity" />
-
         <service android:name=".MessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
         <activity android:name=".MessageDetailsActivity" />
         <activity android:name=".CalendarActivity" />
         <activity android:name=".ComposeMessageActivity" />
@@ -32,6 +33,7 @@
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".LoginActivity" />
         <activity android:name=".FirstActivity">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,6 +41,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SignupActivity" />
+
     </application>
 
 </manifest>
