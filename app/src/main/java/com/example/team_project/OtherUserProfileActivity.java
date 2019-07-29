@@ -172,9 +172,12 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 Map<String, Object> userFriendsList = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
                 if (userFriendsList == null)
                     userFriendsList = new HashMap<>();
-                userFriendsList.put(mProfileOwnerUid, true);
-                mDatabase.child(listPath).updateChildren(userFriendsList);
+                // finds user's name and adds it as the value
+                acceptRequestHelper(userFriendsList, mProfileOwnerUid, listPath);
+//                userFriendsList.put(mProfileOwnerUid, true);
+//                mDatabase.child(listPath).updateChildren(userFriendsList);
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
@@ -193,8 +196,9 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 Map<String, Object> userFriendsList = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
                 if (userFriendsList == null)
                     userFriendsList = new HashMap<>();
-                userFriendsList.put(mCurrentUserUid, true);
-                mDatabase.child(listPath).updateChildren(userFriendsList);
+                acceptRequestHelper(userFriendsList, mCurrentUserUid, listPath);
+//                userFriendsList.put(mCurrentUserUid, true);
+//                mDatabase.child(listPath).updateChildren(userFriendsList);
                 sendNotification(mCurrentUserUid, mProfileOwnerUid, "has accepted your friend request");
             }
             @Override
@@ -207,6 +211,24 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         // updates feed for both users
         updateFriendsFeed(mCurrentUserUid, mProfileOwnerUid);
         updateFriendsFeed(mProfileOwnerUid, mCurrentUserUid);
+    }
+
+    private void acceptRequestHelper(final Map<String, Object> userFriendsList, final String uid, final String listPath) {
+        Query query = mDatabase.child("users").child(uid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                String username = newUser.get("username").toString();
+                userFriendsList.put(uid, username);
+                mDatabase.child(listPath).updateChildren(userFriendsList);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+
     }
 
     // update the text on the button depending on the current user's relationship with the profile owner

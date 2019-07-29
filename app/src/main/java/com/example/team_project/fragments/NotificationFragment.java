@@ -84,6 +84,9 @@ public class NotificationFragment extends Fragment {
                             startActivity(intent);
                             markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                         }
+                        if (model.type.equals("match")) {
+
+                        }
                         // TODO - implement on click for other types (Calendar Match & Message)
                     }
                 });

@@ -48,11 +48,12 @@
         android:layout_height="24dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:background="#ffffff"
         android:scaleType="centerInside"
+        android:tint="@color/yokedYellow"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/body_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/tagged_text_view"
         app:srcCompat="@drawable/ufi_heart" />
 
     <TextView
@@ -99,6 +100,16 @@
         android:text="Time"
         app:layout_constraintStart_toEndOf="@+id/profile_image_view"
         app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
+
+    <TextView
+        android:id="@+id/tagged_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toEndOf="@+id/post_image_view"
+        app:layout_constraintTop_toBottomOf="@+id/body_text_view" />
 
 
 </android.support.constraint.ConstraintLayout>

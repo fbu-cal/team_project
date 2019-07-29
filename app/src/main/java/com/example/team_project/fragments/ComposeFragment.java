@@ -33,10 +33,16 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
+import in.galaxyofandroid.spinerdialog.SpinnerDialog;
 
 public class ComposeFragment extends Fragment {
 
@@ -46,8 +52,10 @@ public class ComposeFragment extends Fragment {
     private String mImageEncoded;
 
     private EditText mDescription;
-    private Button mPostButton, mTagButton;
+    private Button mPostButton, mTagFriendButton;
     private ImageView mPostImage;
+
+    private Spinner mFriendsSpinner;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -62,11 +70,14 @@ public class ComposeFragment extends Fragment {
         mDescription = view.findViewById(R.id.description_edit_text);
         mPostButton = view.findViewById(R.id.post_button);
         mPostImage = view.findViewById(R.id.post_image_view);
+        mTagFriendButton = view.findViewById(R.id.tag_friends_button);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         onLaunchCamera(view);
+
+        addSpinner();
 
         mPostButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,6 +114,57 @@ public class ComposeFragment extends Fragment {
         });
     }
 
+    private void addSpinner() {
+        Query query = mDatabase.child("users").child(mCurrentUser);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                ArrayList<String> friendList = new ArrayList<String>();
+                if (friendMap!=null) {
+                    for (String userId : friendMap.keySet()) {
+                        friendList.add(friendMap.get(userId).toString());
+                    }
+                }
+                // spinner
+                final SpinnerDialog spinnerDialog = new SpinnerDialog(getActivity(), friendList, "Select Friend");
+                spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
+                    @Override
+                    public void onClick(String s, int i) {
+                        Toast.makeText(getActivity(), "Selected: " + s, Toast.LENGTH_LONG);
+                        mTagFriendButton.setText("Tagged @" + s);
+                    }
+                });
+
+                mTagFriendButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        spinnerDialog.showSpinerDialog();
+                    }
+                });
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+//    private void findUsername(String userId) {
+//        Query query = mDatabase.child("users").child(userId);
+//        query.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+//                newUser.get("username");
+//            }
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+//            }
+//        });
+//    }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -129,7 +191,10 @@ public class ComposeFragment extends Fragment {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
         String timestamp = simpleDateFormat.format(new Date());
         Log.d("MainActivity", "Current Timestamp: " + timestamp);
-        Post post = new Post(userId, username, description, postImageUrl, timestamp);
+        String taggedFriend = mTagFriendButton.getText().toString();
+        if (taggedFriend.equals("Tag Friends"))
+            taggedFriend = null;
+        Post post = new Post(userId, username, description, postImageUrl, timestamp, taggedFriend);
         Map<String, Object> postValues = post.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         //childUpdates.put("/posts/" + key, postValues);

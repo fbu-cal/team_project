@@ -3,25 +3,19 @@ package com.example.team_project;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
-
-import com.example.team_project.models.Match;
-import com.example.team_project.models.User;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import com.example.team_project.models.Match;
 import java.util.Map;
 
 
@@ -39,12 +33,8 @@ public class MatchingActivity extends Activity {
     private HashMap<String, Boolean> mOtherUserTime;
     private String mUserId;
     private FirebaseAuth mAuth;
-    private HashMap<String, Boolean> mCurrentFriends;
-    private String mCurrentFullName;
-    private HashMap<String, String> userFreeMatchBefore;
-    private HashMap<String, String> userFreeMatchFinal;
     private HashMap<String, String> status;
-    private HashMap mOtherUserStatus;
+    private HashMap<String, String> mOtherUserStatus;
     String mOtherUserId;
 
     @Override
@@ -55,15 +45,14 @@ public class MatchingActivity extends Activity {
         mCurrentUserTime = new HashMap<String, Boolean>();
         mOtherUserTime = new HashMap<String, Boolean>();
         status = new HashMap<String, String>();
-        userFreeMatchBefore = new HashMap<String, String>();
-        userFreeMatchFinal = new HashMap<String, String>();
         mCurrentUserData = new HashMap<String, Object>();
         mOtherNewMatch = new HashMap<String, Object>();
         mAuth = FirebaseAuth.getInstance();
         mUserId = mAuth.getCurrentUser().getUid();
         mOtherUserId = this.mOtherUserId;
+        mOtherUserStatus = new HashMap<String, String>();
 
-
+        getCurrentUserData();
         /**
          * Adding to mMatches is the name card,
          * i should keep the userId here and
@@ -145,7 +134,7 @@ public class MatchingActivity extends Activity {
 
             }
         });
-        getCurrentUserData();
+
     }
 
     /**
@@ -156,67 +145,28 @@ public class MatchingActivity extends Activity {
      * the array to display
      */
 
-    private void getUserCalendar(String otherUserId) {
-        final Query otherQuery = mReference.child("user-calendar/" + otherUserId);
-        otherQuery.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                mOtherUserNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-        final Query currentQuery = mReference.child("user-calendar/" + mUserId);
-        currentQuery.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                //for (DataSnapshot data : dataSnapshot.getChildren()) {
-                mCurrentUserNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
-                //}
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-        mReference.addValueEventListener(new ValueEventListener() {
+    private void getUserCalendar(String otherUserId, final String otherUserStatus) {
+        mReference.child("user-calendar/" + mUserId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (mCurrentUserNewCalendar != null && mOtherUserNewCalendar != null) {
+                if (mCurrentUserNewCalendar != null) {
                     mCurrentUserTime = (HashMap<String, Boolean>) mCurrentUserNewCalendar.get("mFreeTime");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        mReference.child("user-calendar/" + otherUserId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (mOtherUserNewCalendar != null) {
                     mOtherUserTime = (HashMap<String, Boolean>) mOtherUserNewCalendar.get("mFreeTime");
                     makeComplete();
                     checkFunc();
+                    getUserMatch(otherUserStatus);
                 }
             }
 
@@ -374,19 +324,26 @@ public class MatchingActivity extends Activity {
      */
 
     private void writeNewPost(String userId, HashMap status) {
-        String matchKey = mReference.child("match").push().getKey();
+        deleteMatch(userId);
+        //String matchKey = mReference.child("match").push().getKey();
         Match match = new Match(userId, status);
         Map<String, Object> postValues = match.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/match/" + matchKey, postValues);
-        childUpdates.put("/user-match/" + userId + "/" + matchKey, postValues);
-
-        Log.i("CalendarActivity", "Key: " + matchKey);
+        childUpdates.put("/match/" , postValues);
+        childUpdates.put("/user-match/" + userId + "/" , postValues);
         Log.i("CalendarActivity", "Key: " + userId);
         mReference.updateChildren(childUpdates);
         //Toast.makeText(this, "Post Successful!", Toast.LENGTH_LONG).show();
         //Intent launchPosts = new Intent(this, MainActivity.class);
         //startActivity(launchPosts);
+    }
+    public void deleteMatch(String userId) {
+        DatabaseReference deleteMatch = FirebaseDatabase.getInstance().getReference
+                ("/match/" + mReference.child("Match").push().getKey());
+        DatabaseReference deleteUserMatch = FirebaseDatabase.getInstance().getReference
+                ("/user-match/" + userId);
+        deleteMatch.removeValue();
+        deleteUserMatch.removeValue();
     }
 
     /**
@@ -394,41 +351,32 @@ public class MatchingActivity extends Activity {
      * @param userId - this is the other users id, this should be called from friends loop
      */
 
+
     private void getOtherUserMatch (final String userId) {
-        final Query queryOther = mReference.child("user-match/" + userId);
-        queryOther.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                mOtherNewMatch = (HashMap<String, Object>) dataSnapshot.getValue();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-        mReference.addValueEventListener(new ValueEventListener() {
+        //String matchKey = mReference.child("user-match/" + userId).push().getKey();
+        //Log.i("MatchActivity", "key: " + matchKey);
+        mReference.child("user-match/" + userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (mOtherUserNewCalendar != null) {
-                    mOtherUserStatus = (HashMap) mOtherUserNewCalendar.get("status");
+                String otherUserStatus = null;
+                mOtherNewMatch = (HashMap<String, Object>) dataSnapshot.getValue();
+                if (mOtherNewMatch.get("status") != null) {
+                    mOtherUserStatus = (HashMap<String, String>) mOtherNewMatch.get("status");
+                    if (mOtherUserStatus.containsKey(mUserId)) {
+                        otherUserStatus = mOtherUserStatus.get(mUserId);
+                        mOtherUserStatus = (HashMap) mOtherNewMatch.get("status");
+                        Log.d("status", "current status " + mOtherUserStatus);
+                    } else {
+                        otherUserStatus = "noStart";
+                        mOtherUserStatus.put(mUserId, "noStart");
+                        writeNewPost(userId, mOtherUserStatus);
+                    }
+                } else {
+                    otherUserStatus = "noStart";
+                    mOtherUserStatus.put(mUserId, "noStart");
+                    writeNewPost(userId, mOtherUserStatus);
                 }
-                getUserCalendar(userId);
+                getUserCalendar(userId, otherUserStatus);
             }
 
             @Override
@@ -442,39 +390,15 @@ public class MatchingActivity extends Activity {
      * This goes through checking the status if this user swiped right it checks if
      * the other one did too.
      */
-    private void getUserMatch() {
-        final Query queryCurrent = mReference.child("user-match/" + mUserId);
-        queryCurrent.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                mCurrentUserData = (HashMap<String, Object>) dataSnapshot.getValue();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-        mReference.addValueEventListener(new ValueEventListener() {
+    private void getUserMatch(final String otherUserStatus) {
+        mReference.child("user-match/" + mUserId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //overlap, oneUser, denied, match
                 //check for denied or overlap
-                if (!status.get(mOtherUserId).equals("denied")) {
-                    if (status.get(mOtherUserId).equals("oneUser")) {
-                        if(mOtherUserStatus.get(mUserId).equals(status.get(mOtherUserId))) {
+                if (!status.get(otherUserStatus).equals("denied")) {
+                    if (status.get(otherUserStatus).equals("oneUser")) {
+                        if(otherUserStatus.equals(status.get(mOtherUserId))) {
                             status.remove(mOtherUserId);
                             status.put(mOtherUserId, "match");
                         }
@@ -497,71 +421,95 @@ public class MatchingActivity extends Activity {
      * This is where I can get current user info like friends
      */
     private void getCurrentUserData() {
-        final Query query = mReference.child("user" + mUserId);
-        query.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                mCurrentUserData = (HashMap<String, Object>) dataSnapshot.getValue();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-        mReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (mCurrentUserData != null) {
-                    mCurrentFullName = (String) mCurrentUserData.get("fullname");
-                    mCurrentFriends = (HashMap<String, Boolean>) mCurrentUserData.get("friendList");
-                    mCurrentUserData.get("mFreeTime");
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
         mReference.child("users").child(mUserId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //Map<String, Boolean> friendList = (Map<String, Boolean>) dataSnapshot.child("friendList").getValue();
-                //writeNewPost(mUserId, status);
-                for (String friendUid : mCurrentUserData.keySet()) {
-                   if (status.get(friendUid).isEmpty()) {
-                       mOtherUserId = friendUid;
-                       getOtherUserMatch(friendUid);
-                       status.put(friendUid, "noStart");
-                   }
-                    //User user = snapshot.getValue(User.class);
+
+                if (dataSnapshot != null) {
+                    Map<String, Boolean> friendList = (Map<String, Boolean>) dataSnapshot.child("friendList").getValue();
+                    if (friendList.size() > 0) {
+                        for (String friendUid : friendList.keySet()) {
+                                mOtherUserId = friendUid;
+                                status.put(friendUid, "noStart");
+                                //delete others so it dont make more
+                                writeNewPost(mUserId, status);
+                                getOtherUserMatch(friendUid);
+
+                            }
+                        }
+                    }
+                }
+                //User user = snapshot.getValue(User.class);
 //                    if (status.get(user.friends.keySet()).isEmpty()) {
 //                        status.put((user.friends.keySet(), "")
 //                    }
-                }
                 //Log.i("CalendarActivity", "mPosts: " + mPosts);
                 //checkData();
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+                @Override
+                public void onCancelled (@NonNull DatabaseError databaseError){
 
-            }
+                }
         });
     }
-
-
+    /**
+     *  public void addFriend () {
+     *         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+     *         final DatabaseReference reference = firebaseDatabase.getReference();
+     *         Query query = reference.child("users").child(mCurrentUserUid);
+     *         query.addListenerForSingleValueEvent(new ValueEventListener() {
+     *             @Override
+     *             public void onDataChange(DataSnapshot dataSnapshot) {
+     *                 String path = "/users/" + mCurrentUserUid + "/friendStatuses";
+     *                 Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
+     *                 if (userFriends == null)
+     *                     userFriends = new HashMap<>();
+     *                 userFriends.put(mProfileOwnerUid, "Sent Request");
+     *                 reference.child(path).updateChildren(userFriends);
+     *                 mAddFriendButton.setText("Sent Request");
+     *                 mAddFriendButton.setEnabled(false);
+     *                 updateAddedUser("Received Request");
+     *                 sendNotification(mCurrentUserUid, mProfileOwnerUid, "has sent you a friend request");
+     *             }
+     *             @Override
+     *             public void onCancelled(DatabaseError databaseError) {
+     *                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+     *             }
+     *         });
+     *     }
+     *
+     *     private void sendNotification(final String fromUid, final String toUid, final String body) {
+     *         Query query = mDatabase.child("users").child(fromUid);
+     *         query.addListenerForSingleValueEvent(new ValueEventListener() {
+     *             @Override
+     *             public void onDataChange(DataSnapshot dataSnapshot) {
+     *                 Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+     *                 String title = newUser.get("username").toString();
+     *                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+     *                 String timestamp = simpleDateFormat.format(new Date());
+     *                 String imageUrl = "";
+     *                 if (newUser.get("profile_picture")!=null)
+     *                     imageUrl = newUser.get("profile_picture").toString();
+     *                 Notification notif = new Notification
+     *                         ("friend", imageUrl, title, body, timestamp, toUid, fromUid);
+     *                 updateNotification(toUid, notif);
+     *             }
+     *             @Override
+     *             public void onCancelled(DatabaseError databaseError) {
+     *                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+     *             }
+     *         });
+     *     }
+     *
+     *     private void updateNotification(String toUid, Notification notif) {
+     *         String key = mDatabase.child("notification").push().getKey();
+     *         Map<String, Object> notifValues = notif.toMap();
+     *         Map<String, Object> childUpdates = new HashMap<>();
+     *         //childUpdates.put("/posts/" + key, postValues);
+     *         childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
+     *         mDatabase.updateChildren(childUpdates);
+     *         // update user-feed
+     *         Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
+     *     }
+     */
 }
-

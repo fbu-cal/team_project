@@ -1,11 +1,14 @@
 package com.example.team_project;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -83,6 +86,14 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_actionbar, menu);
+        Drawable drawable = menu.findItem(R.id.miMessenger).getIcon();
+        drawable = DrawableCompat.wrap(drawable);
+        DrawableCompat.setTint(drawable, ContextCompat.getColor(this,R.color.white));
+        menu.findItem(R.id.miMessenger).setIcon(drawable);
+        Drawable drawable2 = menu.findItem(R.id.miSearch).getIcon();
+        drawable2 = DrawableCompat.wrap(drawable2);
+        DrawableCompat.setTint(drawable2, ContextCompat.getColor(this,R.color.white));
+        menu.findItem(R.id.miSearch).setIcon(drawable2);
         return super.onCreateOptionsMenu(menu);
     }
 

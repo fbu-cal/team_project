@@ -61,16 +61,16 @@ public class SearchViewHolder extends RecyclerView.ViewHolder {
                         String imageUrl = newUser.get("profile_picture").toString();
                         // if profile pic is already set
                         if (!imageUrl.equals("")) {
-                            Log.i("PostViewHolder", "imageUrl: " + imageUrl);
+                            Log.i("SearchViewHolder", "imageUrl: " + imageUrl);
                             try {
                                 // set profile picture
                                 Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
                                 Bitmap circularImage = getCircleBitmap(realImage);
-                                Log.i("PostViewHolder", "realImage: " + realImage);
+                                Log.i("SearchViewHolder", "realImage: " + realImage);
                                 mProfileImage.setImageBitmap(circularImage);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                Log.e("PostViewHolder", "Profile pic issue", e);
+                                Log.e("SearchViewHolder", "Profile pic issue", e);
                             }
                         }
                     }
