@@ -71,9 +71,13 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             // make sure the position is valid, i.e. actually exists in the view
             if (position != RecyclerView.NO_POSITION) {
                 // get the movie at the position, this won't work if the class is static
-                Map<String, Object> tempUser = mSearches.get(position);
-                Intent intent = new Intent(context, OtherUserProfileActivity.class);
-                intent.putExtra("uid", tempUser.get("uid").toString());
+                Map<String, Object> targetUser = mSearches.get(position);
+                //Log.i("SearchAdapter", "This is iiiit.");
+                Log.i("SearchAdapter", "Username" + targetUser.get("username") );
+                Intent intent = new Intent(context, MessageDetailsActivity.class);
+                intent.putExtra("username", targetUser.get("username").toString());
+                intent.putExtra("uid", targetUser.get("uid").toString());
+
                 // show the activity
                 context.startActivity(intent);
             }

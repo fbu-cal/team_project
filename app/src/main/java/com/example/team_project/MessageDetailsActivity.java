@@ -1,18 +1,16 @@
 package com.example.team_project;
 
+import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -41,11 +39,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private ArrayList<Map<String, Object>> mMessages;
     private MessageAdapter mMessageAdapter;
-    private SearchAdapter mSearchAdapter;
-    private SearchView mSearchView;
-
     private LinearLayoutManager mLinearLayoutManager;
-
+    private String uid;
+    public String username;
 
     private DatabaseReference mDatabaseReference;
 
@@ -66,29 +62,41 @@ public class MessageDetailsActivity extends AppCompatActivity {
         //set the adapter
         mRecyclerView.setAdapter(mMessageAdapter);
 
+        uid = getIntent().getStringExtra("uid");
+        username = getIntent().getStringExtra("username");
 
-
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar!=null) {
+            if (username != null) {
+                actionBar.setTitle(username);
+            } else {
+                actionBar.setDisplayShowTitleEnabled(false);
+                actionBar.setDisplayShowHomeEnabled(false);
+            }
+        }
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final String senderId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 final String messageText = mMessageTextInput.getText().toString();
-
+//                final String uid = "M10nBkyMAfatCi4fwgr1KmB0UFz1";
+                final String receiverId = getIntent().getStringExtra("uid");
                 mDatabaseReference.child("users").child(senderId).addListenerForSingleValueEvent(
                         new ValueEventListener() {
+                            @TargetApi(Build.VERSION_CODES.O)
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 // Get user value
                                 User user = dataSnapshot.getValue(User.class);
                                 // [START_EXCLUDE]
-                                if (user == null) {
-                                    // User is null, error out
-                                    Log.e("MessageDetailsActivity", "User " + senderId + " is unexpectedly null");
-                                } else {
+//                                if (user == null) {
+//                                    // User is null, error out
+//                                    Log.e("MessageDetailsActivity", "User " + senderId + " is unexpectedly null");
+//                                } else {
                                     // Write new message
-                                    String receiverId = "M10nBkyMAfatCi4fwgr1KmB0UFz1";
-                                    sendMessage(senderId,receiverId ,user.username, messageText);
-                                }
+
+                                    sendMessage(senderId, receiverId ,user.username, messageText);
+                                //}
                             }
 
                             @Override
@@ -100,53 +108,13 @@ public class MessageDetailsActivity extends AppCompatActivity {
             }
         });
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
-        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        populateMessages(currentUser);
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        populateMessages(currentUserId, uid);
+        findUser();
 
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_search_actionbar, menu);
-//        // Set up Layout Manager, reverse layout
-//        mLinearLayoutManager = new LinearLayoutManager(this);
-//        mLinearLayoutManager.setReverseLayout(true);
-//        mLinearLayoutManager.setStackFromEnd(true);
-//        // find the RecyclerView
-//        mRecyclerView = (RecyclerView) findViewById(R.id.post_recycler_view);
-//        // init the arraylist (data source)
-//        mSearches = new ArrayList<Map<String, Object>>();
-//        // construct the adapter from this data source
-//        mSearchAdapter = new SearchAdapter(this, mSearches);
-//        // RecyclerView setup (layout manager, use adapter)
-//        mRecyclerView.setLayoutManager(mLinearLayoutManager);
-//        // set the adapter
-//        mRecyclerView.setAdapter(mSearchAdapter);
-//        MenuItem searchItem = menu.findItem(R.id.action_search);
-//        mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-//        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//                // perform query here
-//                searchUser(query);
-//                mSearchAdapter.notifyDataSetChanged();
-//                // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
-//                // see https://code.google.com/p/android/issues/detail?id=24599
-//                mSearchView.clearFocus();
-//
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                searchUser(newText);
-//                mSearchAdapter.notifyDataSetChanged();
-//                return false;
-//            }
-//        });
-//        return super.onCreateOptionsMenu(menu);
-//    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void sendMessage(String senderId, String receiverId ,String username, String messageText) {
@@ -158,28 +126,29 @@ public class MessageDetailsActivity extends AppCompatActivity {
         Map<String, Object> messageValues = message.toMap();
 
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/messages/" + key, messageValues);
-        childUpdates.put("/user-messages/" + senderId + "/" + key, messageValues);
-        childUpdates.put("/user-messages/" + receiverId + "/" + key, messageValues);
+        //childUpdates.put("/messages/" + key, messageValues);
+        childUpdates.put("/user-messages/" + receiverId + "/" + senderId + "/" + key, messageValues);
+
+        childUpdates.put("/user-messages/" + senderId + "/" + receiverId + "/" + key, messageValues);
 
         mDatabaseReference.updateChildren(childUpdates);
 
         mMessageTextInput.setText("");
     }
 
-    public Query getQuery(DatabaseReference databaseReference, String currentUser) {
+    public Query getQuery(DatabaseReference databaseReference, String currentUser, String receiverId) {
         // [START recent_messages_query]
         // due to sorting by push() keys
-        Query recentMessagesQuery = databaseReference.child("user-messages/" + currentUser);
+        Query recentMessagesQuery = databaseReference.child("user-messages/" + currentUser + "/" + receiverId);
         // [END recent_messages_query]
 
         return recentMessagesQuery;
     }
 
-    public void populateMessages(String currentUser){
+    public void populateMessages(String currentUser, String receiverId){
 
         // Set up FirebaseRecyclerAdapter with the Query
-        final Query messagesQuery = getQuery(mDatabaseReference, currentUser);
+        final Query messagesQuery = getQuery(mDatabaseReference, currentUser, receiverId);
         Log.i("MessageDetailsActivity", messagesQuery.toString());
         // Retrieve new messages as they are added to Firebase
         messagesQuery.addChildEventListener(new ChildEventListener() {
@@ -218,6 +187,34 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
     public String getReceiverId(){
         return null;
+    }
+
+    public void findUser () {
+        Query query = FirebaseDatabase.getInstance().getReference("users")
+                .orderByChild("username");
+        query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
+            @Override
+            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
+                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
+                if (newUser.get("uid").toString().equals(uid)) {
+                    uid = newUser.get("uid").toString();
+                    username = newUser.get("username").toString();
+                    //mUsername.setText(username);
+                }
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+            }
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
     }
 
 }

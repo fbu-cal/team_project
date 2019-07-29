@@ -8,19 +8,21 @@
         android:name=".TeamApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Yoked"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".ProfilePictureActivity"></activity>
         <activity android:name=".OtherUserProfileActivity" />
         <activity android:name=".SearchActivity" />
-        <service android:name=".MessagingService">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-        <activity android:name=".MessageDetailsActivity" />
+        <!--<service android:name=".MessagingService">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="com.google.firebase.MESSAGING_EVENT" />-->
+            <!--</intent-filter>-->
+        <!--</service>-->
+        <activity android:name=".MessageDetailsActivity" android:theme="@style/DetailsTheme">
+
+        </activity>
         <activity android:name=".CalendarActivity" />
         <activity android:name=".ComposeMessageActivity" />
         <activity android:name=".MainMessenger" />
