@@ -16,7 +16,7 @@ public class User {
     public String fullname;
     public String profilePicture;
     public Map<String, String> friendStatuses = new HashMap<String, String>();
-    public Map<String, Boolean> friendList = new HashMap<String, Boolean>();
+    public Map<String, String> friendList = new HashMap<String, String>();
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)

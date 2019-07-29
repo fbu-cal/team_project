@@ -38,6 +38,8 @@ dependencies {
     // firebase
     implementation 'com.firebaseui:firebase-ui-database:0.4.0'
     implementation "com.android.support:support-compat:28.0.0"
+    // searchable spinner
+    implementation 'com.github.MdFarhanRaja:SearchableSpinner:1.2'
 }
 
 apply plugin: 'com.google.gms.google-services'

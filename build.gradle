@@ -19,7 +19,9 @@ allprojects {
     repositories {
         google()
         jcenter()
-        
+
+        // searchable spinner
+        maven {url 'https://jitpack.io'}
     }
 }
 

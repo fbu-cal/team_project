@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class PostViewHolder extends RecyclerView.ViewHolder {
 
-    public TextView mAuthor, mLikeCount, mBody, mTime;
+    public TextView mAuthor, mLikeCount, mBody, mTime, mTagged;
     public ImageButton mLikeButton;
     public ImageView mProfilePicture, mPostImage;
 
@@ -52,7 +52,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         mProfilePicture = itemView.findViewById(R.id.profile_image_view);
         mPostImage = itemView.findViewById(R.id.post_image_view);
         mTime = itemView.findViewById(R.id.time_text_view);
-
+        mTagged = itemView.findViewById(R.id.tagged_text_view);
     }
 
     public void bindToPost(final Post post, View.OnClickListener starClickListener) throws IOException {
@@ -64,6 +64,9 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         }
         if (post.postImageUrl != null) {
             mPostImage.setImageBitmap(decodeFromFirebaseBase64(post.postImageUrl));
+        }
+        if (post.taggedFriend != null) {
+            mTagged.setText("with " + post.taggedFriend.split(" ")[1]);
         }
 
         mLikeButton.setOnClickListener(starClickListener);
