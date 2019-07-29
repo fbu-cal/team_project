@@ -51,6 +51,7 @@
         android:layout_marginTop="16dp"
         android:background="#ffffff"
         android:scaleType="centerInside"
+        android:tint="@color/yokedYellow"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
         app:layout_constraintTop_toBottomOf="@+id/body_text_view"
         app:srcCompat="@drawable/ufi_heart" />
