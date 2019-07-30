@@ -256,35 +256,10 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      * the logs are for testing of the data is being gotten
      */
     private void getUserCalendar() {
-        final Query query = mReference.child("user-calendar/" + userId);
-        query.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
-                Log.i("CalendarActivity", "Free Time: " + mNewCalendar.get("mFreeTime"));
-                Log.i("CalendarActivity", "UserId: " + mNewCalendar.get("userId"));
-                Log.i("CalendarActivity", "!!!Map: " + mNewCalendar);
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-        mReference.addValueEventListener(new ValueEventListener() {
+        mReference.child("user-calendar/" + userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
                 if (mNewCalendar != null) {
                     mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
                 }
@@ -303,11 +278,8 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     }
 
     public void deleteCalendar() {
-        DatabaseReference deleteCalendar = FirebaseDatabase.getInstance().getReference
-                ("/calendar/" + mReference.child("calendar").push().getKey());
         DatabaseReference deleteUserCalendar = FirebaseDatabase.getInstance().getReference
                 ("/user-calendar/" + userId);
-        deleteCalendar.removeValue();
         deleteUserCalendar.removeValue();
     }
 
@@ -396,9 +368,9 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
 
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/calendar/" + calendarKey, postValues);
-        childUpdates.put("/user-calendar/" + userId + "/" + calendarKey, postValues);
+        childUpdates.put("/user-calendar/" + userId + "/" , postValues);
 
-        Log.i("CalendarActivity", "Key: " + calendarKey);
+        //Log.i("CalendarActivity", "Key: ");
         Log.i("CalendarActivity", "Key: " + userId);
         mReference.updateChildren(childUpdates);
         //Toast.makeText(this, "Post Successful!", Toast.LENGTH_LONG).show();

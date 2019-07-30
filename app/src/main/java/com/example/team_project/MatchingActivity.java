@@ -24,8 +24,6 @@ public class MatchingActivity extends Activity {
     private ArrayList<String> mMatches;
     private ArrayAdapter<String> arrayAdapter;
     private int i;
-    public HashMap<String, Object> mCurrentUserNewCalendar;
-    public HashMap<String, Object> mOtherUserNewCalendar;
     public HashMap<String, Object> mCurrentUserData;
     public HashMap<String, Object> mOtherNewMatch;
     DatabaseReference mReference;
@@ -35,12 +33,15 @@ public class MatchingActivity extends Activity {
     private FirebaseAuth mAuth;
     private HashMap<String, String> status;
     private HashMap<String, String> mOtherUserStatus;
+    private HashMap<String, String> times;
     String mOtherUserId;
+    private String mFriendName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_matching);
+        times = new HashMap<String, String>();
         mReference = FirebaseDatabase.getInstance().getReference();
         mCurrentUserTime = new HashMap<String, Boolean>();
         mOtherUserTime = new HashMap<String, Boolean>();
@@ -52,7 +53,7 @@ public class MatchingActivity extends Activity {
         mOtherUserId = this.mOtherUserId;
         mOtherUserStatus = new HashMap<String, String>();
 
-        getCurrentUserData();
+
         /**
          * Adding to mMatches is the name card,
          * i should keep the userId here and
@@ -60,80 +61,88 @@ public class MatchingActivity extends Activity {
          * maybe profile image
          */
 
-        //getOtherUserMatch("OIFAGk70sfPS81IjUNvsOwZTTmf2");
-        mMatches = new ArrayList<>();
+            //getOtherUserMatch("OIFAGk70sfPS81IjUNvsOwZTTmf2");
+            mMatches = new ArrayList<>();
 
-        arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, mMatches);
+            mMatches.add("hi");
+            mMatches.add("welcome");
 
-        /**
-         * Removes the cards from the array here
-         */
-        SwipeFlingAdapterView flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
-        flingContainer.setAdapter(arrayAdapter);
-        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
-            @Override
-            public void removeFirstObjectInAdapter() {
-                // this is the simplest way to delete an object from the Adapter (/AdapterView)
-                Log.d("LIST", "removed object!");
-                mMatches.remove(0);
-                arrayAdapter.notifyDataSetChanged();
-            }
+            arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, mMatches);
+
+
 
             /**
-             *If it comes out left then the user does not want to
-             * hangout with them so nothing needs to be done
+             * Removes the cards from the array here
              */
+            SwipeFlingAdapterView flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
+            flingContainer.setAdapter(arrayAdapter);
+            flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
+                @Override
+                public void removeFirstObjectInAdapter() {
+                    // this is the simplest way to delete an object from the Adapter (/AdapterView)
+                    Log.d("LIST", "removed object!");
+                    mMatches.remove(0);
+                    arrayAdapter.notifyDataSetChanged();
+                }
 
-            @Override
-            public void onLeftCardExit(Object dataObject) {
-                //Do something on the left!
-                //You also have access to the original object.
-                //If you want to use it just cast it (String) dataObject
-                //makeToast, "Left!");
-                Toast.makeText(MatchingActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
-                status.put("deny", mOtherUserId);
+                /**
+                 * If it comes out left then the user does not want to
+                 * hangout with them so nothing needs to be done
+                 */
 
-            }
+                @Override
+                public void onLeftCardExit(Object dataObject) {
+                    //Do something on the left!
+                    //You also have access to the original object.
+                    //If you want to use it just cast it (String) dataObject
+                    //makeToast, "Left!");
+                    Toast.makeText(MatchingActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
+                    status.put("deny", mOtherUserId);
+                    writeNewPost(mUserId, status);
+
+                }
+
+                /**
+                 * If swiped right then add it to somewhere on database
+                 * and check if other user also swiped right
+                 * if they do hit them both with a notification
+                 * if not let them know later
+                 */
+                @Override
+                public void onRightCardExit(Object dataObject) {
+                    Toast.makeText(MatchingActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
+                    status.put(mOtherUserId, "oneUser");
+                    writeNewPost(mUserId, status);
+                    //makeToast(MyActivity.this, "Right!");
+                }
+
+                @Override
+                public void onAdapterAboutToEmpty(int itemsInAdapter) {
+                    // Ask for more data here
+                    mMatches.add("Empty ".concat(String.valueOf(i)));
+                    arrayAdapter.notifyDataSetChanged();
+                    Log.d("LIST", "notified");
+                    i++;
+                }
+
+                @Override
+                public void onScroll(float scrollProgressPercent) {
+
+                }
+            });
+
 
             /**
-             * If swiped right then add it to somewhere on database
-             * and check if other user also swiped right
-             * if they do hit them both with a notification
-             * if not let them know later
+             * Can implement a closer look if wanted here
              */
-            @Override
-            public void onRightCardExit(Object dataObject) {
-                Toast.makeText(MatchingActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
-                status.put(mOtherUserId, "oneUser");
-                //makeToast(MyActivity.this, "Right!");
-            }
+            // Optionally add an OnItemClickListener
+            flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClicked(int itemPosition, Object dataObject) {
 
-            @Override
-            public void onAdapterAboutToEmpty(int itemsInAdapter) {
-                // Ask for more data here
-                mMatches.add("XML ".concat(String.valueOf(i)));
-                arrayAdapter.notifyDataSetChanged();
-                Log.d("LIST", "notified");
-                i++;
-            }
-
-            @Override
-            public void onScroll(float scrollProgressPercent) {
-
-            }
-        });
-
-
-        /**
-         * Can implement a closer look if wanted here
-         */
-        // Optionally add an OnItemClickListener
-        flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClicked(int itemPosition, Object dataObject) {
-
-            }
-        });
+                }
+            });
+            getCurrentUserData();
 
     }
 
@@ -145,13 +154,16 @@ public class MatchingActivity extends Activity {
      * the array to display
      */
 
-    private void getUserCalendar(String otherUserId, final String otherUserStatus) {
+    private void getUserCalendar(final String otherUserId, final String otherUserStatus) {
         mReference.child("user-calendar/" + mUserId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (mCurrentUserNewCalendar != null) {
-                    mCurrentUserTime = (HashMap<String, Boolean>) mCurrentUserNewCalendar.get("mFreeTime");
+                HashMap<String, Object> currentUserCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                if (currentUserCalendar != null) {
+                    mCurrentUserTime = (HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime");
+                    Log.i("MatchActivity", "!!!Map: " + mCurrentUserData);
                 }
+                getOtherUserCalendar(otherUserId, otherUserStatus);
             }
 
             @Override
@@ -159,11 +171,15 @@ public class MatchingActivity extends Activity {
 
             }
         });
+    }
+
+    private void getOtherUserCalendar(String otherUserId, final String otherUserStatus) {
         mReference.child("user-calendar/" + otherUserId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (mOtherUserNewCalendar != null) {
-                    mOtherUserTime = (HashMap<String, Boolean>) mOtherUserNewCalendar.get("mFreeTime");
+                HashMap<String, Object> otherUserCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                if (otherUserCalendar != null) {
+                    mOtherUserTime = (HashMap<String, Boolean>) otherUserCalendar.get("mFreeTime");
                     makeComplete();
                     checkFunc();
                     getUserMatch(otherUserStatus);
@@ -176,6 +192,7 @@ public class MatchingActivity extends Activity {
             }
         });
     }
+
     /**
      * This puts false on the times the users is not free,
      * so there is no null pointer, this is called by getUserCalendar
@@ -253,66 +270,64 @@ public class MatchingActivity extends Activity {
         Log.i("CalendarActivity", "!!!Map: " + mCurrentUserTime);
         int anyMatchCheck = 0;
         if (mCurrentUserTime.get("fridayMorning") == mOtherUserTime.get("fridayMorning")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("fridayAfternoon") == mOtherUserTime.get("fridayAfternoon")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("fridayEvening") == mOtherUserTime.get("fridayEvening")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("saturdayMorning") == mOtherUserTime.get("saturdayMorning")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("saturdayAfternoon") == mOtherUserTime.get("saturdayAfternoon")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("saturdayEvening") == mOtherUserTime.get("saturdayEvening")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("sundayMorning") == mOtherUserTime.get("sundayMorning")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("sundayAfternoon") == mOtherUserTime.get("sundayAfternoon")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
         if (mCurrentUserTime.get("sundayEvening") == mOtherUserTime.get("sundayEvening")) {
-            if (!mMatches.contains(mOtherUserId)) {
-                mMatches.add(mOtherUserId);
+            if (!mMatches.contains(mFriendName)) {
+                mMatches.add(mFriendName);
                 anyMatchCheck++;
             }
         }
-        if (anyMatchCheck > 0) {
-            if (status.containsKey(mOtherUserId)) {
-                status.remove(mOtherUserId);
-            }
-            status.put(mOtherUserId, "oneUser");
-        } else {
+        if (anyMatchCheck < 0) {
             status.put(mOtherUserId, "denied");
+            }
+        if (mMatches.size() > 0) {
+
         }
     }
 
@@ -360,16 +375,12 @@ public class MatchingActivity extends Activity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String otherUserStatus = null;
                 mOtherNewMatch = (HashMap<String, Object>) dataSnapshot.getValue();
-                if (mOtherNewMatch.get("status") != null) {
+                if (dataSnapshot.getValue() != null) {
                     mOtherUserStatus = (HashMap<String, String>) mOtherNewMatch.get("status");
                     if (mOtherUserStatus.containsKey(mUserId)) {
                         otherUserStatus = mOtherUserStatus.get(mUserId);
-                        mOtherUserStatus = (HashMap) mOtherNewMatch.get("status");
+                        //mOtherUserStatus = (HashMap) mOtherNewMatch.get("status");
                         Log.d("status", "current status " + mOtherUserStatus);
-                    } else {
-                        otherUserStatus = "noStart";
-                        mOtherUserStatus.put(mUserId, "noStart");
-                        writeNewPost(userId, mOtherUserStatus);
                     }
                 } else {
                     otherUserStatus = "noStart";
@@ -396,8 +407,8 @@ public class MatchingActivity extends Activity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 //overlap, oneUser, denied, match
                 //check for denied or overlap
-                if (!status.get(otherUserStatus).equals("denied")) {
-                    if (status.get(otherUserStatus).equals("oneUser")) {
+                if (!status.get(mOtherUserId).equals("denied")) {
+                    if (status.get(mOtherUserId).equals("oneUser")) {
                         if(otherUserStatus.equals(status.get(mOtherUserId))) {
                             status.remove(mOtherUserId);
                             status.put(mOtherUserId, "match");
@@ -426,10 +437,11 @@ public class MatchingActivity extends Activity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
                 if (dataSnapshot != null) {
-                    Map<String, Boolean> friendList = (Map<String, Boolean>) dataSnapshot.child("friendList").getValue();
+                    Map<String, String> friendList = (Map<String, String>) dataSnapshot.child("friendList").getValue();
                     if (friendList.size() > 0) {
                         for (String friendUid : friendList.keySet()) {
                                 mOtherUserId = friendUid;
+                                mFriendName = friendList.get(friendUid);
                                 status.put(friendUid, "noStart");
                                 //delete others so it dont make more
                                 writeNewPost(mUserId, status);
@@ -439,12 +451,6 @@ public class MatchingActivity extends Activity {
                         }
                     }
                 }
-                //User user = snapshot.getValue(User.class);
-//                    if (status.get(user.friends.keySet()).isEmpty()) {
-//                        status.put((user.friends.keySet(), "")
-//                    }
-                //Log.i("CalendarActivity", "mPosts: " + mPosts);
-                //checkData();
 
                 @Override
                 public void onCancelled (@NonNull DatabaseError databaseError){
