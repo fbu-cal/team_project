@@ -30,6 +30,7 @@ import android.widget.TextView;
 import com.example.team_project.CalendarActivity;
 import com.example.team_project.FirstActivity;
 import com.example.team_project.LoginActivity;
+import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.PostViewHolder;
 import com.example.team_project.ProfilePictureActivity;
 import com.example.team_project.R;
@@ -140,18 +141,24 @@ public class ProfileFragment extends Fragment {
                 // Bind Post to ViewHolder, setting OnClickListener for the star button
                 try {
                     viewHolder.bindToPost(model, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View starView) {
-                            // Need to write to both places the post is stored
-                            //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
-                            Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            //String globalPostPath = "/posts/" + postRef.getKey();
-                            String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                            //onLikeClicked(globalPostQuery, globalPostPath);
-                            onLikeClicked(userPostQuery, userPostPath);
-                            updateAllFeedsLikes(postRef.getKey());
-                        }
-                    });
+                                @Override
+                                public void onClick(View starView) {
+                                    // Need to write to both places the post is stored
+                                    //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                                    Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+                                    //String globalPostPath = "/posts/" + postRef.getKey();
+                                    String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
+                                    //onLikeClicked(globalPostQuery, globalPostPath);
+                                    onLikeClicked(userPostQuery, userPostPath);
+                                    updateAllFeedsLikes(postRef.getKey());
+                                }
+                            },
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    // nothing. already on correct activity
+                                }
+                            });
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -279,10 +286,12 @@ public class ProfileFragment extends Fragment {
                 onLikeClicked(userTempQuery, userTempPath);
                 // update current user's friend's feeds
                 Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                for (String friend : friendMap.keySet()) {
-                    Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
-                    String tempPath = "/user-feed/" + friend + "/" + postRefKey;
-                    onLikeClicked(tempQuery, tempPath);
+                if (friendMap != null) {
+                    for (String friend : friendMap.keySet()) {
+                        Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
+                        String tempPath = "/user-feed/" + friend + "/" + postRefKey;
+                        onLikeClicked(tempQuery, tempPath);
+                    }
                 }
             }
             @Override

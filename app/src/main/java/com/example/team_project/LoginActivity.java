@@ -70,6 +70,7 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
                             mProgressBar.setVisibility(View.GONE);
 
+                            // reset edit texts to blank
                             mEmail.setText("");
                             mPassword.setText("");
 

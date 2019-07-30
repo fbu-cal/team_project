@@ -1,12 +1,22 @@
 package com.example.team_project.fragments;
 
+import android.Manifest;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,6 +43,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,8 +65,6 @@ public class ComposeFragment extends Fragment {
     private EditText mDescription;
     private Button mPostButton, mTagFriendButton;
     private ImageView mPostImage;
-
-    private Spinner mFriendsSpinner;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -150,27 +159,12 @@ public class ComposeFragment extends Fragment {
         });
     }
 
-//    private void findUsername(String userId) {
-//        Query query = mDatabase.child("users").child(userId);
-//        query.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
-//                newUser.get("username");
-//            }
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
-//            }
-//        });
-//    }
-
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
+
             int dimension = getSquareCropDimensionForBitmap(imageBitmap);
             Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
             encodeBitmap(croppedBitmap);
@@ -194,19 +188,24 @@ public class ComposeFragment extends Fragment {
         String taggedFriend = mTagFriendButton.getText().toString();
         if (taggedFriend.equals("Tag Friends"))
             taggedFriend = null;
-        Post post = new Post(userId, username, description, postImageUrl, timestamp, taggedFriend);
-        Map<String, Object> postValues = post.toMap();
-        Map<String, Object> childUpdates = new HashMap<>();
-        //childUpdates.put("/posts/" + key, postValues);
-        childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
-        mDatabase.updateChildren(childUpdates);
-        // update user-feed
-        updateAllFeeds(postValues, key);
-        Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
-        mDescription.setText("");
+        if (postImageUrl!=null && !postImageUrl.equals("") && !description.equals("")) {
+            Post post = new Post(userId, username, description, postImageUrl, timestamp, taggedFriend);
+            Map<String, Object> postValues = post.toMap();
+            Map<String, Object> childUpdates = new HashMap<>();
+            //childUpdates.put("/posts/" + key, postValues);
+            childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
+            mDatabase.updateChildren(childUpdates);
+            // update user-feed
+            updateAllFeeds(postValues, key);
+            Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
+            mDescription.setText("");
 
-        Intent launchPosts = new Intent(getActivity(), MainActivity.class);
-        startActivity(launchPosts);
+            Intent launchPosts = new Intent(getActivity(), MainActivity.class);
+            startActivity(launchPosts);
+        }
+        else {
+            Toast.makeText(getActivity(), "Post Unsuccessful! Missing image or description!", Toast.LENGTH_LONG).show();
+        }
     }
 
     // updates user feeds for all the friends of the current user when a new post is made
@@ -247,5 +246,13 @@ public class ComposeFragment extends Fragment {
     {
         //use the smallest dimension of the image to crop to
         return Math.min(bitmap.getWidth(), bitmap.getHeight());
+    }
+
+    private static Bitmap rotateImage(Bitmap img, int degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+        img.recycle();
+        return rotatedImg;
     }
 }

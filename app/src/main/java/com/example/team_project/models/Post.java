@@ -32,7 +32,6 @@ public class Post {
         this.taggedFriend = taggedFriend;
     }
 
-    // [START post_to_map]
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
@@ -47,6 +46,4 @@ public class Post {
         result.put("taggedFriend", taggedFriend);
         return result;
     }
-    // [END post_to_map]
-
 }

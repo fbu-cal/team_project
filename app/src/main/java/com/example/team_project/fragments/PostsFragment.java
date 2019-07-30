@@ -11,8 +11,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.team_project.OtherUserProfileActivity;
+import com.example.team_project.PostDetailActivity;
 import com.example.team_project.PostViewHolder;
 import com.example.team_project.R;
+import com.example.team_project.SearchActivity;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -79,7 +82,8 @@ public class PostsFragment extends Fragment {
                     public void onClick(View v) {
                         // Launch PostDetailActivity
 //                        Intent intent = new Intent(getActivity(), PostDetailActivity.class);
-//                        intent.putExtra(PostDetailActivity.EXTRA_POST_KEY, postKey);
+//                        intent.putExtra("uid", model.uid);
+//                        intent.putExtra("postRefKey", postRef.getKey());
 //                        startActivity(intent);
                     }
                 });
@@ -91,11 +95,11 @@ public class PostsFragment extends Fragment {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
                 }
 
-                // Bind Post to ViewHolder, setting OnClickListener for the like button
+                // Bind Post to ViewHolder, setting OnClickListener for the like button and author
                 try {
                     viewHolder.bindToPost(model, new View.OnClickListener() {
                         @Override
-                        public void onClick(View starView) {
+                        public void onClick(View likeView) {
                             //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
                             Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
                             //String globalPostPath = "/posts/" + postRef.getKey();
@@ -103,6 +107,15 @@ public class PostsFragment extends Fragment {
                             //onLikeClicked(globalPostQuery, globalPostPath);
                             onLikeClicked(userPostQuery, userPostPath);
                             updateAllFeedsLikes(postRef.getKey());
+                        }
+                    }, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // go to user profile when author clicked
+                            Intent intent = new Intent(getActivity(), OtherUserProfileActivity.class);
+                            intent.putExtra("uid", model.uid);
+                            // show the activity
+                            startActivity(intent);
                         }
                     });
                 } catch (IOException e) {

@@ -1,5 +1,6 @@
 package com.example.team_project;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -55,8 +56,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         mTagged = itemView.findViewById(R.id.tagged_text_view);
     }
 
-    public void bindToPost(final Post post, View.OnClickListener starClickListener) throws IOException {
-        mAuthor.setText(post.author);
+    public void bindToPost(final Post post, View.OnClickListener likeClickListener, View.OnClickListener authorClickListener) throws IOException {
+        mAuthor.setText("@" + post.author);
         mLikeCount.setText(String.valueOf(post.likeCount));
         mBody.setText(post.body);
         if (post.timestamp != null) {
@@ -69,7 +70,9 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             mTagged.setText("with " + post.taggedFriend.split(" ")[1]);
         }
 
-        mLikeButton.setOnClickListener(starClickListener);
+        mLikeButton.setOnClickListener(likeClickListener);
+
+        mAuthor.setOnClickListener(authorClickListener);
 
         Query query = FirebaseDatabase.getInstance().getReference("users")
                 .orderByChild("username");

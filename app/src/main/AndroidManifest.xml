@@ -3,6 +3,7 @@
     package="com.example.team_project">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".TeamApp"
@@ -12,6 +13,7 @@
         android:roundIcon="@mipmap/ic_yoked_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".PostDetailActivity"></activity>
         <activity android:name=".UserSettingsActivity" />
         <activity android:name=".ProfilePictureActivity" />
         <activity android:name=".OtherUserProfileActivity" />

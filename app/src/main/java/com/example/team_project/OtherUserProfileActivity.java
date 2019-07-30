@@ -2,6 +2,8 @@ package com.example.team_project;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,6 +14,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
@@ -119,18 +122,24 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 // Bind Post to ViewHolder, setting OnClickListener for the star button
                 try {
                     viewHolder.bindToPost(model, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View starView) {
-                            // Need to write to both places the post is stored
-                            //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
-                            Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            //String globalPostPath = "/posts/" + postRef.getKey();
-                            String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                            //onLikeClicked(globalPostQuery, globalPostPath);
-                            onLikeClicked(userPostQuery, userPostPath);
-                            updateAllFeedsLikes(postRef.getKey());
-                        }
-                    });
+                                @Override
+                                public void onClick(View starView) {
+                                    // Need to write to both places the post is stored
+                                    //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                                    Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+                                    //String globalPostPath = "/posts/" + postRef.getKey();
+                                    String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
+                                    //onLikeClicked(globalPostQuery, globalPostPath);
+                                    onLikeClicked(userPostQuery, userPostPath);
+                                    updateAllFeedsLikes(postRef.getKey());
+                                }
+                            },
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    // nothing. already on correct page
+                                }
+                            });
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -441,10 +450,12 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 onLikeClicked(userTempQuery, userTempPath);
                 // update current user's friend's feeds
                 Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                for (String friend : friendMap.keySet()) {
-                    Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
-                    String tempPath = "/user-feed/" + friend + "/" + postRefKey;
-                    onLikeClicked(tempQuery, tempPath);
+                if (friendMap != null) {
+                    for (String friend : friendMap.keySet()) {
+                        Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
+                        String tempPath = "/user-feed/" + friend + "/" + postRefKey;
+                        onLikeClicked(tempQuery, tempPath);
+                    }
                 }
             }
             @Override
@@ -512,6 +523,4 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         // update user-feed
         Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
     }
-
-
 }
