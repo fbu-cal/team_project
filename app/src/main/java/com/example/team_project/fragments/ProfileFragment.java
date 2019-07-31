@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
@@ -31,6 +32,7 @@ import com.example.team_project.CalendarActivity;
 import com.example.team_project.FirstActivity;
 import com.example.team_project.LoginActivity;
 import com.example.team_project.OtherUserProfileActivity;
+import com.example.team_project.PostDetailActivity;
 import com.example.team_project.PostViewHolder;
 import com.example.team_project.ProfilePictureActivity;
 import com.example.team_project.R;
@@ -65,6 +67,7 @@ public class ProfileFragment extends Fragment {
     private DatabaseReference mDatabase;
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private LinearLayoutManager mManager;
+    private boolean mShouldRefreshOnResume;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -124,10 +127,11 @@ public class ProfileFragment extends Fragment {
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // Launch PostDetailActivity
-//                        Intent intent = new Intent(getActivity(), PostDetailActivity.class);
-//                        intent.putExtra(PostDetailActivity.EXTRA_POST_KEY, postKey);
-//                        startActivity(intent);
+                    // Launch PostDetailActivity
+                    Intent intent = new Intent(getActivity(), PostDetailActivity.class);
+                    intent.putExtra("uid", model.uid);
+                    intent.putExtra("postRefKey", postRef.getKey());
+                    startActivity(intent);
                     }
                 });
 
@@ -140,7 +144,7 @@ public class ProfileFragment extends Fragment {
 
                 // Bind Post to ViewHolder, setting OnClickListener for the star button
                 try {
-                    viewHolder.bindToPost(model, new View.OnClickListener() {
+                    viewHolder.bindToPost(model, postRef.getKey(), new View.OnClickListener() {
                                 @Override
                                 public void onClick(View starView) {
                                     // Need to write to both places the post is stored
@@ -322,5 +326,27 @@ public class ProfileFragment extends Fragment {
         bitmap.recycle();
 
         return output;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Check should we need to refresh the fragment
+        if(mShouldRefreshOnResume){
+            refreshFragment();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mShouldRefreshOnResume = true;
+    }
+
+    public void refreshFragment()
+    {
+        Fragment fragment = new ProfileFragment();
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.container_flowlayout, fragment).commit();
     }
 }

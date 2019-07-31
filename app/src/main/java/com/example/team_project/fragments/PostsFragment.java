@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -41,6 +44,8 @@ public class PostsFragment extends Fragment {
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
+
+    private boolean mShouldRefreshOnResume = false;
 
     public PostsFragment() {}
 
@@ -81,10 +86,10 @@ public class PostsFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         // Launch PostDetailActivity
-//                        Intent intent = new Intent(getActivity(), PostDetailActivity.class);
-//                        intent.putExtra("uid", model.uid);
-//                        intent.putExtra("postRefKey", postRef.getKey());
-//                        startActivity(intent);
+                        Intent intent = new Intent(getActivity(), PostDetailActivity.class);
+                        intent.putExtra("uid", model.uid);
+                        intent.putExtra("postRefKey", postRef.getKey());
+                        startActivity(intent);
                     }
                 });
 
@@ -97,7 +102,7 @@ public class PostsFragment extends Fragment {
 
                 // Bind Post to ViewHolder, setting OnClickListener for the like button and author
                 try {
-                    viewHolder.bindToPost(model, new View.OnClickListener() {
+                    viewHolder.bindToPost(model, postRef.getKey(), new View.OnClickListener() {
                         @Override
                         public void onClick(View likeView) {
                             //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
@@ -152,6 +157,8 @@ public class PostsFragment extends Fragment {
                 }
                 mDatabase.child(likesPath).updateChildren(likesMap);
                 mDatabase.child(likeCountPath).setValue(likeCount);
+
+                Log.i("PostsFragment", FirebaseAuth.getInstance().toString());
             }
 
             @Override
@@ -207,5 +214,27 @@ public class PostsFragment extends Fragment {
                 .child(getUid())
                 .limitToFirst(100);
         return recentPostsQuery;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Check should we need to refresh the fragment
+        if(mShouldRefreshOnResume){
+            refreshFragment();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mShouldRefreshOnResume = true;
+    }
+
+    public void refreshFragment()
+    {
+        Fragment fragment = new PostsFragment();
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.container_flowlayout, fragment).commit();
     }
 }

@@ -1,20 +1,16 @@
 package com.example.team_project;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.util.Base64;
@@ -30,6 +26,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -39,9 +36,9 @@ import java.util.Map;
 
 public class PostViewHolder extends RecyclerView.ViewHolder {
 
-    public TextView mAuthor, mLikeCount, mBody, mTime, mTagged;
+    public TextView mAuthor, mLikeCount, mBody, mTime, mTagged, mCommentCount;
     public ImageButton mLikeButton;
-    public ImageView mProfilePicture, mPostImage;
+    public ImageView mProfilePicture, mPostImage, mCommentImage;
 
     public PostViewHolder(View itemView) {
         super(itemView);
@@ -54,9 +51,11 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         mPostImage = itemView.findViewById(R.id.post_image_view);
         mTime = itemView.findViewById(R.id.time_text_view);
         mTagged = itemView.findViewById(R.id.tagged_text_view);
+        mCommentImage = itemView.findViewById(R.id.comment_image_view);
+        mCommentCount = itemView.findViewById(R.id.comment_count_text_view);
     }
 
-    public void bindToPost(final Post post, View.OnClickListener likeClickListener, View.OnClickListener authorClickListener) throws IOException {
+    public void bindToPost(final Post post, String postRefKey, View.OnClickListener likeClickListener, View.OnClickListener authorClickListener) throws IOException {
         mAuthor.setText("@" + post.author);
         mLikeCount.setText(String.valueOf(post.likeCount));
         mBody.setText(post.body);
@@ -73,6 +72,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         mLikeButton.setOnClickListener(likeClickListener);
 
         mAuthor.setOnClickListener(authorClickListener);
+
+        findCommentCount(postRefKey);
 
         Query query = FirebaseDatabase.getInstance().getReference("users")
                 .orderByChild("username");
@@ -115,6 +116,24 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             }
         });
 
+    }
+
+    private void findCommentCount(String postRefKey) {
+        FirebaseDatabase.getInstance().getReference().child("post-comments").child(postRefKey)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        int count = 0;
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            //Comment comment = snapshot.getValue(Comment.class);
+                            count++;
+                        }
+                        mCommentCount.setText(count+"");
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
     }
 
     public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {

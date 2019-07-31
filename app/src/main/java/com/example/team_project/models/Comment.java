@@ -10,25 +10,25 @@ import java.util.Map;
 public class Comment {
 
     public String uid;
-    public String author;
     public String text;
+    public String timestamp;
 
     public Comment() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
     }
 
-    public Comment(String uid, String author, String text) {
+    public Comment(String uid, String text, String timestamp) {
         this.uid = uid;
-        this.author = author;
         this.text = text;
+        this.timestamp = timestamp;
     }
 
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("uid", uid);
-        result.put("author", author);
         result.put("text", text);
+        result.put("timestamp", timestamp);
         return result;
     }
 }

@@ -8,11 +8,11 @@
 
     <ImageView
         android:id="@+id/profile_image_view"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:color/black" />
@@ -23,11 +23,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
         android:text="Full Name"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
         app:layout_constraintStart_toEndOf="@+id/profile_image_view"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/profile_image_view" />
 
     <TextView
         android:id="@+id/username_text_view"
@@ -37,16 +37,16 @@
         android:layout_marginLeft="16dp"
         android:text="\@username"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        app:layout_constraintBottom_toBottomOf="@+id/profile_image_view"
-        app:layout_constraintStart_toEndOf="@+id/profile_image_view" />
+        app:layout_constraintStart_toEndOf="@+id/post_image_view"
+        app:layout_constraintTop_toTopOf="@+id/post_image_view" />
 
     <ImageView
         android:id="@+id/post_image_view"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="175dp"
+        android:layout_height="175dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profile_image_view"
         app:srcCompat="@android:color/black" />
@@ -57,11 +57,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="9dp"
         android:text="Time"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/tagged_text_view" />
+        app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
 
     <TextView
         android:id="@+id/body_text_view"
@@ -69,14 +68,14 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
         android:layout_marginRight="24dp"
         android:text="Body"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toTopOf="@+id/post_image_view" />
+        app:layout_constraintTop_toBottomOf="@+id/time_text_view" />
 
     <TextView
         android:id="@+id/tagged_text_view"
@@ -91,17 +90,31 @@
 
     <ImageButton
         android:id="@+id/like_image_button"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
         android:background="@color/white"
         android:scaleType="centerInside"
         android:tint="@color/yokedYellow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/post_image_view"
         app:srcCompat="@drawable/ufi_heart" />
+
+    <ImageButton
+        android:id="@+id/comment_image_button"
+        android:layout_width="30dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/white"
+        android:scaleType="centerInside"
+        android:tint="@color/yokedYellow"
+        app:layout_constraintStart_toEndOf="@+id/like_count_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/post_image_view"
+        app:srcCompat="@drawable/ufi_comment" />
 
     <TextView
         android:id="@+id/like_count_text_view"
@@ -110,8 +123,70 @@
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
         android:text="Likes"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintBottom_toBottomOf="@+id/like_image_button"
         app:layout_constraintStart_toEndOf="@+id/like_image_button"
         app:layout_constraintTop_toTopOf="@+id/like_image_button" />
+
+    <TextView
+        android:id="@+id/comment_count_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:text="Comments"
+        app:layout_constraintBottom_toBottomOf="@+id/comment_image_button"
+        app:layout_constraintStart_toEndOf="@+id/comment_image_button"
+        app:layout_constraintTop_toTopOf="@+id/comment_image_button" />
+
+    <EditText
+        android:id="@+id/comment_edit_text"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="16dp"
+        android:ems="10"
+        android:hint="Type a comment here"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/post_comment_button"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/post_comment_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="Post"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/comment_recycler_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/comment_edit_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/view" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="16dp"
+        android:background="#000000"
+        app:layout_constraintTop_toBottomOf="@+id/comment_image_button"
+        tools:layout_editor_absoluteX="0dp" />
+
 </android.support.constraint.ConstraintLayout>

@@ -97,6 +97,11 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         updateTextButton();
 
         // Set up FirebaseRecyclerAdapter with the Query
+        setUpRecycler();
+    }
+
+    private void setUpRecycler() {
+        // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = getQuery(mDatabase);
         mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
                 PostViewHolder.class, postsQuery) {
@@ -108,9 +113,10 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         // Launch PostDetailActivity
-//                        Intent intent = new Intent(getActivity(), PostDetailActivity.class);
-//                        intent.putExtra(PostDetailActivity.EXTRA_POST_KEY, postKey);
-//                        startActivity(intent);
+                        Intent intent = new Intent(OtherUserProfileActivity.this, PostDetailActivity.class);
+                        intent.putExtra("uid", model.uid);
+                        intent.putExtra("postRefKey", postRef.getKey());
+                        startActivity(intent);
                     }
                 });
                 // Determine if the current user has liked this post and set UI accordingly
@@ -121,7 +127,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 }
                 // Bind Post to ViewHolder, setting OnClickListener for the star button
                 try {
-                    viewHolder.bindToPost(model, new View.OnClickListener() {
+                    viewHolder.bindToPost(model, postRef.getKey(), new View.OnClickListener() {
                                 @Override
                                 public void onClick(View starView) {
                                     // Need to write to both places the post is stored
@@ -159,10 +165,11 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 }
                 // TODO
                 // if button text = "message friend"
-                    // redirect user to message
+                // redirect user to message
             }
         });
     }
+
 
     // Method for accepting friend requests. Will update friendStatuses and friendList for both users.
     private void acceptRequest() {
@@ -522,5 +529,12 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         mDatabase.updateChildren(childUpdates);
         // update user-feed
         Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Set up FirebaseRecyclerAdapter with the Query
+        setUpRecycler();
     }
 }
