@@ -95,7 +95,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
-        android:background="@color/white"
+        android:background="#FAFAFA"
         android:scaleType="centerInside"
         android:tint="@color/yokedYellow"
         app:layout_constraintStart_toStartOf="parent"
@@ -109,7 +109,7 @@
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginTop="16dp"
-        android:background="@color/white"
+        android:background="@android:color/transparent"
         android:scaleType="centerInside"
         android:tint="@color/yokedYellow"
         app:layout_constraintStart_toEndOf="@+id/like_count_text_view"
@@ -152,7 +152,8 @@
         android:inputType="textPersonName"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/post_comment_button"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:backgroundTint="@color/yokedYellow"/>
 
     <Button
         android:id="@+id/post_comment_button"

@@ -21,7 +21,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fullname_edit_text" />
+        app:layout_constraintTop_toBottomOf="@+id/fullname_edit_text"
+        app:backgroundTint="@color/yokedYellow"/>
 
     <EditText
         android:id="@+id/password_edit_text"
@@ -38,7 +39,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/username_edit_text" />
+        app:layout_constraintTop_toBottomOf="@+id/username_edit_text"
+        app:backgroundTint="@color/yokedYellow"/>
 
     <Button
         android:id="@+id/signup_button"
@@ -50,6 +52,7 @@
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
         android:text="Sign Up"
+        android:background="@color/yokedYellow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -70,7 +73,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/email_edit_text" />
+        app:layout_constraintTop_toBottomOf="@+id/email_edit_text"
+        app:backgroundTint="@color/yokedYellow"/>
 
     <EditText
         android:id="@+id/fullname_edit_text"
@@ -87,6 +91,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:backgroundTint="@color/yokedYellow"/>
 
 </android.support.constraint.ConstraintLayout>

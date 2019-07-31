@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -31,10 +32,13 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.team_project.MainActivity;
+import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.R;
+import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
 import com.example.team_project.models.User;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -58,12 +62,13 @@ import in.galaxyofandroid.spinerdialog.SpinnerDialog;
 public class ComposeFragment extends Fragment {
 
     private static final int REQUEST_IMAGE_CAPTURE = 111;
+    private static final int REQUEST_IMAGE_UPLOAD = 222;
     private DatabaseReference mDatabase;
     private String mCurrentUser;
     private String mImageEncoded;
 
     private EditText mDescription;
-    private Button mPostButton, mTagFriendButton;
+    private Button mPostButton, mTagFriendButton, mTakePictureButton, mUploadPictureButton;
     private ImageView mPostImage;
 
     @Override
@@ -80,13 +85,27 @@ public class ComposeFragment extends Fragment {
         mPostButton = view.findViewById(R.id.post_button);
         mPostImage = view.findViewById(R.id.post_image_view);
         mTagFriendButton = view.findViewById(R.id.tag_friends_button);
+        mTakePictureButton = view.findViewById(R.id.take_picture_button);
+        mUploadPictureButton = view.findViewById(R.id.upload_picture_button);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        onLaunchCamera(view);
-
         addSpinner();
+
+        mTakePictureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onLaunchCamera(v);
+            }
+        });
+
+        mUploadPictureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onLaunchGallery(v);
+            }
+        });
 
         mPostButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,7 +183,20 @@ public class ComposeFragment extends Fragment {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-
+            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
+            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
+            encodeBitmap(croppedBitmap);
+            mPostImage.setImageBitmap(croppedBitmap);
+        }
+        else if (requestCode == REQUEST_IMAGE_UPLOAD) {
+            Bitmap imageBitmap = null;
+            if (data != null) {
+                try {
+                    imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), data.getData());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             int dimension = getSquareCropDimensionForBitmap(imageBitmap);
             Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
             encodeBitmap(croppedBitmap);
@@ -179,9 +211,17 @@ public class ComposeFragment extends Fragment {
         }
     }
 
+    private void onLaunchGallery(View view)
+    {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);//
+        startActivityForResult(Intent.createChooser(intent, "Select File"), 222);
+    }
+
     private void writeNewPost(String userId, String username, String description, String postImageUrl) {
         // update posts and user-posts
-        String key = mDatabase.child("posts").push().getKey();
+        final String key = mDatabase.child("posts").push().getKey();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
         String timestamp = simpleDateFormat.format(new Date());
         Log.d("MainActivity", "Current Timestamp: " + timestamp);
@@ -199,6 +239,33 @@ public class ComposeFragment extends Fragment {
             updateAllFeeds(postValues, key);
             Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
             mDescription.setText("");
+
+            // send notification to tagged user if tagged user exists
+            if (taggedFriend!=null) {
+                String taggedUsername = taggedFriend.split(" ")[1].substring(1);
+                Query query = FirebaseDatabase.getInstance().getReference("users")
+                        .orderByChild("username").equalTo(taggedUsername);
+                query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
+                    @Override
+                    public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
+                        Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
+                        String taggedUid = newUser.get("uid").toString();
+                        sendFirebaseNotification(mCurrentUser, taggedUid, "has tagged you in a post", key);
+                    }
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    }
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                    }
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    }
+                });
+            }
 
             Intent launchPosts = new Intent(getActivity(), MainActivity.class);
             startActivity(launchPosts);
@@ -254,5 +321,40 @@ public class ComposeFragment extends Fragment {
         Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
         img.recycle();
         return rotatedImg;
+    }
+
+    private void sendFirebaseNotification(final String fromUid, final String toUid, final String body, final String key) {
+        Query query = mDatabase.child("users").child(fromUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                String title = newUser.get("username").toString();
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+                String timestamp = simpleDateFormat.format(new Date());
+                String imageUrl = "";
+                if (newUser.get("profile_picture")!=null)
+                    imageUrl = newUser.get("profile_picture").toString();
+                Notification notif = new Notification
+                        ("tagged", imageUrl, title, body, timestamp, toUid, fromUid);
+                notif.key = key;
+                updateFirebaseNotification(toUid, notif);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+    private void updateFirebaseNotification(String toUid, Notification notif) {
+        String key = mDatabase.child("notification").push().getKey();
+        Map<String, Object> notifValues = notif.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        //childUpdates.put("/posts/" + key, postValues);
+        childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
+        mDatabase.updateChildren(childUpdates);
+        // update user-feed
+        Toast.makeText(getActivity(), "Sent Notification", Toast.LENGTH_LONG).show();
     }
 }

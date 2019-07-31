@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -18,6 +17,7 @@
         android:ems="10"
         android:hint="Type description here."
         android:inputType="textPersonName"
+        app:backgroundTint="@color/yokedYellow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,6 +33,7 @@
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
         android:text="post"
+        android:background="@color/yokedYellow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -45,12 +46,9 @@
         android:layout_marginStart="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginTop="64dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:color/black" />
+        app:srcCompat="@drawable/square_placeholder_image" />
 
     <Button
         android:id="@+id/tag_friends_button"
@@ -62,11 +60,46 @@
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
         android:text="Tag Friends"
+        android:background="@drawable/transparent_bg_bordered_button"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/description_edit_text"/>
-        <!--style="@style/Widget.AppCompat.Button.Borderless"-->
+        app:layout_constraintTop_toBottomOf="@+id/description_edit_text" />
 
+    <Button
+        android:id="@+id/take_picture_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginRight="32dp"
+        android:text="Take Picture"
+        android:background="@color/yokedYellowLight"
+        app:layout_constraintBottom_toTopOf="@+id/upload_picture_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/post_image_view"
+        app:layout_constraintTop_toTopOf="@+id/post_image_view" />
+
+    <Button
+        android:id="@+id/upload_picture_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginRight="32dp"
+        android:layout_marginBottom="8dp"
+        android:text="Upload Picture"
+        android:background="@color/yokedYellowLight"
+        app:layout_constraintBottom_toBottomOf="@+id/post_image_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/post_image_view"
+        app:layout_constraintTop_toBottomOf="@+id/take_picture_button" />
+    <!--style="@style/Widget.AppCompat.Button.Borderless"-->
 
 
 </android.support.constraint.ConstraintLayout>

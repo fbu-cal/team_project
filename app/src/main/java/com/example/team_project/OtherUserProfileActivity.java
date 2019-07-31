@@ -14,7 +14,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.net.Uri;
+import android.media.RingtoneManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
@@ -32,19 +32,15 @@ import android.widget.Toast;
 
 import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
-import com.example.team_project.models.User;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -215,7 +211,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 acceptRequestHelper(userFriendsList, mCurrentUserUid, listPath);
 //                userFriendsList.put(mCurrentUserUid, true);
 //                mDatabase.child(listPath).updateChildren(userFriendsList);
-                sendNotification(mCurrentUserUid, mProfileOwnerUid, "has accepted your friend request");
+                sendFirebaseNotification(mCurrentUserUid, mProfileOwnerUid, "has accepted your friend request");
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -301,7 +297,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 mAddFriendButton.setText("Sent Request");
                 mAddFriendButton.setEnabled(false);
                 updateAddedUser("Received Request");
-                sendNotification(mCurrentUserUid, mProfileOwnerUid, "has sent you a friend request");
+                sendFirebaseNotification(mCurrentUserUid, mProfileOwnerUid, "has sent you a friend request");
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -497,7 +493,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         mDatabase.updateChildren(childUpdates);
     }
 
-    private void sendNotification(final String fromUid, final String toUid, final String body) {
+    private void sendFirebaseNotification(final String fromUid, final String toUid, final String body) {
         Query query = mDatabase.child("users").child(fromUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -511,7 +507,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     imageUrl = newUser.get("profile_picture").toString();
                 Notification notif = new Notification
                         ("friend", imageUrl, title, body, timestamp, toUid, fromUid);
-                updateNotification(toUid, notif);
+                updateFirebaseNotification(toUid, notif);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -520,7 +516,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
 
-    private void updateNotification(String toUid, Notification notif) {
+    private void updateFirebaseNotification(String toUid, Notification notif) {
         String key = mDatabase.child("notification").push().getKey();
         Map<String, Object> notifValues = notif.toMap();
         Map<String, Object> childUpdates = new HashMap<>();

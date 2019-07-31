@@ -16,6 +16,7 @@ public class Notification {
     public String timestamp;
     public String toUid;
     public String fromUid;
+    public String key = "";
     public Boolean seen = false;
 
     public Notification() {
@@ -42,6 +43,7 @@ public class Notification {
         result.put("timestamp", timestamp);
         result.put("toUid", toUid);
         result.put("fromUid", fromUid);
+        result.put("key", key);
         result.put("seen", seen);
         return result;
     }

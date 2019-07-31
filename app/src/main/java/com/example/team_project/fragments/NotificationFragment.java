@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 
 import com.example.team_project.NotificationViewHolder;
 import com.example.team_project.OtherUserProfileActivity;
+import com.example.team_project.PostDetailActivity;
 import com.example.team_project.PostViewHolder;
 import com.example.team_project.R;
 import com.example.team_project.models.Notification;
@@ -81,6 +82,13 @@ public class NotificationFragment extends Fragment {
                         if (model.type.equals("friend")) {
                             Intent intent = new Intent(getActivity(), OtherUserProfileActivity.class);
                             intent.putExtra("uid", model.fromUid);
+                            startActivity(intent);
+                            markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                        }
+                        if (model.type.equals("tagged")) {
+                            Intent intent = new Intent(getActivity(), PostDetailActivity.class);
+                            intent.putExtra("uid", model.fromUid);
+                            intent.putExtra("postRefKey", model.key);
                             startActivity(intent);
                             markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                         }

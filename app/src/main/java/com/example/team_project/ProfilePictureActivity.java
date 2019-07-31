@@ -2,7 +2,6 @@ package com.example.team_project;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -12,8 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.example.team_project.fragments.ProfileFragment;
-import com.example.team_project.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -24,21 +21,30 @@ import java.io.IOException;
 public class ProfilePictureActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 111;
-    public ImageView profileImageView;
-    public Button takePictureButton;
+    private static final int REQUEST_IMAGE_UPLOAD = 222;
+    public ImageView mProfileImageView;
+    public Button mTakePictureButton, mUploadPictureButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_picture);
 
-        takePictureButton = findViewById(R.id.take_picture_button);
-        profileImageView = findViewById(R.id.profile_image_view);
+        mTakePictureButton = findViewById(R.id.take_picture_button);
+        mUploadPictureButton = findViewById(R.id.upload_picture_button);
+        mProfileImageView = findViewById(R.id.profile_image_view);
 
-        takePictureButton.setOnClickListener(new View.OnClickListener() {
+        mTakePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onLaunchCamera();
+            }
+        });
+
+        mUploadPictureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onLaunchGallery();
             }
         });
     }
@@ -50,7 +56,24 @@ public class ProfilePictureActivity extends AppCompatActivity {
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             int dimension = getSquareCropDimensionForBitmap(imageBitmap);
             Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
-            profileImageView.setImageBitmap(croppedBitmap);
+            mProfileImageView.setImageBitmap(croppedBitmap);
+            encodeBitmapAndSaveToFirebase(croppedBitmap);
+            finish();
+            Intent toProfile = new Intent(this, MainActivity.class);
+            startActivity(toProfile);
+        }
+        else if (requestCode == REQUEST_IMAGE_UPLOAD) {
+            Bitmap imageBitmap = null;
+            if (data != null) {
+                try {
+                    imageBitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
+            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
+            mProfileImageView.setImageBitmap(croppedBitmap);
             encodeBitmapAndSaveToFirebase(croppedBitmap);
             finish();
             Intent toProfile = new Intent(this, MainActivity.class);
@@ -63,6 +86,14 @@ public class ProfilePictureActivity extends AppCompatActivity {
         if (takePictureIntent.resolveActivity(this.getPackageManager()) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
+    }
+
+    private void onLaunchGallery()
+    {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);//
+        startActivityForResult(Intent.createChooser(intent, "Select File"), 222);
     }
 
     public void encodeBitmapAndSaveToFirebase(Bitmap bitmap) {
