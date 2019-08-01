@@ -251,6 +251,7 @@ public class ComposeFragment extends Fragment {
                         Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
                         String taggedUid = newUser.get("uid").toString();
                         sendFirebaseNotification(mCurrentUser, taggedUid, "has tagged you in a post", key);
+                        MainActivity.notificationBadge.setVisibility(View.VISIBLE);
                     }
                     @Override
                     public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {

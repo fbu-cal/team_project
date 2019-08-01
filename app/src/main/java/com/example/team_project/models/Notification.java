@@ -18,6 +18,7 @@ public class Notification {
     public String fromUid;
     public String key = "";
     public Boolean seen = false;
+    public Boolean pushed = false;
 
     public Notification() {
         // Default constructor required for calls to DataSnapshot.getValue(Notification.class)
@@ -45,6 +46,7 @@ public class Notification {
         result.put("fromUid", fromUid);
         result.put("key", key);
         result.put("seen", seen);
+        result.put("pushed", pushed);
         return result;
     }
 }

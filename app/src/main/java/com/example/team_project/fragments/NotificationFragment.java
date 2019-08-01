@@ -1,10 +1,13 @@
 package com.example.team_project.fragments;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.team_project.MainActivity;
 import com.example.team_project.NotificationViewHolder;
 import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.PostDetailActivity;
@@ -21,6 +25,7 @@ import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,6 +37,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.view.View.GONE;
+
 public class NotificationFragment extends Fragment {
 
     public String mCurrentUserUid;
@@ -42,6 +49,8 @@ public class NotificationFragment extends Fragment {
     private FirebaseRecyclerAdapter<Notification, NotificationViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
+
+    private boolean mShouldRefreshOnResume = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -67,6 +76,8 @@ public class NotificationFragment extends Fragment {
         mManager.setReverseLayout(true);
         mManager.setStackFromEnd(true);
         mRecycler.setLayoutManager(mManager);
+
+        checkBadgeStatus();
 
         // Set up FirebaseRecyclerAdapter with the Query
         Query notifQuery = getQuery(mDatabase);
@@ -110,6 +121,25 @@ public class NotificationFragment extends Fragment {
 
     }
 
+    private void checkBadgeStatus() {
+        MainActivity.notificationBadge.setVisibility(GONE);
+        mDatabase.child("user-notifications").child(mCurrentUserUid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Notification notification = snapshot.getValue(Notification.class);
+                            if (!notification.seen) {
+                                MainActivity.notificationBadge.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+    }
+
     private void markNotifAsSeen(Notification model, final String postRefKey, View itemView) {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReference("user-notifications")
@@ -125,6 +155,28 @@ public class NotificationFragment extends Fragment {
                 .child(mCurrentUserUid)
                 .limitToFirst(20);
         return recentPostsQuery;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Check should we need to refresh the fragment
+        if(mShouldRefreshOnResume){
+            refreshFragment();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mShouldRefreshOnResume = true;
+    }
+
+    public void refreshFragment()
+    {
+        Fragment fragment = new NotificationFragment();
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.container_flowlayout, fragment).commit();
     }
 
 }

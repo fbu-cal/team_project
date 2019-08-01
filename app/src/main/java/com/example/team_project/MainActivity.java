@@ -2,8 +2,11 @@ package com.example.team_project;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.internal.BottomNavigationItemView;
+import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -17,6 +20,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -24,6 +28,7 @@ import com.example.team_project.fragments.ComposeFragment;
 import com.example.team_project.fragments.NotificationFragment;
 import com.example.team_project.fragments.PostsFragment;
 import com.example.team_project.fragments.ProfileFragment;
+import com.example.team_project.models.Notification;
 import com.example.team_project.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,17 +40,22 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import android.support.v7.widget.SearchView;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Map;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int MESSENGER_REQUEST_CODE = 100;
-    private BottomNavigationView mBottomNavigationView;
+    public BottomNavigationView mBottomNavigationView;
+
+    public static View notificationBadge;
 
     Fragment fragment;
 
@@ -53,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        runAsync();
 
         final FragmentManager fragmentManager = getSupportFragmentManager();
         // handle bottom navigation selection
@@ -80,6 +92,9 @@ public class MainActivity extends AppCompatActivity {
         });
         // Set default selection
         mBottomNavigationView.setSelectedItemId(R.id.action_home);
+
+        // Add badge view for notifications
+        addBadgeView();
     }
 
     @Override
@@ -120,5 +135,51 @@ public class MainActivity extends AppCompatActivity {
     private void goToMessenger() {
         Intent toMessenger = new Intent(this, MainMessenger.class);
         startActivityForResult(toMessenger, MESSENGER_REQUEST_CODE);
+    }
+
+    private void addBadgeView() {
+        BottomNavigationMenuView menuView = (BottomNavigationMenuView) mBottomNavigationView.getChildAt(0);
+        BottomNavigationItemView itemView = (BottomNavigationItemView) menuView.getChildAt(2);
+
+        notificationBadge = LayoutInflater.from(this).inflate(R.layout.view_notification_badge, menuView, false);
+
+        itemView.addView(notificationBadge);
+    }
+
+    private void runAsync() {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                checkNotififcations();
+            }
+        });
+    }
+
+    private void checkNotififcations() {
+        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseDatabase.getInstance().getReference().child("user-notifications").child(currentUid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Notification notification = snapshot.getValue(Notification.class);
+                            if (!notification.seen) {
+                                MainActivity.notificationBadge.setVisibility(View.VISIBLE);
+                            }
+                            // TODO - show push notification
+                            if (!notification.pushed) {
+                                // show notification
+                                // update notification to show pushed=true
+                                // if notification is clicked, then show correct activity
+                                // if notificiation is clicked, update so seen=true
+                            }
+                        }
+                        runAsync();
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        runAsync();
+                    }
+                });
     }
 }

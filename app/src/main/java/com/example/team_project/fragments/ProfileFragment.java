@@ -31,6 +31,7 @@ import android.widget.TextView;
 import com.example.team_project.CalendarActivity;
 import com.example.team_project.FirstActivity;
 import com.example.team_project.LoginActivity;
+import com.example.team_project.MainActivity;
 import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.PostDetailActivity;
 import com.example.team_project.PostViewHolder;

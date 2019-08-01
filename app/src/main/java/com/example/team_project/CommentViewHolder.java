@@ -86,48 +86,6 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
-//        Query query = FirebaseDatabase.getInstance().getReference("users")
-//                .orderByChild("username");
-//        query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
-//            @Override
-//            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-//                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-//                // check if user is the current user
-//                if (newUser.get("uid").toString().equals(comment.uid)) {
-//                    mUsername.setText("@+" + newUser.get("username").toString());
-//                    if (newUser.get("profile_picture") != null) {
-//                        String imageUrl = newUser.get("profile_picture").toString();
-//                        // if profile pic is already set
-//                        if (!imageUrl.equals("")) {
-//                            Log.i("PostViewHolder", "imageUrl: " + imageUrl);
-//                            try {
-//                                // set profile picture
-//                                Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-//                                Bitmap circularImage = getCircleBitmap(realImage);
-//                                Log.i("PostViewHolder", "realImage: " + realImage);
-//                                mProfilePicture.setImageBitmap(circularImage);
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                                Log.e("PostViewHolder", "Profile pic issue", e);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            @Override
-//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//            }
-//            @Override
-//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-//            }
-//            @Override
-//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//            }
-//        });
-
     }
 
     public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
