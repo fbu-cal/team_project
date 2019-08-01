@@ -58,6 +58,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
+import in.galaxyofandroid.spinerdialog.SpinnerDialog;
+
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
@@ -69,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     public static View notificationBadge;
 
     public String mCurrentUserUid;
+    public SpinnerDialog mSpinnerDialog;
 
     Fragment fragment;
 
@@ -125,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
         drawable2 = DrawableCompat.wrap(drawable2);
         DrawableCompat.setTint(drawable2, ContextCompat.getColor(this,R.color.white));
         menu.findItem(R.id.miSearch).setIcon(drawable2);
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -143,8 +148,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void goToSearch() {
-        Intent toSearch = new Intent(this, SearchActivity.class);
-        startActivity(toSearch);
+//        Intent toSearch = new Intent(this, SearchActivity.class);
+////        startActivity(toSearch);
+        addSpinner();
     }
 
     // open ComposeActivity to create a new tweet
@@ -162,80 +168,112 @@ public class MainActivity extends AppCompatActivity {
         itemView.addView(notificationBadge);
     }
 
-    private void runAsync() {
-        AsyncTask.execute(new Runnable() {
+    private void addSpinner() {
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        Query query = mDatabase.child("users");
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void run() {
-                checkNotififcations();
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<String> userList = new ArrayList<String>();
+                final ArrayList<String> userUidList = new ArrayList<String>();
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    Map<String, Object> newUser = (Map<String, Object>) data.getValue();
+                    userList.add(newUser.get("username").toString());
+                    userUidList.add(newUser.get("uid").toString());
+                }
+                // spinner
+                mSpinnerDialog = new SpinnerDialog(MainActivity.this, userList, "Search Users");
+                mSpinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
+                    @Override
+                    public void onClick(String s, int i) {
+                        Intent toOtherProfile = new Intent(MainActivity.this, OtherUserProfileActivity.class);
+                        toOtherProfile.putExtra("uid", userUidList.get(i));
+                        startActivity(toOtherProfile);
+                    }
+                });
+                mSpinnerDialog.showSpinerDialog();
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
     }
 
-    private void checkNotififcations() {
-        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseDatabase.getInstance().getReference().child("user-notifications").child(currentUid)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            String key = snapshot.getKey();
-                            Notification notification = snapshot.getValue(Notification.class);
-                            if (!notification.seen) {
-                                MainActivity.notificationBadge.setVisibility(View.VISIBLE);
-                            }
-                            // TODO - show push notification
-                            if (!notification.pushed) {
-                                createPushNotification(notification.title, notification.body, key);
-                            }
-                        }
-                        runAsync();
-                    }
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        runAsync();
-                    }
-                });
-    }
-
-    private void createPushNotification(String title, String body, String key) {
-        // create notification
-        // Configure the channel
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel channel = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            channel = new NotificationChannel("myChannelId", "My Channel", importance);
-            channel.setDescription("Reminders");
-            // Register the channel with the notifications manager
-            NotificationManager mNotificationManager =
-                    (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.createNotificationChannel(channel);
-            NotificationCompat.Builder mBuilder =
-                    // Builder class for devices targeting API 26+ requires a channel ID
-                    new NotificationCompat.Builder(this, "myChannelId")
-                            .setSmallIcon(R.drawable.instagram_user_outline_24)
-                            .setContentTitle(title)
-                            .setContentText(body);
-            int id = createID();
-            mNotificationManager.notify(id, mBuilder.build());
-        }
-        // update notification to show pushed=true
-        updateNotificationPushedStatus(key);
-        // if notification is clicked, then show correct activity
-        // if notificiation is clicked, update so seen=true
-    }
-
-    private void updateNotificationPushedStatus(final String key) {
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("user-notifications")
-                .child(mCurrentUserUid)
-                .child(key)
-                .child("pushed");
-        ref.setValue(true);
-    }
-
-    public int createID(){
-        Date now = new Date();
-        int id = Integer.parseInt(new SimpleDateFormat("ddHHmmss",  Locale.US).format(now));
-        return id;
-    }
+//    private void runAsync() {
+//        AsyncTask.execute(new Runnable() {
+//            @Override
+//            public void run() {
+//                checkNotififcations();
+//            }
+//        });
+//    }
+//
+//    private void checkNotififcations() {
+//        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//        FirebaseDatabase.getInstance().getReference().child("user-notifications").child(currentUid)
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(DataSnapshot dataSnapshot) {
+//                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//                            String key = snapshot.getKey();
+//                            Notification notification = snapshot.getValue(Notification.class);
+//                            if (!notification.seen) {
+//                                MainActivity.notificationBadge.setVisibility(View.VISIBLE);
+//                            }
+//                            // TODO - show push notification
+//                            if (!notification.pushed) {
+//                                createPushNotification(notification.title, notification.body, key);
+//                            }
+//                        }
+//                        runAsync();
+//                    }
+//                    @Override
+//                    public void onCancelled(DatabaseError databaseError) {
+//                        runAsync();
+//                    }
+//                });
+//    }
+//
+//    private void createPushNotification(String title, String body, String key) {
+//        // create notification
+//        // Configure the channel
+//        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+//        NotificationChannel channel = null;
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+//            channel = new NotificationChannel("myChannelId", "My Channel", importance);
+//            channel.setDescription("Reminders");
+//            // Register the channel with the notifications manager
+//            NotificationManager mNotificationManager =
+//                    (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+//            mNotificationManager.createNotificationChannel(channel);
+//            NotificationCompat.Builder mBuilder =
+//                    // Builder class for devices targeting API 26+ requires a channel ID
+//                    new NotificationCompat.Builder(this, "myChannelId")
+//                            .setSmallIcon(R.drawable.instagram_user_outline_24)
+//                            .setContentTitle(title)
+//                            .setContentText(body);
+//            int id = createID();
+//            mNotificationManager.notify(id, mBuilder.build());
+//        }
+//        // update notification to show pushed=true
+//        updateNotificationPushedStatus(key);
+//        // if notification is clicked, then show correct activity
+//        // if notificiation is clicked, update so seen=true
+//    }
+//
+//    private void updateNotificationPushedStatus(final String key) {
+//        DatabaseReference ref = FirebaseDatabase.getInstance()
+//                .getReference("user-notifications")
+//                .child(mCurrentUserUid)
+//                .child(key)
+//                .child("pushed");
+//        ref.setValue(true);
+//    }
+//
+//    public int createID(){
+//        Date now = new Date();
+//        int id = Integer.parseInt(new SimpleDateFormat("ddHHmmss",  Locale.US).format(now));
+//        return id;
+//    }
 }

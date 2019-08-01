@@ -198,7 +198,6 @@ public class ProfileFragment extends Fragment {
                         String imageUrl = newUser.get("profile_picture").toString();
                         // if profile pic is already set
                         if (!imageUrl.equals("")) {
-                            Log.i("ProfileFragment", "imageUrl: " + imageUrl);
                             try {
                                 // set profile picture
                                 Bitmap realImage = decodeFromFirebaseBase64(imageUrl);

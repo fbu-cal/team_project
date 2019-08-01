@@ -87,7 +87,6 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
                         String imageUrl = newUser.get("profile_picture").toString();
                         // if profile pic is already set
                         if (!imageUrl.equals("")) {
-                            Log.i("PostViewHolder", "imageUrl: " + imageUrl);
                             try {
                                 // set profile picture
                                 Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
