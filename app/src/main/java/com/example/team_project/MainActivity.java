@@ -1,8 +1,14 @@
 package com.example.team_project;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.internal.BottomNavigationItemView;
@@ -10,6 +16,7 @@ import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.MenuItemCompat;
@@ -44,7 +51,11 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static android.view.View.GONE;
@@ -57,14 +68,19 @@ public class MainActivity extends AppCompatActivity {
 
     public static View notificationBadge;
 
+    public String mCurrentUserUid;
+
     Fragment fragment;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        runAsync();
+        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        // runAsync();
 
         final FragmentManager fragmentManager = getSupportFragmentManager();
         // handle bottom navigation selection
@@ -162,16 +178,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String key = snapshot.getKey();
                             Notification notification = snapshot.getValue(Notification.class);
                             if (!notification.seen) {
                                 MainActivity.notificationBadge.setVisibility(View.VISIBLE);
                             }
                             // TODO - show push notification
                             if (!notification.pushed) {
-                                // show notification
-                                // update notification to show pushed=true
-                                // if notification is clicked, then show correct activity
-                                // if notificiation is clicked, update so seen=true
+                                createPushNotification(notification.title, notification.body, key);
                             }
                         }
                         runAsync();
@@ -181,5 +195,47 @@ public class MainActivity extends AppCompatActivity {
                         runAsync();
                     }
                 });
+    }
+
+    private void createPushNotification(String title, String body, String key) {
+        // create notification
+        // Configure the channel
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            channel = new NotificationChannel("myChannelId", "My Channel", importance);
+            channel.setDescription("Reminders");
+            // Register the channel with the notifications manager
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.createNotificationChannel(channel);
+            NotificationCompat.Builder mBuilder =
+                    // Builder class for devices targeting API 26+ requires a channel ID
+                    new NotificationCompat.Builder(this, "myChannelId")
+                            .setSmallIcon(R.drawable.instagram_user_outline_24)
+                            .setContentTitle(title)
+                            .setContentText(body);
+            int id = createID();
+            mNotificationManager.notify(id, mBuilder.build());
+        }
+        // update notification to show pushed=true
+        updateNotificationPushedStatus(key);
+        // if notification is clicked, then show correct activity
+        // if notificiation is clicked, update so seen=true
+    }
+
+    private void updateNotificationPushedStatus(final String key) {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                .getReference("user-notifications")
+                .child(mCurrentUserUid)
+                .child(key)
+                .child("pushed");
+        ref.setValue(true);
+    }
+
+    public int createID(){
+        Date now = new Date();
+        int id = Integer.parseInt(new SimpleDateFormat("ddHHmmss",  Locale.US).format(now));
+        return id;
     }
 }
