@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.PostDetailActivity;
@@ -122,13 +123,44 @@ public class PostsFragment extends Fragment {
                             // show the activity
                             startActivity(intent);
                         }
-                    });
+                    }, (new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // go to user profile when tagged clicked
+                            findTaggedUser(model);
+                        }
+                    }));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         };
         mRecycler.setAdapter(mAdapter);
+    }
+
+    private void findTaggedUser(Post model) {
+        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String taggedUsername = model.taggedFriend.split(" ")[1].substring(1);
+        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
+                    if (newUser.get("uid").toString().equals(currentUid)) {
+                        Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
+                    }
+                    else {
+                        Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
+                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
+                        startActivity(toOtherProfile);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 
     private void onLikeClicked (Query query, final String path) {

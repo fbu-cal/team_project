@@ -10,7 +10,11 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -26,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.team_project.fragments.ProfileFragment;
 import com.example.team_project.models.Comment;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -144,6 +149,40 @@ public class PostDetailActivity extends AppCompatActivity {
                 else {
                     writeComment(comment);
                 }
+            }
+        });
+
+        mTagged.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                findTaggedUser();
+            }
+        });
+
+    }
+
+    private void findTaggedUser() {
+        String taggedUsername = mTagged.getText().toString().split(" ")[1].substring(1);
+        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
+                    if (newUser.get("uid").toString().equals(mCurrentUserUid)) {
+                        Toast.makeText(PostDetailActivity.this,"clicking on your own profile!", Toast.LENGTH_LONG);
+                    }
+                    else {
+                        Intent toOtherProfile = new Intent (PostDetailActivity.this, OtherUserProfileActivity.class);
+                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
+                        startActivity(toOtherProfile);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
     }

@@ -141,7 +141,13 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                                 public void onClick(View v) {
                                     // nothing. already on correct page
                                 }
-                            });
+                            }, (new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    // go to user profile when tagged clicked
+                                    findTaggedUser(model);
+                                }
+                            }));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -223,6 +229,31 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         // updates feed for both users
         updateFriendsFeed(mCurrentUserUid, mProfileOwnerUid);
         updateFriendsFeed(mProfileOwnerUid, mCurrentUserUid);
+    }
+
+    private void findTaggedUser(Post model) {
+        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String taggedUsername = model.taggedFriend.split(" ")[1].substring(1);
+        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
+                    if (newUser.get("uid").toString().equals(currentUid)) {
+                        Toast.makeText(OtherUserProfileActivity.this, "clicking on your own profile!", Toast.LENGTH_LONG);
+                    }
+                    else {
+                        Intent toOtherProfile = new Intent (OtherUserProfileActivity.this, OtherUserProfileActivity.class);
+                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
+                        startActivity(toOtherProfile);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 
     private void acceptRequestHelper(final Map<String, Object> userFriendsList, final String uid, final String listPath) {
@@ -525,7 +556,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         mDatabase.updateChildren(childUpdates);
         // update user-feed
         Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
-        MainActivity.notificationBadge.setVisibility(View.VISIBLE);
+        // MainActivity.notificationBadge.setVisibility(View.VISIBLE);
     }
 
     @Override

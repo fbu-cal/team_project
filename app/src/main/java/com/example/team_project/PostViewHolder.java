@@ -16,6 +16,11 @@ import android.text.format.DateUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -55,7 +60,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         mCommentCount = itemView.findViewById(R.id.comment_count_text_view);
     }
 
-    public void bindToPost(final Post post, String postRefKey, View.OnClickListener likeClickListener, View.OnClickListener authorClickListener) throws IOException {
+    public void bindToPost(final Post post, String postRefKey, View.OnClickListener likeClickListener, View.OnClickListener authorClickListener, View.OnClickListener taggedClickListener) throws IOException {
         mAuthor.setText("@" + post.author);
         mLikeCount.setText(String.valueOf(post.likeCount));
         mBody.setText(post.body);
@@ -72,6 +77,8 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
         mLikeButton.setOnClickListener(likeClickListener);
 
         mAuthor.setOnClickListener(authorClickListener);
+
+        mTagged.setOnClickListener(taggedClickListener);
 
         findCommentCount(postRefKey);
 

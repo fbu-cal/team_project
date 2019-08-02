@@ -48,6 +48,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import android.support.v7.widget.SearchView;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
     public String mCurrentUserUid;
     public SpinnerDialog mSpinnerDialog;
+    public ImageButton mSearchButton, mMessageButton;
 
     Fragment fragment;
 
@@ -85,6 +87,10 @@ public class MainActivity extends AppCompatActivity {
         mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         // runAsync();
+
+        // Toolbar
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
 
         final FragmentManager fragmentManager = getSupportFragmentManager();
         // handle bottom navigation selection
@@ -113,6 +119,23 @@ public class MainActivity extends AppCompatActivity {
         // Set default selection
         mBottomNavigationView.setSelectedItemId(R.id.action_home);
 
+        mMessageButton = findViewById(R.id.message_image_button);
+        mSearchButton = findViewById(R.id.search_image_button);
+
+        mMessageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToMessenger();
+            }
+        });
+
+        mSearchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToSearch();
+            }
+        });
+
         // Add badge view for notifications
         addBadgeView();
     }
@@ -120,15 +143,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_actionbar, menu);
-        Drawable drawable = menu.findItem(R.id.miMessenger).getIcon();
-        drawable = DrawableCompat.wrap(drawable);
-        DrawableCompat.setTint(drawable, ContextCompat.getColor(this,R.color.white));
-        menu.findItem(R.id.miMessenger).setIcon(drawable);
-        Drawable drawable2 = menu.findItem(R.id.miSearch).getIcon();
-        drawable2 = DrawableCompat.wrap(drawable2);
-        DrawableCompat.setTint(drawable2, ContextCompat.getColor(this,R.color.white));
-        menu.findItem(R.id.miSearch).setIcon(drawable2);
+//        getMenuInflater().inflate(R.menu.menu_actionbar, menu);
+//        Drawable drawable = menu.findItem(R.id.miMessenger).getIcon();
+//        drawable = DrawableCompat.wrap(drawable);
+//        DrawableCompat.setTint(drawable, ContextCompat.getColor(this,R.color.white));
+//        menu.findItem(R.id.miMessenger).setIcon(drawable);
+//        Drawable drawable2 = menu.findItem(R.id.miSearch).getIcon();
+//        drawable2 = DrawableCompat.wrap(drawable2);
+//        DrawableCompat.setTint(drawable2, ContextCompat.getColor(this,R.color.white));
+//        menu.findItem(R.id.miSearch).setIcon(drawable2);
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -148,8 +171,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void goToSearch() {
-//        Intent toSearch = new Intent(this, SearchActivity.class);
-////        startActivity(toSearch);
         addSpinner();
     }
 
@@ -166,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
         notificationBadge = LayoutInflater.from(this).inflate(R.layout.view_notification_badge, menuView, false);
 
         itemView.addView(notificationBadge);
+        notificationBadge.setVisibility(GONE);
     }
 
     private void addSpinner() {

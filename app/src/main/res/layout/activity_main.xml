@@ -4,21 +4,56 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F9F9F9"
     tools:context=".MainActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
+        <ImageButton
+            android:id="@+id/search_image_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="left"
+            android:background="@color/transparent"
+            android:src="@drawable/ic_vector_search"
+            android:tint="@color/white"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:contentDescription="Yoked"
+            android:layout_height="65dp"
+            android:layout_gravity="center"
+            android:src="@drawable/yoked_title_graphic"/>
+
+        <ImageButton
+            android:id="@+id/message_image_button"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:background="@color/transparent"
+            android:layout_marginRight="15dp"
+            android:src="@drawable/ic_vector_messages_stroke"
+            android:tint="@color/white"/>
+
+    </android.support.v7.widget.Toolbar>
 
     <FrameLayout
         android:id="@+id/container_flowlayout"
         android:layout_width="407dp"
         android:layout_height="592dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0">
-    </FrameLayout>
+        app:layout_constraintTop_toBottomOf="@+id/my_toolbar"></FrameLayout>
 
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/bottom_navigation"
