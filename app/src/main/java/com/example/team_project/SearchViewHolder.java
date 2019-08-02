@@ -61,16 +61,15 @@ public class SearchViewHolder extends RecyclerView.ViewHolder {
                         String imageUrl = newUser.get("profile_picture").toString();
                         // if profile pic is already set
                         if (!imageUrl.equals("")) {
-                            Log.i("PostViewHolder", "imageUrl: " + imageUrl);
                             try {
                                 // set profile picture
                                 Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
                                 Bitmap circularImage = getCircleBitmap(realImage);
-                                Log.i("PostViewHolder", "realImage: " + realImage);
+                                Log.i("SearchViewHolder", "realImage: " + realImage);
                                 mProfileImage.setImageBitmap(circularImage);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                Log.e("PostViewHolder", "Profile pic issue", e);
+                                Log.e("SearchViewHolder", "Profile pic issue", e);
                             }
                         }
                     }
@@ -93,7 +92,7 @@ public class SearchViewHolder extends RecyclerView.ViewHolder {
     }
 
     public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
-        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
+        byte[] decodedByteArray = Base64.decode(image, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
     }
 

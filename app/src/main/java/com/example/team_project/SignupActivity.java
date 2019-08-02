@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.team_project.models.Conversation;
+import com.example.team_project.models.Message;
 import com.example.team_project.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -20,6 +22,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SignupActivity extends AppCompatActivity {
@@ -86,6 +90,17 @@ public class SignupActivity extends AppCompatActivity {
         String fullname = mFullname.getText().toString();
         // Write new user
         writeNewUser(fullname, user.getUid(), username, user.getEmail());
+
+        // TODO - move to method
+        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String key = mDatabase.child("messages").push().getKey();
+        String conversationKey = mDatabase.child("conversations").push().getKey();
+        Conversation conversation = new Conversation(currentUid, currentUid);
+        Map<String,Object> conversationValues = conversation.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("user-conversations/" + currentUid + "/" + conversationKey, conversationValues);
+        mDatabase.updateChildren(childUpdates);
+
         // Go to MainActivity
         startActivity(new Intent(SignupActivity.this, MainActivity.class));
         finish();

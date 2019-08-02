@@ -8,18 +8,6 @@
 
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btnStopGap"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:clickable="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_vector_messages" />
-
-    <android.support.design.widget.FloatingActionButton
         android:id="@+id/btnComposeMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

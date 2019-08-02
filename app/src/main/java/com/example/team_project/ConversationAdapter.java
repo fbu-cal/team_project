@@ -1,13 +1,11 @@
 package com.example.team_project;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.DataSetObserver;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -20,24 +18,34 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
-public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> implements ListAdapter {
+public class ConversationAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> implements ListAdapter {
 
     private ArrayList<Map<String, Object>> mMessages;
     Context context;
 
-    public MessageAdapter(Context context, ArrayList<Map<String, Object>> messages) {
+    public ConversationAdapter(Context context, ArrayList<Map<String, Object>> messages) {
         this.context=context;
         mMessages = messages;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MessageAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View messageView = inflater.inflate(R.layout.item_message,parent,false);
-        ViewHolder viewHolder = new ViewHolder(messageView);
+        MessageAdapter.ViewHolder viewHolder = new MessageAdapter.ViewHolder(messageView);
         return viewHolder;
+    }
+
+//    @Override
+//    public void onBindViewHolder(@NonNull MessageAdapter.ViewHolder viewHolder, int i) {
+//
+//    }
+
+    @Override
+    public int getItemCount() {
+        return 0;
     }
 
     @Override
@@ -45,7 +53,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         final Map<String, Object> message = mMessages.get(position);
 
         //populate the view according to Message model
-        viewHolder.mUsername.setText(message.get("username").toString());
+        //viewHolder.mUsername.setText();
         viewHolder.mMessageText.setText(message.get("messageText").toString());
 
         String stringDate = message.get("timeSent").toString();
@@ -58,11 +66,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         viewHolder.mMessageTimeStamp.setText(getRelativeTimeAgo(date));
 //        onOptionsItemSelected(android.R.id.home);
 
-    }
-
-    @Override
-    public int getItemCount() {
-        return mMessages.size();
     }
 
     @Override
@@ -102,7 +105,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     @Override
     public int getViewTypeCount() {
-        return 1;
+        return 0;
     }
 
     @Override
@@ -110,12 +113,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return false;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder {
+
         public TextView mUsername;
         public TextView mMessageText;
         public TextView mMessageTimeStamp;
         public ImageView mProfileImage;
-        
+
         public ViewHolder(View itemView) {
             super(itemView);
 
@@ -125,12 +129,10 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             mProfileImage = itemView.findViewById(R.id.ivProfileImage);
         }
 
-        @Override
         public void onClick(View v) {
 
         }
     }
-
     public static String getRelativeTimeAgo(Date date) {
         String relativeDate = "";
         long dateMillis = date.getTime();
@@ -138,18 +140,4 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString();
         return relativeDate;
     }
-
-    //@Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case android.R.id.home:
-//
-//
-//                ((ComposeMessageActivity)context).finish();
-//                return true;
-//
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
 }

@@ -30,9 +30,9 @@ import java.util.Map;
 
 public class ComposeMessageActivity extends AppCompatActivity {
 
-    EditText mMessageTextInput;
+    //EditText mMessageTextInput;
     //EditText mUserSearchTextInput;
-    Button mSendButton;
+    //Button mSendButton;
     private SearchAdapter mSearchAdapter;
     private SearchView mSearchView;
     private LinearLayoutManager mLinearLayoutManager;
@@ -47,17 +47,17 @@ public class ComposeMessageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose_message);
 
-        mMessageTextInput = findViewById(R.id.etMessageText);
-        mSendButton = findViewById(R.id.btnSend);
-        //mUserSearchTextInput = findViewById(R.id.etUserSearch);
+//        mMessageTextInput = findViewById(R.id.etMessageText);
+//        mSendButton = findViewById(R.id.btnSend);
+//        //mUserSearchTextInput = findViewById(R.id.etUserSearch);
 //        uid = getIntent().getStringExtra("uid");
 
-        mSendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendMessage();
-            }
-        });
+//        mSendButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                sendMessage();
+//            }
+//        });
 
         //findUser();
     }
@@ -66,16 +66,6 @@ public class ComposeMessageActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_actionbar_compose_message, menu);
-
-//        ActionBar actionBar = getActionBar();
-//        if (actionBar!=null) {
-//            if (username != null) {
-//                actionBar.setTitle(username);
-//            } else {
-//                actionBar.setDisplayShowTitleEnabled(false);
-//                actionBar.setDisplayShowHomeEnabled(false);
-//            }
-//        }
         // Set up Layout Manager, reverse layout
         mLinearLayoutManager = new LinearLayoutManager(this);
         mLinearLayoutManager.setReverseLayout(true);

@@ -2,6 +2,7 @@ package com.example.team_project;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,9 +10,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.example.team_project.models.Conversation;
+import com.example.team_project.models.Message;
 import com.example.team_project.models.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
@@ -71,12 +83,41 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             // make sure the position is valid, i.e. actually exists in the view
             if (position != RecyclerView.NO_POSITION) {
                 // get the movie at the position, this won't work if the class is static
-                Map<String, Object> targetUser = mSearches.get(position);
+                final Map<String, Object> targetUser = mSearches.get(position);
                 //Log.i("SearchAdapter", "This is iiiit.");
                 Log.i("SearchAdapter", "Username" + targetUser.get("username") );
                 Intent intent = new Intent(context, MessageDetailsActivity.class);
                 intent.putExtra("username", targetUser.get("username").toString());
                 intent.putExtra("uid", targetUser.get("uid").toString());
+
+                // TODO - move into a method
+                final DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+                final String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                final String receiverId = targetUser.get("uid").toString();
+                Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(currentUserId);
+                Log.i("MessageDetails", "Q: " + query);
+                query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot data : dataSnapshot.getChildren()){
+                            Map<String, Object> map =  (HashMap<String,Object>) data.getValue();
+                            if (receiverId.equals(map.get("otherUser"))){
+                            }else{
+                                String conversationKey = mDatabaseReference.child("conversations").push().getKey();
+                                Conversation conversation = new Conversation(currentUserId, receiverId);
+                                Map<String,Object> conversationValues = conversation.toMap();
+
+                                Map<String, Object> childUpdates = new HashMap<>();
+
+                                childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
+                                mDatabaseReference.updateChildren(childUpdates);
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    }
+                });
 
                 // show the activity
                 context.startActivity(intent);
