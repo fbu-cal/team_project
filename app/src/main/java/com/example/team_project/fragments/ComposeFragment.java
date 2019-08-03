@@ -219,19 +219,21 @@ public class ComposeFragment extends Fragment {
         startActivityForResult(Intent.createChooser(intent, "Select File"), 222);
     }
 
-    private void writeNewPost(String userId, String username, String description, String postImageUrl) {
+    private void writeNewPost(final String userId, final String username, final String description, final String postImageUrl) {
         // update posts and user-posts
         final String key = mDatabase.child("posts").push().getKey();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
         String timestamp = simpleDateFormat.format(new Date());
         Log.d("MainActivity", "Current Timestamp: " + timestamp);
         String taggedFriend = mTagFriendButton.getText().toString();
-        if (taggedFriend.equals("Tag Friends"))
-            taggedFriend = null;
         if (postImageUrl!=null && !postImageUrl.equals("") && !description.equals("")) {
+            if (taggedFriend.equals("Tag Friends"))
+                taggedFriend = null;
+            else
+                taggedFriend = taggedFriend.split(" ")[1].substring(1);
             Post post = new Post(userId, username, description, postImageUrl, timestamp, taggedFriend);
-            Map<String, Object> postValues = post.toMap();
-            Map<String, Object> childUpdates = new HashMap<>();
+            final Map<String, Object> postValues = post.toMap();
+            final Map<String, Object> childUpdates = new HashMap<>();
             //childUpdates.put("/posts/" + key, postValues);
             childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
             mDatabase.updateChildren(childUpdates);
@@ -240,9 +242,9 @@ public class ComposeFragment extends Fragment {
             Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
             mDescription.setText("");
 
-            // send notification to tagged user if tagged user exists
-            if (taggedFriend!=null) {
-                String taggedUsername = taggedFriend.split(" ")[1].substring(1);
+            // send notification to tagged user if tagged user exists and add tagged post to user-tagged-posts
+            if (taggedFriend != null) {
+                String taggedUsername = taggedFriend;
                 Query query = FirebaseDatabase.getInstance().getReference("users")
                         .orderByChild("username").equalTo(taggedUsername);
                 query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
@@ -252,6 +254,10 @@ public class ComposeFragment extends Fragment {
                         String taggedUid = newUser.get("uid").toString();
                         sendFirebaseNotification(mCurrentUser, taggedUid, "has tagged you in a post", key);
                         // MainActivity.notificationBadge.setVisibility(View.VISIBLE);
+                        // post to user-tagged-posts
+                        final Map<String, Object> childUpdates = new HashMap<>();
+                        childUpdates.put("/user-tagged-posts/" + taggedUid + "/" + key, postValues);
+                        mDatabase.updateChildren(childUpdates);
                     }
                     @Override
                     public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -358,4 +364,5 @@ public class ComposeFragment extends Fragment {
         // update user-feed
         Toast.makeText(getActivity(), "Sent Notification", Toast.LENGTH_LONG).show();
     }
+
 }

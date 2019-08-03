@@ -1,79 +1,91 @@
-package com.example.team_project.fragments;
+package com.example.team_project;
 
+import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.provider.ContactsContract;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.team_project.OtherUserProfileActivity;
-import com.example.team_project.PostDetailActivity;
-import com.example.team_project.PostViewHolder;
-import com.example.team_project.R;
-import com.example.team_project.SearchActivity;
+import com.example.team_project.fragments.ProfileFragment;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PostsFragment extends Fragment {
+public class MyTagsFragment extends Fragment {
 
-    private static final String TAG = "PostsFragment";
+    // context for rendering
+    Context context;
+    private String mCurrentUserUid;
 
+    private RecyclerView mRecyclerView;
     private DatabaseReference mDatabase;
-
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
-    private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
+    private boolean mShouldRefreshOnResume;
 
-    private boolean mShouldRefreshOnResume = false;
-
-    public PostsFragment() {}
+    private TabLayout mTabLayout;
+    private Fragment fragmentOne;
+    private Fragment fragmentTwo;
 
     @Override
-    public View onCreateView (LayoutInflater inflater, ViewGroup container,
-                              Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState);
-        View rootView = inflater.inflate(R.layout.fragment_posts, container, false);
-
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        mRecycler = (RecyclerView) rootView.findViewById(R.id.post_recycler_view);
-        mRecycler.setHasFixedSize(true);
-
-        return rootView;
+    public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
+        // get the context and create the inflater
+        context = parent.getContext();
+        // Defines the xml file for the fragment
+        return inflater.inflate(R.layout.fragment_my_posts, parent, false);
     }
 
+    // This event is triggered soon after onCreateView().
+    // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(final View view, Bundle savedInstanceState) {
+        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
+        mRecyclerView = view.findViewById(R.id.post_recycler_view);
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        mRecyclerView.setHasFixedSize(true);
         // Set up Layout Manager, reverse layout
-        mManager = new LinearLayoutManager(getActivity());
+        mManager = new LinearLayoutManager(getContext());
         mManager.setReverseLayout(true);
         mManager.setStackFromEnd(true);
-        mRecycler.setLayoutManager(mManager);
+        mRecyclerView.setLayoutManager(mManager);
 
         // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = getQuery(mDatabase);
@@ -96,49 +108,46 @@ public class PostsFragment extends Fragment {
                 });
 
                 // Determine if the current user has liked this post and set UI accordingly
-                if (model.likes.containsKey(getUid())) {
+                if (model.likes.containsKey(mCurrentUserUid)) {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                 } else {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
                 }
 
-                // Bind Post to ViewHolder, setting OnClickListener for the like button and author
+                // Bind Post to ViewHolder, setting OnClickListener for the star button
                 try {
                     viewHolder.bindToPost(model, postRef.getKey(), new View.OnClickListener() {
-                        @Override
-                        public void onClick(View likeView) {
-                            // Need to write to both places the post is stored
-                            // update in user posts
-                            Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                            String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                            onLikeClicked(userPostQuery, userPostPath);
-                            // update in user tagged posts
-                            updateTaggedLikes(model, postRef);
-                            // update feeds
-                            updateAllFeedsLikes(postRef.getKey());
-                        }
-                    }, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            // go to user profile when author clicked
-                            Intent intent = new Intent(getActivity(), OtherUserProfileActivity.class);
-                            intent.putExtra("uid", model.uid);
-                            // show the activity
-                            startActivity(intent);
-                        }
-                    }, (new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            // go to user profile when tagged clicked
-                            findTaggedUser(model);
-                        }
-                    }));
+                                @Override
+                                public void onClick(View starView) {
+                                    // Need to write to both places the post is stored
+                                    // update in user posts
+                                    Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+                                    String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
+                                    onLikeClicked(userPostQuery, userPostPath);
+                                    // update in user tagged posts
+                                    updateTaggedLikes(model, postRef);
+                                    // update feeds
+                                    updateAllFeedsLikes(postRef.getKey());
+                                }
+                            },
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    // nothing. already on correct activity
+                                }
+                            }, (new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    // go to user profile when tagged clicked
+                                    findTaggedUser(model);
+                                }
+                            }));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         };
-        mRecycler.setAdapter(mAdapter);
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     private void findTaggedUser(Post model) {
@@ -166,6 +175,13 @@ public class PostsFragment extends Fragment {
         });
     }
 
+    public Query getQuery(DatabaseReference databaseReference) {
+        Query recentPostsQuery = databaseReference.child("user-tagged-posts")
+                .child(mCurrentUserUid)
+                .limitToFirst(20);
+        return recentPostsQuery;
+    }
+
     private void onLikeClicked (Query query, final String path) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -176,24 +192,22 @@ public class PostsFragment extends Fragment {
                 Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
                 if (likesMap == null) {
                     likesMap = new HashMap<>();
-                    likeCount = Long.valueOf(1);
-                    likesMap.put(getUid(), true);
+                    likeCount = likeCount + 1;
+                    likesMap.put(mCurrentUserUid, true);
                 }
                 else {
-                    if (likesMap.containsKey(getUid())) {
+                    if (likesMap.containsKey(mCurrentUserUid)) {
                         likeCount = likeCount - 1;
-                        likesMap.remove(getUid());
+                        likesMap.remove(mCurrentUserUid);
                         mDatabase.child(likesPath).removeValue();
                     }
                     else {
                         likeCount = likeCount + 1;
-                        likesMap.put(getUid(), true);
+                        likesMap.put(mCurrentUserUid, true);
                     }
                 }
                 mDatabase.child(likesPath).updateChildren(likesMap);
                 mDatabase.child(likeCountPath).setValue(likeCount);
-
-                Log.i("PostsFragment", FirebaseAuth.getInstance().toString());
             }
 
             @Override
@@ -205,17 +219,17 @@ public class PostsFragment extends Fragment {
 
     // updates likes for post in all user feeds
     private void updateAllFeedsLikes(final String postRefKey) {
-        Query query = mDatabase.child("users").child(getUid());
+        Query query = mDatabase.child("users").child(mCurrentUserUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // update current user's feed
-                Query userTempQuery = mDatabase.child("user-feed").child(getUid()).child(postRefKey);
-                String userTempPath = "/user-feed/" + getUid() + "/" + postRefKey;
+                Query userTempQuery = mDatabase.child("user-feed").child(mCurrentUserUid).child(postRefKey);
+                String userTempPath = "/user-feed/" + mCurrentUserUid + "/" + postRefKey;
                 onLikeClicked(userTempQuery, userTempPath);
                 // update current user's friend's feeds
                 Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                if (friendMap!=null) {
+                if (friendMap != null) {
                     for (String friend : friendMap.keySet()) {
                         Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
                         String tempPath = "/user-feed/" + friend + "/" + postRefKey;
@@ -228,49 +242,6 @@ public class PostsFragment extends Fragment {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mAdapter != null) {
-            mAdapter.cleanup();
-        }
-    }
-
-    public String getUid() {
-        return FirebaseAuth.getInstance().getCurrentUser().getUid();
-    }
-
-    public Query getQuery(DatabaseReference databaseReference) {
-        // Last 100 posts, these are automatically the 100 most recent
-        // due to sorting by push() keys
-        Query recentPostsQuery = databaseReference.child("user-feed")
-                .child(getUid())
-                .limitToFirst(100);
-        return recentPostsQuery;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Check should we need to refresh the fragment
-        if(mShouldRefreshOnResume){
-            refreshFragment();
-        }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        mShouldRefreshOnResume = true;
-    }
-
-    public void refreshFragment()
-    {
-        Fragment fragment = new PostsFragment();
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.container_flowlayout, fragment).commit();
     }
 
     public void updateTaggedLikes(final Post model, final DatabaseReference postRef) {
@@ -294,4 +265,27 @@ public class PostsFragment extends Fragment {
             }
         });
     }
+
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        // Check should we need to refresh the fragment
+//        if(mShouldRefreshOnResume){
+//            refreshFragment();
+//        }
+//    }
+//
+//    @Override
+//    public void onStop() {
+//        super.onStop();
+//        mShouldRefreshOnResume = true;
+//    }
+//
+//    public void refreshFragment()
+//    {
+//        Fragment fragment = new MyPostsFragment();
+//        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+//        fragmentManager.beginTransaction().replace(R.id.container_flowlayout, fragment).commit();
+//    }
+
 }

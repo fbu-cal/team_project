@@ -14,7 +14,8 @@
         android:roundIcon="@mipmap/ic_yoked_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PostDetailActivity"></activity>
+        <activity android:name=".MyPostsFragment"></activity>
+        <activity android:name=".PostDetailActivity" />
         <activity android:name=".UserSettingsActivity" />
         <activity android:name=".ProfilePictureActivity" />
         <activity android:name=".OtherUserProfileActivity" />

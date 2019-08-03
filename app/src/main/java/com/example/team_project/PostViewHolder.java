@@ -71,7 +71,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
             mPostImage.setImageBitmap(decodeFromFirebaseBase64(post.postImageUrl));
         }
         if (post.taggedFriend != null) {
-            mTagged.setText("with " + post.taggedFriend.split(" ")[1]);
+            mTagged.setText("with " + post.taggedFriend);
         }
 
         mLikeButton.setOnClickListener(likeClickListener);

@@ -127,12 +127,13 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(View starView) {
                                     // Need to write to both places the post is stored
-                                    //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+                                    // update in user posts
                                     Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                                    //String globalPostPath = "/posts/" + postRef.getKey();
                                     String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                                    //onLikeClicked(globalPostQuery, globalPostPath);
                                     onLikeClicked(userPostQuery, userPostPath);
+                                    // update in user tagged posts
+                                    updateTaggedLikes(model, postRef);
+                                    // update feeds
                                     updateAllFeedsLikes(postRef.getKey());
                                 }
                             },
@@ -233,7 +234,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
 
     private void findTaggedUser(Post model) {
         final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String taggedUsername = model.taggedFriend.split(" ")[1].substring(1);
+        String taggedUsername = model.taggedFriend;
         Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -564,5 +565,27 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         super.onResume();
         // Set up FirebaseRecyclerAdapter with the Query
         setUpRecycler();
+    }
+
+    public void updateTaggedLikes(final Post model, final DatabaseReference postRef) {
+        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String taggedUsername = model.taggedFriend;
+        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
+                    String taggedUid = newUser.get("uid").toString();
+                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+                    Query userTaggedPostQuery = mDatabase.child("user-tagged-posts").child(taggedUid).child(postRef.getKey());
+                    String userTaggedPostPath = "/user-tagged-posts/" + taggedUid + "/" + postRef.getKey();
+                    onLikeClicked(userTaggedPostQuery, userTaggedPostPath);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 }

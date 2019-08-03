@@ -23,6 +23,8 @@ import android.text.format.DateUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -232,7 +234,7 @@ public class PostDetailActivity extends AppCompatActivity {
                     mTime.setText(getRelativeTimeAgo(newPost.get("timestamp").toString()));
                 }
                 if (newPost.get("taggedFriend") != null) {
-                    mTagged.setText("with " + newPost.get("taggedFriend").toString().split(" ")[1]);
+                    mTagged.setText("with " + newPost.get("taggedFriend"));
                 }
 
                 //Log.i("PostDetail", newPost.get("postImageUrl").toString());
@@ -311,8 +313,11 @@ public class PostDetailActivity extends AppCompatActivity {
                 Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
                 if (likesMap == null) {
                     likesMap = new HashMap<>();
-                    likeCount = Long.valueOf(1);
+                    likeCount = likeCount + 1;
                     likesMap.put(mCurrentUserUid, true);
+//                    RotateAnimation rotateAnimation = (RotateAnimation) AnimationUtils.loadAnimation(mLikeButton.getContext(),R.anim.rotate);
+//                    rotateAnimation.setDuration(750);
+//                    mLikeButton.startAnimation(rotateAnimation);
                     mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                 }
                 else {
@@ -325,6 +330,9 @@ public class PostDetailActivity extends AppCompatActivity {
                     else {
                         likeCount = likeCount + 1;
                         likesMap.put(mCurrentUserUid, true);
+//                        RotateAnimation rotateAnimation = (RotateAnimation) AnimationUtils.loadAnimation(mLikeButton.getContext(),R.anim.rotate);
+//                        rotateAnimation.setDuration(750);
+//                        mLikeButton.startAnimation(rotateAnimation);
                         mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                     }
                 }

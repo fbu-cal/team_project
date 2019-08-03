@@ -15,8 +15,10 @@ import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
@@ -24,6 +26,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -33,6 +37,8 @@ import com.example.team_project.CalendarActivity;
 import com.example.team_project.FirstActivity;
 import com.example.team_project.LoginActivity;
 import com.example.team_project.MainActivity;
+import com.example.team_project.MyPostsFragment;
+import com.example.team_project.MyTagsFragment;
 import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.PostDetailActivity;
 import com.example.team_project.PostViewHolder;
@@ -52,6 +58,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,6 +77,10 @@ public class ProfileFragment extends Fragment {
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private LinearLayoutManager mManager;
     private boolean mShouldRefreshOnResume;
+
+    private TabLayout mTabLayout;
+    private Fragment fragmentOne;
+    private Fragment fragmentTwo;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -107,81 +118,85 @@ public class ProfileFragment extends Fragment {
 
         setUserInformation();
 
-        mRecyclerView = view.findViewById(R.id.post_recycler_view);
+//        mRecyclerView = view.findViewById(R.id.post_recycler_view);
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        mRecyclerView.setHasFixedSize(true);
-        // Set up Layout Manager, reverse layout
-        mManager = new LinearLayoutManager(getContext());
-        mManager.setReverseLayout(true);
-        mManager.setStackFromEnd(true);
-        mRecyclerView.setLayoutManager(mManager);
+//        mRecyclerView.setHasFixedSize(true);
+//        // Set up Layout Manager, reverse layout
+//        mManager = new LinearLayoutManager(getContext());
+//        mManager.setReverseLayout(true);
+//        mManager.setStackFromEnd(true);
+//        mRecyclerView.setLayoutManager(mManager);
 
-        // Set up FirebaseRecyclerAdapter with the Query
-        Query postsQuery = getQuery(mDatabase);
-        mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
-                PostViewHolder.class, postsQuery) {
-            @Override
-            protected void populateViewHolder(final PostViewHolder viewHolder, final Post model, final int position) {
-                final DatabaseReference postRef = getRef(position);
+        getAllWidgets(view);
+        bindWidgetsWithAnEvent();
+        setupTabLayout();
 
-                // Set click listener for the whole post view
-                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    // Launch PostDetailActivity
-                    Intent intent = new Intent(getActivity(), PostDetailActivity.class);
-                    intent.putExtra("uid", model.uid);
-                    intent.putExtra("postRefKey", postRef.getKey());
-                    startActivity(intent);
-                    }
-                });
-
-                // Determine if the current user has liked this post and set UI accordingly
-                if (model.likes.containsKey(mCurrentUserUid)) {
-                    viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart_active);
-                } else {
-                    viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
-                }
-
-                // Bind Post to ViewHolder, setting OnClickListener for the star button
-                try {
-                    viewHolder.bindToPost(model, postRef.getKey(), new View.OnClickListener() {
-                                @Override
-                                public void onClick(View starView) {
-                                    // Need to write to both places the post is stored
-                                    //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
-                                    Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-                                    //String globalPostPath = "/posts/" + postRef.getKey();
-                                    String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-                                    //onLikeClicked(globalPostQuery, globalPostPath);
-                                    onLikeClicked(userPostQuery, userPostPath);
-                                    updateAllFeedsLikes(postRef.getKey());
-                                }
-                            },
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    // nothing. already on correct activity
-                                }
-                            }, (new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            // go to user profile when tagged clicked
-                            findTaggedUser(model);
-                        }
-                    }));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        mRecyclerView.setAdapter(mAdapter);
+//        // Set up FirebaseRecyclerAdapter with the Query
+//        Query postsQuery = getQuery(mDatabase);
+//        mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
+//                PostViewHolder.class, postsQuery) {
+//            @Override
+//            protected void populateViewHolder(final PostViewHolder viewHolder, final Post model, final int position) {
+//                final DatabaseReference postRef = getRef(position);
+//
+//                // Set click listener for the whole post view
+//                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                    // Launch PostDetailActivity
+//                    Intent intent = new Intent(getActivity(), PostDetailActivity.class);
+//                    intent.putExtra("uid", model.uid);
+//                    intent.putExtra("postRefKey", postRef.getKey());
+//                    startActivity(intent);
+//                    }
+//                });
+//
+//                // Determine if the current user has liked this post and set UI accordingly
+//                if (model.likes.containsKey(mCurrentUserUid)) {
+//                    viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart_active);
+//                } else {
+//                    viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
+//                }
+//
+//                // Bind Post to ViewHolder, setting OnClickListener for the star button
+//                try {
+//                    viewHolder.bindToPost(model, postRef.getKey(), new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View starView) {
+//                                    // Need to write to both places the post is stored
+//                                    //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
+//                                    Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
+//                                    //String globalPostPath = "/posts/" + postRef.getKey();
+//                                    String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
+//                                    //onLikeClicked(globalPostQuery, globalPostPath);
+//                                    onLikeClicked(userPostQuery, userPostPath);
+//                                    updateAllFeedsLikes(postRef.getKey());
+//                                }
+//                            },
+//                            new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View v) {
+//                                    // nothing. already on correct activity
+//                                }
+//                            }, (new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            // go to user profile when tagged clicked
+//                            findTaggedUser(model);
+//                        }
+//                    }));
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
+//        mRecyclerView.setAdapter(mAdapter);
     }
 
     private void findTaggedUser(Post model) {
         final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String taggedUsername = model.taggedFriend.split(" ")[1].substring(1);
+        String taggedUsername = model.taggedFriend;
         Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -378,7 +393,51 @@ public class ProfileFragment extends Fragment {
     public void refreshFragment()
     {
         Fragment fragment = new ProfileFragment();
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        FragmentManager fragmentManager = getChildFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.container_flowlayout, fragment).commit();
+    }
+
+    private void getAllWidgets(View view) {
+        mTabLayout = (TabLayout) view.findViewById(R.id.tabs);
+    }
+    private void setupTabLayout() {
+        fragmentOne = new MyPostsFragment();
+        fragmentTwo = new MyTagsFragment();
+        mTabLayout.addTab(mTabLayout.newTab().setText("MY POSTS"),true);
+        mTabLayout.addTab(mTabLayout.newTab().setText("TAGGED POSTS"));
+    }
+    private void bindWidgetsWithAnEvent()
+    {
+        mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                setCurrentTabFragment(tab.getPosition());
+            }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
+    }
+    private void setCurrentTabFragment(int tabPosition)
+    {
+        switch (tabPosition)
+        {
+            case 0 :
+                replaceFragment(fragmentOne);
+                break;
+            case 1 :
+                replaceFragment(fragmentTwo);
+                break;
+        }
+    }
+    public void replaceFragment(Fragment fragment) {
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.frame_container, fragment);
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        ft.commit();
     }
 }
