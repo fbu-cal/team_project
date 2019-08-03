@@ -9,63 +9,71 @@ import java.util.Map;
 @IgnoreExtraProperties
 public class Match {
     public String userId;
-    //status: noOverlap, overlap, oneUser, denied, match
-    public HashMap<String, String> status;
-    //split into this satMor, friMor... linked to users that are free that time
-//    public HashMap<String, String> userFreeMatchBefore;
-//    //user to the time they free
-//    public HashMap<String, String> userFreeMatchFinal;
+    public String otherUserId;
+    public String freeTime;
+    public Boolean currentUserStatus;
+    public Boolean otherUserStatus;
 
     public Match() {
 
     }
 
-    public Match(String userId, HashMap<String, String> status) {
+    public Match(String userId, String otherUserId, String freeTime, Boolean currentUserStatus, Boolean otherUserStatus) {
         this.userId = userId;
-        this.status = status;
-//        this.userFreeMatchBefore = userFreeMatchBefore;
-//        this.userFreeMatchFinal = userFreeMatchFinal;
+        this.otherUserId = otherUserId;
+        this.freeTime = freeTime;
+        this.currentUserStatus = currentUserStatus;
+        this.otherUserStatus = otherUserStatus;
     }
 
     public String getUserId() {
         return userId;
     }
 
-    public HashMap<String, String> getStatus() {
-        return status;
+    public String getOtherUserId() {
+        return otherUserId;
     }
 
-//    public HashMap<String, String> getUserFreeMatchBefore() {
-//        return userFreeMatchBefore;
-//    }
-//
-//    public HashMap<String, String> getUserFreeMatchFinal() {
-//        return userFreeMatchFinal;
-//    }
+    public String getFreeTime() {
+        return freeTime;
+    }
+
+    public Boolean getCurrentUserStatus() {
+        return currentUserStatus;
+    }
+
+    public Boolean getOtherUserStatus() {
+        return otherUserStatus;
+    }
 
     public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public void setStatus(HashMap<String, String> status) {
-        this.status = status;
+    public void setOtherUserId(String otherUserId) {
+        this.otherUserId = otherUserId;
     }
 
-//    public void setUserFreeMatchBefore(HashMap<String, String> userFreeMatchBefore) {
-//        this.userFreeMatchBefore = userFreeMatchBefore;
-//    }
-//
-//    public void setUserFreeMatchFinal(HashMap<String, String> userFreeMatchFinal) {
-//        this.userFreeMatchFinal = userFreeMatchFinal;
-//    }
+    public void setFreeTime(String freeTime) {
+        this.freeTime = freeTime;
+    }
+
+    public void setCurrentUserStatus(Boolean currentUserStatus) {
+        this.currentUserStatus = currentUserStatus;
+    }
+
+    public void setOtherUserStatus(Boolean otherUserStatus) {
+        this.otherUserStatus = otherUserStatus;
+    }
 
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("userId", userId);
-        result.put("status", status);
-//        result.put("userFreeMatchBefore", userFreeMatchBefore);
-//        result.put("userFreeMatchFinal", userFreeMatchFinal);
+        result.put("otherUserId", otherUserId);
+        result.put("freeTime", freeTime);
+        result.put("currentUserStatus", currentUserStatus);
+        result.put("otherUserStatus", otherUserStatus);
         return result;
     }
 }

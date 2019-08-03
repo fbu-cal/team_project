@@ -11,7 +11,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,11 +27,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.team_project.CalendarActivity;
-import com.example.team_project.FirstActivity;
-import com.example.team_project.LoginActivity;
-import com.example.team_project.MatchingActivity;
+import com.example.team_project.MatchActivity;
 import com.example.team_project.PostViewHolder;
-import com.example.team_project.ProfilePictureActivity;
 import com.example.team_project.R;
 import com.example.team_project.UserSettingsActivity;
 import com.example.team_project.models.Post;
@@ -43,9 +39,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
@@ -54,7 +48,7 @@ import java.util.Map;
 
 
 public class ProfileFragment extends Fragment {
-    private Button mCalendarButton, mUploadPictureButton, mSwipeButton;
+    private Button mCalendarButton, mUploadPictureButton;
     private Button mSettingsButton;
     private ImageView mProfileImage;
     private TextView mFullname, mUsername;
@@ -88,19 +82,11 @@ public class ProfileFragment extends Fragment {
         mProfileImage = view.findViewById(R.id.profile_image_view);
         mFullname = view.findViewById(R.id.fullname_text_view);
         mUsername = view.findViewById(R.id.username_text_view);
-        mSwipeButton = view.findViewById(R.id.mSwipeButton);
 
         mCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 launchCalendar();
-            }
-        });
-
-        mSwipeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchSwipe();
             }
         });
 
@@ -173,7 +159,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void launchSwipe() {
-        final Intent intent = new Intent(getActivity(), MatchingActivity.class);
+        final Intent intent = new Intent(getActivity(), MatchActivity.class);
         startActivity(intent);
     }
 

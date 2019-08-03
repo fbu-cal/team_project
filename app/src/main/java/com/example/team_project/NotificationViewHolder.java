@@ -52,8 +52,8 @@ public class NotificationViewHolder extends RecyclerView.ViewHolder {
         mBody.setText(notif.body);
         mTime.setText(getRelativeTimeAgo(notif.timestamp));
         if (notif.icon != null) {
-            if (!notif.icon.equals(""))
-                mIcon.setImageBitmap(getCircleBitmap(decodeFromFirebaseBase64(notif.icon)));
+            //if (!notif.icon.equals(""))
+                //mIcon.setImageBitmap(getCircleBitmap(decodeFromFirebaseBase64(notif.icon)));
         }
     }
 

@@ -2,8 +2,10 @@ package com.example.team_project.fragments;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,14 +14,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.team_project.MainMessenger;
+import com.example.team_project.MatchActivity;
 import com.example.team_project.NotificationViewHolder;
 import com.example.team_project.OtherUserProfileActivity;
-import com.example.team_project.PostViewHolder;
 import com.example.team_project.R;
+import com.example.team_project.models.Match;
 import com.example.team_project.models.Notification;
-import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,30 +32,27 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class NotificationFragment extends Fragment {
-
-    public String mCurrentUserUid;
     private static final String TAG = "PostsFragment";
-
     private DatabaseReference mDatabase;
-
     private FirebaseRecyclerAdapter<Notification, NotificationViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
+    private String mUserId;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         super.onCreateView(inflater, parent, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_notification, parent, false);
-
         mDatabase = FirebaseDatabase.getInstance().getReference();
-
         mRecycler = (RecyclerView) rootView.findViewById(R.id.notification_recycler_view);
         mRecycler.setHasFixedSize(true);
-
         return rootView;
     }
 
@@ -59,7 +60,6 @@ public class NotificationFragment extends Fragment {
     // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         // Set up Layout Manager, reverse layout
         mManager = new LinearLayoutManager(getActivity());
@@ -67,6 +67,7 @@ public class NotificationFragment extends Fragment {
         mManager.setStackFromEnd(true);
         mRecycler.setLayoutManager(mManager);
 
+        mUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         // Set up FirebaseRecyclerAdapter with the Query
         Query notifQuery = getQuery(mDatabase);
         mAdapter = new FirebaseRecyclerAdapter<Notification, NotificationViewHolder>(Notification.class, R.layout.item_notification,
@@ -85,7 +86,18 @@ public class NotificationFragment extends Fragment {
                             markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                         }
                         if (model.type.equals("match")) {
-
+                            Intent intent = new Intent(getActivity(), MatchActivity.class);
+                            //intent.putExtra("hashMap", mMatches);
+                            //intent.putExtra("idToName", mIdToName);
+                            startActivity(intent);
+                            markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                        }
+                        if (model.type.equals("final match")) {
+                            Intent intent = new Intent(getActivity(), MainMessenger.class);
+                            //intent.putExtra("hashMap", mMatches);
+                            //intent.putExtra("idToName", mIdToName);
+                            startActivity(intent);
+                            markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                         }
                         // TODO - implement on click for other types (Calendar Match & Message)
                     }
@@ -108,7 +120,7 @@ public class NotificationFragment extends Fragment {
     private void markNotifAsSeen(Notification model, final String postRefKey, View itemView) {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReference("user-notifications")
-                .child(mCurrentUserUid)
+                .child(mUserId)
                 .child(postRefKey)
                 .child("seen");
         ref.setValue(true);
@@ -117,9 +129,10 @@ public class NotificationFragment extends Fragment {
 
     public Query getQuery(DatabaseReference databaseReference) {
         Query recentPostsQuery = databaseReference.child("user-notifications")
-                .child(mCurrentUserUid)
+                .child(mUserId)
                 .limitToFirst(20);
         return recentPostsQuery;
     }
 
 }
+

@@ -488,9 +488,9 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 String title = newUser.get("username").toString();
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
                 String timestamp = simpleDateFormat.format(new Date());
-                String imageUrl = "";
-                if (newUser.get("profile_picture")!=null)
-                    imageUrl = newUser.get("profile_picture").toString();
+                String imageUrl = null;
+                //if (newUser.get("profile_picture")!=null)
+                  //  imageUrl = newUser.get("profile_picture").toString();
                 Notification notif = new Notification
                         ("friend", imageUrl, title, body, timestamp, toUid, fromUid);
                 updateNotification(toUid, notif);

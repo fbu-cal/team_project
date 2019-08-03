@@ -379,4 +379,3 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     }
 
 }
-
