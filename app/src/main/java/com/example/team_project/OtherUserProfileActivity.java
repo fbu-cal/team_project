@@ -1,28 +1,12 @@
 package com.example.team_project;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.media.RingtoneManager;
-import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -32,6 +16,7 @@ import android.widget.Toast;
 
 import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
+import com.example.team_project.models.Utilities;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -98,7 +83,9 @@ public class OtherUserProfileActivity extends AppCompatActivity {
 
     private void setUpRecycler() {
         // Set up FirebaseRecyclerAdapter with the Query
-        Query postsQuery = getQuery(mDatabase);
+        Query postsQuery = mDatabase.child("user-posts")
+                .child(mProfileOwnerUid)
+                .limitToFirst(20);
         mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
                 PostViewHolder.class, postsQuery) {
             @Override
@@ -166,13 +153,17 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 else if (buttonText.equals("Accept Request")) {
                     acceptRequest();
                 }
-                // TODO
-                // if button text = "message friend"
-                // redirect user to message
+                else if (buttonText.equals("Message Friend")) {
+                    goToMessages();
+                }
             }
         });
     }
 
+    // go to messages with user if clicked
+    private void goToMessages() {
+        // TODO - use intent to redirect user to message conversation with other user
+    }
 
     // Method for accepting friend requests. Will update friendStatuses and friendList for both users.
     private void acceptRequest() {
@@ -193,8 +184,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     userFriendsList = new HashMap<>();
                 // finds user's name and adds it as the value
                 acceptRequestHelper(userFriendsList, mProfileOwnerUid, listPath);
-//                userFriendsList.put(mProfileOwnerUid, true);
-//                mDatabase.child(listPath).updateChildren(userFriendsList);
             }
 
             @Override
@@ -216,8 +205,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 if (userFriendsList == null)
                     userFriendsList = new HashMap<>();
                 acceptRequestHelper(userFriendsList, mCurrentUserUid, listPath);
-//                userFriendsList.put(mCurrentUserUid, true);
-//                mDatabase.child(listPath).updateChildren(userFriendsList);
                 sendFirebaseNotification(mCurrentUserUid, mProfileOwnerUid, "has accepted your friend request");
             }
             @Override
@@ -225,8 +212,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
-        mAddFriendButton.setText("Already Friends");
-        mAddFriendButton.setEnabled(false);
+        mAddFriendButton.setText("Message Friend");
         // updates feed for both users
         updateFriendsFeed(mCurrentUserUid, mProfileOwnerUid);
         updateFriendsFeed(mProfileOwnerUid, mCurrentUserUid);
@@ -299,8 +285,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                             mAddFriendButton.setText("Accept Request");
                         }
                         else if (userFriends.get(mProfileOwnerUid).equals("Already Friends")) {
-                            mAddFriendButton.setText("Already Friends");
-                            mAddFriendButton.setEnabled(false);
+                            mAddFriendButton.setText("Message Friend");
                         }
                     }
                 }
@@ -377,8 +362,8 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     if (!imageUrl.equals("")) {
                         try {
                             // set profile picture
-                            Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-                            Bitmap circularImage = getCircleBitmap(realImage);
+                            Bitmap realImage = Utilities.decodeFromFirebaseBase64(imageUrl);
+                            Bitmap circularImage = Utilities.getCircleBitmap(realImage);
                             mProfileImage.setImageBitmap(circularImage);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -394,11 +379,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
 
-    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
-        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -406,37 +386,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             mAdapter.cleanup();
         }
     }
-
-    public Query getQuery(DatabaseReference databaseReference) {
-        Query recentPostsQuery = databaseReference.child("user-posts")
-                .child(mProfileOwnerUid)
-                .limitToFirst(20);
-        return recentPostsQuery;
-    }
-
-    private Bitmap getCircleBitmap(Bitmap bitmap) {
-        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        final Canvas canvas = new Canvas(output);
-
-        final int color = Color.RED;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        final RectF rectF = new RectF(rect);
-
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawOval(rectF, paint);
-
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-
-        bitmap.recycle();
-
-        return output;
-    }
-
     // updates likes for post in Firebase (user-posts, user-feed)
     private void onLikeClicked (Query query, final String path) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -568,7 +517,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     }
 
     public void updateTaggedLikes(final Post model, final DatabaseReference postRef) {
-        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String taggedUsername = model.taggedFriend;
         Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
         query.addListenerForSingleValueEvent(new ValueEventListener() {

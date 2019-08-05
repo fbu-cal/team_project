@@ -46,6 +46,7 @@ import com.example.team_project.ProfilePictureActivity;
 import com.example.team_project.R;
 import com.example.team_project.UserSettingsActivity;
 import com.example.team_project.models.Post;
+import com.example.team_project.models.Utilities;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -194,31 +195,6 @@ public class ProfileFragment extends Fragment {
 //        mRecyclerView.setAdapter(mAdapter);
     }
 
-    private void findTaggedUser(Post model) {
-        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String taggedUsername = model.taggedFriend;
-        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
-                    if (newUser.get("uid").toString().equals(currentUid)) {
-                        Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
-                    }
-                    else {
-                        Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
-                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
-                        startActivity(toOtherProfile);
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-    }
-
     private void launchCalendar() {
         final Intent intent = new Intent(getActivity(), CalendarActivity.class);
         startActivity(intent);
@@ -231,63 +207,34 @@ public class ProfileFragment extends Fragment {
 
     public void setUserInformation () {
         Query query = FirebaseDatabase.getInstance().getReference("users")
-                .orderByChild("username");
-        query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
+                .child(mCurrentUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-                // check if user is the current user
-                if (newUser.get("uid").toString().equals(mCurrentUserUid)) {
-                    // set fullname and username
-                    mFullname.setText(newUser.get("fullname").toString());
-                    mUsername.setText("@" + newUser.get("username").toString());
-                    if (newUser.get("profile_picture")!=null) {
-                        String imageUrl = newUser.get("profile_picture").toString();
-                        // if profile pic is already set
-                        if (!imageUrl.equals("")) {
-                            try {
-                                // set profile picture
-                                Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-                                Bitmap circleImage = getCircleBitmap(realImage);
-                                mProfileImage.setImageBitmap(circleImage);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                Log.e("ProfileFragment", "Profile pic issue", e);
-                            }
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                // set fullname and username
+                mFullname.setText(newUser.get("fullname").toString());
+                mUsername.setText("@" + newUser.get("username").toString());
+                if (newUser.get("profile_picture")!=null) {
+                    String imageUrl = newUser.get("profile_picture").toString();
+                    // if profile pic is already set
+                    if (!imageUrl.equals("")) {
+                        try {
+                            // set profile picture
+                            Bitmap realImage = Utilities.decodeFromFirebaseBase64(imageUrl);
+                            Bitmap circleImage = Utilities.getCircleBitmap(realImage);
+                            mProfileImage.setImageBitmap(circleImage);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Log.e("ProfileFragment", "Profile pic issue", e);
                         }
                     }
                 }
             }
             @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-            @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
-    }
-
-    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
-        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
-    }
-
-    public Query getQuery(DatabaseReference databaseReference) {
-        // [START recent_posts_query]
-        // Last 100 posts, these are automatically the 100 most recent
-        // due to sorting by push() keys
-        Query recentPostsQuery = databaseReference.child("user-posts")
-                .child(mCurrentUserUid)
-                .limitToFirst(20);
-        // [END recent_posts_query]
-
-        return recentPostsQuery;
     }
 
     private void onLikeClicked (Query query, final String path) {
@@ -350,29 +297,6 @@ public class ProfileFragment extends Fragment {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
-    }
-
-    private Bitmap getCircleBitmap(Bitmap bitmap) {
-        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        final Canvas canvas = new Canvas(output);
-
-        final int color = Color.RED;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        final RectF rectF = new RectF(rect);
-
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawOval(rectF, paint);
-
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-
-        bitmap.recycle();
-
-        return output;
     }
 
     @Override

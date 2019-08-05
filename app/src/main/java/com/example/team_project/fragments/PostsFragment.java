@@ -2,12 +2,9 @@ package com.example.team_project.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,7 +17,6 @@ import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.PostDetailActivity;
 import com.example.team_project.PostViewHolder;
 import com.example.team_project.R;
-import com.example.team_project.SearchActivity;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,9 +24,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
@@ -116,6 +110,7 @@ public class PostsFragment extends Fragment {
                             updateTaggedLikes(model, postRef);
                             // update feeds
                             updateAllFeedsLikes(postRef.getKey());
+//                            likePost(postRef.getKey());
                         }
                     }, new View.OnClickListener() {
                         @Override
@@ -130,7 +125,7 @@ public class PostsFragment extends Fragment {
                         @Override
                         public void onClick(View v) {
                             // go to user profile when tagged clicked
-                            findTaggedUser(model);
+                            goToTaggedProfile(model);
                         }
                     }));
                 } catch (IOException e) {
@@ -141,29 +136,57 @@ public class PostsFragment extends Fragment {
         mRecycler.setAdapter(mAdapter);
     }
 
-    private void findTaggedUser(Post model) {
-        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String taggedUsername = model.taggedFriend;
-        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
+    private void likePost(String postRefKey) {
+        Query query = mDatabase.child("post-likes").child(postRefKey);
+        final String path = "/post-likes/" + postRefKey;
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
-                    if (newUser.get("uid").toString().equals(currentUid)) {
-                        Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String likesPath = path + "/likes";
+                String likeCountPath = path + "/likeCount";
+                Map<String, Object> likesMap = (Map<String, Object>) dataSnapshot.child("likes").getValue();
+                Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
+                if (likesMap == null) {
+                    likesMap = new HashMap<>();
+                    likeCount = Long.valueOf(1);
+                    likesMap.put(getUid(), true);
+                }
+                else {
+                    if (likesMap.containsKey(getUid())) {
+                        likeCount = likeCount - 1;
+                        likesMap.remove(getUid());
+                        mDatabase.child(likesPath).removeValue();
                     }
                     else {
-                        Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
-                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
-                        startActivity(toOtherProfile);
+                        likeCount = likeCount + 1;
+                        likesMap.put(getUid(), true);
+                        Log.i("PostsFragment", "clicked like");
                     }
                 }
+                mDatabase.child(likesPath).updateChildren(likesMap);
+                mDatabase.child(likeCountPath).setValue(likeCount);
+
+                Log.i("PostsFragment", FirebaseAuth.getInstance().toString());
             }
+
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
+    }
+
+    private void goToTaggedProfile(Post model) {
+        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String taggedUid = model.taggedFriendUid;
+        if (taggedUid.equals(currentUid)) {
+            Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
+        }
+        else {
+            Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
+            toOtherProfile.putExtra("uid", taggedUid.toString());
+            startActivity(toOtherProfile);
+        }
     }
 
     private void onLikeClicked (Query query, final String path) {

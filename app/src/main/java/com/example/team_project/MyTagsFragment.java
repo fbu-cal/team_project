@@ -2,40 +2,21 @@ package com.example.team_project;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.team_project.fragments.ProfileFragment;
 import com.example.team_project.models.Post;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -88,7 +69,9 @@ public class MyTagsFragment extends Fragment {
         mRecyclerView.setLayoutManager(mManager);
 
         // Set up FirebaseRecyclerAdapter with the Query
-        Query postsQuery = getQuery(mDatabase);
+        Query postsQuery = mDatabase.child("user-tagged-posts")
+                .child(mCurrentUserUid)
+                .limitToFirst(20);
         mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
                 PostViewHolder.class, postsQuery) {
             @Override
@@ -139,7 +122,7 @@ public class MyTagsFragment extends Fragment {
                                 @Override
                                 public void onClick(View v) {
                                     // go to user profile when tagged clicked
-                                    findTaggedUser(model);
+                                    goToTaggedProfile(model);
                                 }
                             }));
                 } catch (IOException e) {
@@ -150,36 +133,17 @@ public class MyTagsFragment extends Fragment {
         mRecyclerView.setAdapter(mAdapter);
     }
 
-    private void findTaggedUser(Post model) {
+    private void goToTaggedProfile(Post model) {
         final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String taggedUsername = model.taggedFriend;
-        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
-                    if (newUser.get("uid").toString().equals(currentUid)) {
-                        Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
-                    }
-                    else {
-                        Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
-                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
-                        startActivity(toOtherProfile);
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-    }
-
-    public Query getQuery(DatabaseReference databaseReference) {
-        Query recentPostsQuery = databaseReference.child("user-tagged-posts")
-                .child(mCurrentUserUid)
-                .limitToFirst(20);
-        return recentPostsQuery;
+        String taggedFriendUid = model.taggedFriendUid;
+        if (taggedFriendUid.equals(currentUid)) {
+            Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
+        }
+        else {
+            Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
+            toOtherProfile.putExtra("uid", taggedFriendUid);
+            startActivity(toOtherProfile);
+        }
     }
 
     private void onLikeClicked (Query query, final String path) {
@@ -245,25 +209,11 @@ public class MyTagsFragment extends Fragment {
     }
 
     public void updateTaggedLikes(final Post model, final DatabaseReference postRef) {
-        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String taggedUsername = model.taggedFriend;
-        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
-                    String taggedUid = newUser.get("uid").toString();
-                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-                    Query userTaggedPostQuery = mDatabase.child("user-tagged-posts").child(taggedUid).child(postRef.getKey());
-                    String userTaggedPostPath = "/user-tagged-posts/" + taggedUid + "/" + postRef.getKey();
-                    onLikeClicked(userTaggedPostQuery, userTaggedPostPath);
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
+        String taggedUid = model.taggedFriendUid;
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        Query userTaggedPostQuery = mDatabase.child("user-tagged-posts").child(taggedUid).child(postRef.getKey());
+        String userTaggedPostPath = "/user-tagged-posts/" + taggedUid + "/" + postRef.getKey();
+        onLikeClicked(userTaggedPostQuery, userTaggedPostPath);
     }
 
 //    @Override

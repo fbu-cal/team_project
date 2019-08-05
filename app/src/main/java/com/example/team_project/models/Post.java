@@ -18,18 +18,20 @@ public class Post {
     public Map<String, Boolean> comments = new HashMap<>();
     public String timestamp;
     public String taggedFriend;
+    public String taggedFriendUid;
 
     public Post() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Post(String uid, String author, String body, String postImageUrl, String timestamp, String taggedFriend) {
+    public Post(String uid, String author, String body, String postImageUrl, String timestamp, String taggedFriend, String taggedFriendUid) {
         this.uid = uid;
         this.author = author;
         this.body = body;
         this.postImageUrl = postImageUrl;
         this.timestamp = timestamp;
         this.taggedFriend = taggedFriend;
+        this.taggedFriendUid = taggedFriendUid;
     }
 
     @Exclude
@@ -44,6 +46,7 @@ public class Post {
         result.put("comments", comments);
         result.put("timestamp", timestamp);
         result.put("taggedFriend", taggedFriend);
+        result.put("taggedFriendUid", taggedFriendUid);
         return result;
     }
 }

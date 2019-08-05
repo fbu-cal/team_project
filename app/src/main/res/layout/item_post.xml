@@ -42,15 +42,6 @@
             app:layout_constraintStart_toEndOf="@+id/post_image_view"
             app:layout_constraintTop_toBottomOf="@+id/profile_image_view" />
 
-
-        <!--<View-->
-        <!--android:id="@+id/view"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="0.5dp"-->
-        <!--android:background="#000000"-->
-        <!--app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--tools:layout_editor_absoluteX="0dp" />-->
-
         <ImageButton
             android:id="@+id/like_button"
             android:layout_width="25dp"
@@ -82,7 +73,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"
-            android:text="Comments"
             app:layout_constraintBottom_toBottomOf="@+id/comment_image_view"
             app:layout_constraintStart_toEndOf="@+id/comment_image_view"
             app:layout_constraintTop_toTopOf="@+id/comment_image_view" />

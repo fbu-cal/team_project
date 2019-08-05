@@ -125,7 +125,7 @@ public class SignupActivity extends AppCompatActivity {
     public String encodeBitmap(Bitmap bitmap) {
         // save image to firebase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 40, baos);
         return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
     }
 }

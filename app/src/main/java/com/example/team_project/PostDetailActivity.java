@@ -2,29 +2,13 @@ package com.example.team_project;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.AnimationUtils;
-import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -32,9 +16,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.team_project.fragments.ProfileFragment;
 import com.example.team_project.models.Comment;
-import com.example.team_project.models.Post;
+import com.example.team_project.models.Utilities;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -45,11 +28,9 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class PostDetailActivity extends AppCompatActivity {
@@ -75,6 +56,7 @@ public class PostDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_post_detail);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         mFullname = findViewById(R.id.fullname_text_view);
         mUsername = findViewById(R.id.username_text_view);
@@ -95,12 +77,10 @@ public class PostDetailActivity extends AppCompatActivity {
         mPostOwnerUid = intent.getStringExtra("uid");
         mPostRefKey = intent.getStringExtra("postRefKey");
 
-        mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
         // update ui with user and post information
         findUser();
         findPost();
-        findCommentCount();
+        findCommentCount(mPostRefKey);
 
         // Set up recycler view for comments
         mRecycler = (RecyclerView) findViewById(R.id.comment_recycler_view);
@@ -111,7 +91,9 @@ public class PostDetailActivity extends AppCompatActivity {
         mManager.setStackFromEnd(true);
         mRecycler.setLayoutManager(mManager);
         // Set up FirebaseRecyclerAdapter with the Query
-        Query commentsQuery = getQuery(mDatabase);
+        Query commentsQuery = mDatabase.child("post-comments")
+                                .child(mPostRefKey)
+                                .limitToFirst(100);
         mAdapter = new FirebaseRecyclerAdapter<Comment, CommentViewHolder>(Comment.class, R.layout.item_comment,
                 CommentViewHolder.class, commentsQuery) {
             @Override
@@ -131,11 +113,8 @@ public class PostDetailActivity extends AppCompatActivity {
         mLikeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
                 Query userPostQuery = mDatabase.child("user-posts").child(mPostOwnerUid).child(mPostRefKey);
-                //String globalPostPath = "/posts/" + postRef.getKey();
                 String userPostPath = "/user-posts/" + mPostOwnerUid + "/" + mPostRefKey;
-                //onLikeClicked(globalPostQuery, globalPostPath);
                 onLikeClicked(userPostQuery, userPostPath);
                 updateAllFeedsLikes();
             }
@@ -157,48 +136,40 @@ public class PostDetailActivity extends AppCompatActivity {
         mTagged.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                findTaggedUser();
+                goToTaggedProfile();
             }
         });
 
     }
 
-    private void findTaggedUser() {
-        String taggedUsername = mTagged.getText().toString().split(" ")[1].substring(1);
-        Query query = mDatabase.child("users").orderByChild("username").equalTo(taggedUsername);
+    private void goToTaggedProfile() {
+        Query query = mDatabase.child("user-posts").child(mPostOwnerUid).child(mPostRefKey).child("taggedFriendUid");
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
-                    if (newUser.get("uid").toString().equals(mCurrentUserUid)) {
-                        Toast.makeText(PostDetailActivity.this,"clicking on your own profile!", Toast.LENGTH_LONG);
-                    }
-                    else {
-                        Intent toOtherProfile = new Intent (PostDetailActivity.this, OtherUserProfileActivity.class);
-                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
-                        startActivity(toOtherProfile);
-                    }
+                String taggedFriendUid = (String) dataSnapshot.getValue();
+                if (taggedFriendUid.equals(mCurrentUserUid)) {
+                    Toast.makeText(PostDetailActivity.this,"clicking on your own profile!", Toast.LENGTH_LONG);
+                }
+                else {
+                    Intent toOtherProfile = new Intent (PostDetailActivity.this, OtherUserProfileActivity.class);
+                    toOtherProfile.putExtra("uid", taggedFriendUid);
+                    startActivity(toOtherProfile);
                 }
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
             }
         });
     }
 
-    private void findCommentCount() {
-        mDatabase.child("post-comments").child(mPostRefKey)
+    // find comment count and set it
+    private void findCommentCount(String postRefKey) {
+        mDatabase.child("post-comments").child(postRefKey)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        int count = 0;
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            //Comment comment = snapshot.getValue(Comment.class);
-                            count++;
-                        }
+                        long count = dataSnapshot.getChildrenCount();
                         mCommentCount.setText(count+"");
                     }
                     @Override
@@ -219,7 +190,7 @@ public class PostDetailActivity extends AppCompatActivity {
         mDatabase.updateChildren(childUpdates);
         Toast.makeText(PostDetailActivity.this, "Post Successful!", Toast.LENGTH_LONG).show();
         mCommentEditText.setText("");
-        findCommentCount();
+        findCommentCount(mPostRefKey);
     }
 
     private void findPost() {
@@ -231,20 +202,18 @@ public class PostDetailActivity extends AppCompatActivity {
                 Map<String, Object> newPost = (Map<String, Object>) dataSnapshot.getValue();
                 mBody.setText(newPost.get("body").toString());
                 if (newPost.get("timestamp") != null) {
-                    mTime.setText(getRelativeTimeAgo(newPost.get("timestamp").toString()));
+                    mTime.setText(Utilities.getRelativeTimeAgo(newPost.get("timestamp").toString()));
                 }
                 if (newPost.get("taggedFriend") != null) {
                     mTagged.setText("with " + newPost.get("taggedFriend"));
                 }
-
-                //Log.i("PostDetail", newPost.get("postImageUrl").toString());
                 if (newPost.get("postImageUrl")!=null) {
                     String imageUrl = newPost.get("postImageUrl").toString();
                     // if profile pic is already set
                     if (!imageUrl.equals("")) {
                         try {
                             // set post image
-                            Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
+                            Bitmap realImage = Utilities.decodeFromFirebaseBase64(imageUrl);
                             mPostImage.setImageBitmap(realImage);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -286,8 +255,8 @@ public class PostDetailActivity extends AppCompatActivity {
                     if (!imageUrl.equals("")) {
                         try {
                             // set profile picture
-                            Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-                            Bitmap circularImage = getCircleBitmap(realImage);
+                            Bitmap realImage = Utilities.decodeFromFirebaseBase64(imageUrl);
+                            Bitmap circularImage = Utilities.getCircleBitmap(realImage);
                             mProfileImage.setImageBitmap(circularImage);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -313,11 +282,8 @@ public class PostDetailActivity extends AppCompatActivity {
                 Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
                 if (likesMap == null) {
                     likesMap = new HashMap<>();
-                    likeCount = likeCount + 1;
+                    likeCount = Long.valueOf(1);
                     likesMap.put(mCurrentUserUid, true);
-//                    RotateAnimation rotateAnimation = (RotateAnimation) AnimationUtils.loadAnimation(mLikeButton.getContext(),R.anim.rotate);
-//                    rotateAnimation.setDuration(750);
-//                    mLikeButton.startAnimation(rotateAnimation);
                     mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                 }
                 else {
@@ -330,9 +296,6 @@ public class PostDetailActivity extends AppCompatActivity {
                     else {
                         likeCount = likeCount + 1;
                         likesMap.put(mCurrentUserUid, true);
-//                        RotateAnimation rotateAnimation = (RotateAnimation) AnimationUtils.loadAnimation(mLikeButton.getContext(),R.anim.rotate);
-//                        rotateAnimation.setDuration(750);
-//                        mLikeButton.startAnimation(rotateAnimation);
                         mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                     }
                 }
@@ -373,59 +336,5 @@ public class PostDetailActivity extends AppCompatActivity {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
-    }
-
-    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
-        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
-    }
-
-    private Bitmap getCircleBitmap(Bitmap bitmap) {
-        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        final Canvas canvas = new Canvas(output);
-
-        final int color = Color.RED;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        final RectF rectF = new RectF(rect);
-
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawOval(rectF, paint);
-
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-
-        bitmap.recycle();
-
-        return output;
-    }
-
-    public String getRelativeTimeAgo(String rawJsonDate) {
-        String twitterFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
-        SimpleDateFormat sf = new SimpleDateFormat(twitterFormat, Locale.ENGLISH);
-        sf.setLenient(true);
-
-        String relativeDate = "";
-        try {
-            long dateMillis = sf.parse(rawJsonDate).getTime();
-            relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
-                    System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS).toString();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return relativeDate;
-    }
-
-    public Query getQuery(DatabaseReference databaseReference) {
-        // Last 100 posts, these are automatically the 100 most recent
-        // due to sorting by push() keys
-        Query recentPostsQuery = databaseReference.child("post-comments")
-                .child(mPostRefKey)
-                .limitToFirst(100);
-        return recentPostsQuery;
     }
 }

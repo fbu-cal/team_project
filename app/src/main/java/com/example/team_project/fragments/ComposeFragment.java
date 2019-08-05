@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
@@ -23,16 +24,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.team_project.MainActivity;
-import com.example.team_project.OtherUserProfileActivity;
 import com.example.team_project.R;
 import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
@@ -47,13 +44,11 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
@@ -113,6 +108,7 @@ public class ComposeFragment extends Fragment {
                 final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 final String description = mDescription.getText().toString();
 
+                // get user;s username
                 mDatabase.child("users").child(userId).addListenerForSingleValueEvent(
                         new ValueEventListener() {
                             @Override
@@ -180,16 +176,12 @@ public class ComposeFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Bitmap imageBitmap = null;
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
             Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
-            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
-            encodeBitmap(croppedBitmap);
-            mPostImage.setImageBitmap(croppedBitmap);
+            imageBitmap = (Bitmap) extras.get("data");
         }
         else if (requestCode == REQUEST_IMAGE_UPLOAD) {
-            Bitmap imageBitmap = null;
             if (data != null) {
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), data.getData());
@@ -197,11 +189,15 @@ public class ComposeFragment extends Fragment {
                     e.printStackTrace();
                 }
             }
-            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
-            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
-            encodeBitmap(croppedBitmap);
-            mPostImage.setImageBitmap(croppedBitmap);
         }
+        // Configure byte output stream
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        // Compress the image further
+        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+        int dimension = getSquareCropDimensionForBitmap(imageBitmap);
+        Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
+        encodeBitmap(croppedBitmap);
+        mPostImage.setImageBitmap(croppedBitmap);
     }
 
     public void onLaunchCamera(View view) {
@@ -215,7 +211,7 @@ public class ComposeFragment extends Fragment {
     {
         Intent intent = new Intent();
         intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);//
+        intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Select File"), 222);
     }
 
@@ -223,7 +219,7 @@ public class ComposeFragment extends Fragment {
         // update posts and user-posts
         final String key = mDatabase.child("posts").push().getKey();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
-        String timestamp = simpleDateFormat.format(new Date());
+        final String timestamp = simpleDateFormat.format(new Date());
         Log.d("MainActivity", "Current Timestamp: " + timestamp);
         String taggedFriend = mTagFriendButton.getText().toString();
         if (postImageUrl!=null && !postImageUrl.equals("") && !description.equals("")) {
@@ -231,33 +227,32 @@ public class ComposeFragment extends Fragment {
                 taggedFriend = null;
             else
                 taggedFriend = taggedFriend.split(" ")[1].substring(1);
-            Post post = new Post(userId, username, description, postImageUrl, timestamp, taggedFriend);
-            final Map<String, Object> postValues = post.toMap();
-            final Map<String, Object> childUpdates = new HashMap<>();
-            //childUpdates.put("/posts/" + key, postValues);
-            childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
-            mDatabase.updateChildren(childUpdates);
-            // update user-feed
-            updateAllFeeds(postValues, key);
-            Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
-            mDescription.setText("");
-
-            // send notification to tagged user if tagged user exists and add tagged post to user-tagged-posts
+            //final Post post = new Post(userId, username, description, postImageUrl, timestamp, taggedFriend);
+            // send notification to tagged user if tagged user exists
+            // add taggedUid to post
+            // add tagged post to user-tagged-posts
             if (taggedFriend != null) {
                 String taggedUsername = taggedFriend;
                 Query query = FirebaseDatabase.getInstance().getReference("users")
                         .orderByChild("username").equalTo(taggedUsername);
+                final String finalTaggedFriend = taggedFriend;
                 query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
                     @Override
                     public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
                         Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
                         String taggedUid = newUser.get("uid").toString();
                         sendFirebaseNotification(mCurrentUser, taggedUid, "has tagged you in a post", key);
+                        // create post object
+                        Post post = new Post(userId, username, description, postImageUrl, timestamp, finalTaggedFriend, taggedUid);
                         // MainActivity.notificationBadge.setVisibility(View.VISIBLE);
                         // post to user-tagged-posts
-                        final Map<String, Object> childUpdates = new HashMap<>();
+                        Map<String, Object> postValues = post.toMap();
+                        Map<String, Object> childUpdates = new HashMap<>();
                         childUpdates.put("/user-tagged-posts/" + taggedUid + "/" + key, postValues);
+                        childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
                         mDatabase.updateChildren(childUpdates);
+                        // update user-feed
+                        updateAllFeeds(postValues, key);
                     }
                     @Override
                     public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -273,7 +268,19 @@ public class ComposeFragment extends Fragment {
                     }
                 });
             }
-
+            // if no tagged friend
+            else {
+                Post post = new Post(userId, username, description, postImageUrl, timestamp, null, null);
+                // upload post to user-posts
+                final Map<String, Object> postValues = post.toMap();
+                final Map<String, Object> childUpdates = new HashMap<>();
+                childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
+                mDatabase.updateChildren(childUpdates);
+                // update user-feed
+                updateAllFeeds(postValues, key);
+                Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
+                mDescription.setText("");
+            }
             Intent launchPosts = new Intent(getActivity(), MainActivity.class);
             startActivity(launchPosts);
         }

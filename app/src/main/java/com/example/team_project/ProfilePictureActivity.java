@@ -51,19 +51,12 @@ public class ProfilePictureActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Bitmap imageBitmap = null;
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == this.RESULT_OK) {
             Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
-            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
-            mProfileImageView.setImageBitmap(croppedBitmap);
-            encodeBitmapAndSaveToFirebase(croppedBitmap);
-            finish();
-            Intent toProfile = new Intent(this, MainActivity.class);
-            startActivity(toProfile);
+            imageBitmap = (Bitmap) extras.get("data");
         }
         else if (requestCode == REQUEST_IMAGE_UPLOAD) {
-            Bitmap imageBitmap = null;
             if (data != null) {
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
@@ -71,14 +64,18 @@ public class ProfilePictureActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
-            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
-            mProfileImageView.setImageBitmap(croppedBitmap);
-            encodeBitmapAndSaveToFirebase(croppedBitmap);
-            finish();
-            Intent toProfile = new Intent(this, MainActivity.class);
-            startActivity(toProfile);
         }
+        // Configure byte output stream
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        // Compress the image further
+        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+        int dimension = getSquareCropDimensionForBitmap(imageBitmap);
+        Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
+        mProfileImageView.setImageBitmap(croppedBitmap);
+        encodeBitmapAndSaveToFirebase(croppedBitmap);
+        finish();
+        Intent toProfile = new Intent(this, MainActivity.class);
+        startActivity(toProfile);
     }
 
     public void onLaunchCamera() {

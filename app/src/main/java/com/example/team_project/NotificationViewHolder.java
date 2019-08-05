@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.example.team_project.models.Notification;
 import com.example.team_project.models.Post;
+import com.example.team_project.models.Utilities;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -50,51 +51,14 @@ public class NotificationViewHolder extends RecyclerView.ViewHolder {
     public void bindToPost(final Notification notif) throws IOException {
         mTitle.setText(notif.title);
         mBody.setText(notif.body);
-        mTime.setText(getRelativeTimeAgo(notif.timestamp));
+        mTime.setText(Utilities.getRelativeTimeAgo(notif.timestamp));
         if (notif.icon != null) {
             if (!notif.icon.equals(""))
-                mIcon.setImageBitmap(getCircleBitmap(decodeFromFirebaseBase64(notif.icon)));
+                mIcon.setImageBitmap(Utilities.getCircleBitmap(Utilities.decodeFromFirebaseBase64(notif.icon)));
         }
-    }
-
-    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
-        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
-    }
-
-    public String getRelativeTimeAgo(String rawJsonDate) {
-        String twitterFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
-        SimpleDateFormat sf = new SimpleDateFormat(twitterFormat, Locale.ENGLISH);
-        sf.setLenient(true);
-
-        String relativeDate = "";
-        try {
-            long dateMillis = sf.parse(rawJsonDate).getTime();
-            relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
-                    System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS).toString();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        if (!notif.seen) {
+            MainActivity.notificationBadge.setVisibility(View.VISIBLE);
         }
-
-        return relativeDate;
-    }
-
-    private Bitmap getCircleBitmap(Bitmap bitmap) {
-        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        final Canvas canvas = new Canvas(output);
-        final int color = Color.RED;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        final RectF rectF = new RectF(rect);
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawOval(rectF, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-        bitmap.recycle();
-        return output;
     }
 }
 

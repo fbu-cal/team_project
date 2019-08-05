@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import com.example.team_project.models.Comment;
 import com.example.team_project.models.Post;
+import com.example.team_project.models.Utilities;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -56,7 +57,7 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
 
     public void bindToPost(final Comment comment) throws IOException {
         mCommentText.setText(comment.text);
-        mTimestamp.setText(getRelativeTimeAgo(comment.timestamp));
+        mTimestamp.setText(Utilities.getRelativeTimeAgo(comment.timestamp));
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         Query query = mDatabase.child("users").child(comment.uid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -71,8 +72,8 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
                     if (!imageUrl.equals("")) {
                         try {
                             // set profile picture
-                            Bitmap realImage = decodeFromFirebaseBase64(imageUrl);
-                            Bitmap circularImage = getCircleBitmap(realImage);
+                            Bitmap realImage = Utilities.decodeFromFirebaseBase64(imageUrl);
+                            Bitmap circularImage = Utilities.getCircleBitmap(realImage);
                             mProfilePicture.setImageBitmap(circularImage);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -86,50 +87,5 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
-    }
-
-    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
-        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
-    }
-
-    public String getRelativeTimeAgo(String rawJsonDate) {
-        String twitterFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
-        SimpleDateFormat sf = new SimpleDateFormat(twitterFormat, Locale.ENGLISH);
-        sf.setLenient(true);
-
-        String relativeDate = "";
-        try {
-            long dateMillis = sf.parse(rawJsonDate).getTime();
-            relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
-                    System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS).toString();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return relativeDate;
-    }
-
-    private Bitmap getCircleBitmap(Bitmap bitmap) {
-        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        final Canvas canvas = new Canvas(output);
-
-        final int color = Color.RED;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        final RectF rectF = new RectF(rect);
-
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawOval(rectF, paint);
-
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-
-        bitmap.recycle();
-
-        return output;
     }
 }
