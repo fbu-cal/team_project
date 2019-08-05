@@ -38,7 +38,6 @@ public class MainMessenger extends AppCompatActivity {
     FloatingActionButton mComposeMessageButton;
     ArrayList<Map<String,Object>> mConversations;
     private DatabaseReference mDatabaseReference;
-    //private MessageAdapter mMessageAdapter;
     String username;
     String currentUserId;
 
@@ -106,19 +105,10 @@ public class MainMessenger extends AppCompatActivity {
         return recentConversationsQuery;
     }
 
-    public Query getQuery(DatabaseReference databaseReference, String currentUser, String receiverId) {
-        // [START recent_messages_query]
-        // due to sorting by push() keys
-        Query recentMessagesQuery = databaseReference.child("user-conversations/" + currentUser );
-        // [END recent_messages_query]
-
-        return recentMessagesQuery;
-    }
-
-    public void populateMessages(String currentUser, String receiverId){
+    public void populateMessages(String currentUser){
 
         // Set up FirebaseRecyclerAdapter with the Query
-        final Query messagesQuery = getQuery(mDatabaseReference, currentUser, receiverId);
+        final Query messagesQuery = getQuery(mDatabaseReference, currentUser);
         Log.i("MessageDetailsActivity", messagesQuery.toString());
         // Retrieve new messages as they are added to Firebase
         messagesQuery.addChildEventListener(new ChildEventListener() {
@@ -130,9 +120,6 @@ public class MainMessenger extends AppCompatActivity {
 
                 mConversations.add(newConversation);
                 mAdapter.notifyItemInserted(mConversations.size()-1);
-
-                System.out.println("Author: " + newConversation.get("username"));
-                System.out.println("Title: " + newConversation.get("messageText"));
             }
 
             @Override

@@ -94,12 +94,12 @@ public class SignupActivity extends AppCompatActivity {
         // TODO - move to method
         String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String key = mDatabase.child("messages").push().getKey();
-        String conversationKey = mDatabase.child("conversations").push().getKey();
-        Conversation conversation = new Conversation(currentUid, currentUid);
-        Map<String,Object> conversationValues = conversation.toMap();
-        Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("user-conversations/" + currentUid + "/" + conversationKey, conversationValues);
-        mDatabase.updateChildren(childUpdates);
+//        String conversationKey = mDatabase.child("conversations").push().getKey();
+//        Conversation conversation = new Conversation(currentUid, currentUid);
+//        Map<String,Object> conversationValues = conversation.toMap();
+//        Map<String, Object> childUpdates = new HashMap<>();
+//        childUpdates.put("user-conversations/" + currentUid + "/" + conversationKey, conversationValues);
+//        mDatabase.updateChildren(childUpdates);
 
         // Go to MainActivity
         startActivity(new Intent(SignupActivity.this, MainActivity.class));

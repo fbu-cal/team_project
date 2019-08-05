@@ -69,6 +69,7 @@ public class ConversationViewHolder extends RecyclerView.ViewHolder {
 
     public void findUser (String userId) {
         Query query = mDatabaseReference.child("users").child(userId);
+        Log.i("ConversationView", userId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -76,6 +77,7 @@ public class ConversationViewHolder extends RecyclerView.ViewHolder {
                 Log.i("find user", "" + newUser);
                 username = newUser.get("username").toString();
                 mUsername.setText(username);
+                Log.i("finddd user", "" + newUser);
                 String imageUrl = newUser.get("profile_picture").toString();
                 // if profile pic is already set
                 if (!imageUrl.equals("")) {
@@ -93,9 +95,8 @@ public class ConversationViewHolder extends RecyclerView.ViewHolder {
                 }
                 //Intent intent = new Intent(MainMessenger.this, ConversationViewHolder.class);
                 //intent.putExtra("username", username);
-                Conversation conversation = new Conversation(currentUserId, username);
-                conversation.setOtherUser(username);
-                Log.i("Find user", username);
+//                Conversation conversation = new Conversation(currentUserId, username);
+////                conversation.setOtherUser(username);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {

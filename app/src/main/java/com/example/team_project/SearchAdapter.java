@@ -84,7 +84,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             if (position != RecyclerView.NO_POSITION) {
                 // get the movie at the position, this won't work if the class is static
                 final Map<String, Object> targetUser = mSearches.get(position);
-                //Log.i("SearchAdapter", "This is iiiit.");
+
                 Log.i("SearchAdapter", "Username" + targetUser.get("username") );
                 Intent intent = new Intent(context, MessageDetailsActivity.class);
                 intent.putExtra("username", targetUser.get("username").toString());
@@ -99,20 +99,27 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
                 query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot data : dataSnapshot.getChildren()){
-                            Map<String, Object> map =  (HashMap<String,Object>) data.getValue();
-                            if (receiverId.equals(map.get("otherUser"))){
-                            }else{
-                                String conversationKey = mDatabaseReference.child("conversations").push().getKey();
-                                Conversation conversation = new Conversation(currentUserId, receiverId);
-                                Map<String,Object> conversationValues = conversation.toMap();
-
-                                Map<String, Object> childUpdates = new HashMap<>();
-
-                                childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
-                                mDatabaseReference.updateChildren(childUpdates);
+                        boolean conversationExists = false;
+                        for (DataSnapshot data : dataSnapshot.getChildren()) {
+                            Map<String, Object> map = (HashMap<String, Object>) data.getValue();
+                            if (receiverId.equals(map.get("otherUser"))) {
+                                conversationExists = true;
+                            }
+                            if (conversationExists) {
+                                break;
                             }
                         }
+                        if (!conversationExists){
+                            String conversationKey = mDatabaseReference.child("conversations").push().getKey();
+                            Conversation conversation = new Conversation(currentUserId, receiverId);
+                            Map<String,Object> conversationValues = conversation.toMap();
+
+                            Map<String, Object> childUpdates = new HashMap<>();
+
+                            childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
+                            mDatabaseReference.updateChildren(childUpdates);
+                        }
+
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {

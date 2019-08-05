@@ -266,8 +266,8 @@ public class MessageDetailsActivity extends AppCompatActivity {
                     Message message = new Message(senderId, receiverId, username, messageText);
 
                     String conversationKey = mDatabaseReference.child("conversations").push().getKey();
-                    Conversation conversation = new Conversation(currentUserId, getOtherUser(senderId, receiverId));
-                    Map<String, Object> conversationValues = conversation.toMap();
+                    //Conversation conversation = new Conversation(currentUserId, getOtherUser(senderId, receiverId));
+                    //Map<String, Object> conversationValues = conversation.toMap();
 
                     //set message delivery time
                     Date date = new Date();
@@ -276,7 +276,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
                     Map<String, Object> messageValues = message.toMap();
                     Map<String, Object> childUpdates = new HashMap<>();
 
-                    childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
+                    //childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
                     childUpdates.put("/conversation-messages/" + currentUserId + "/" + conversationKey + "/" + key, messageValues);
 
                     mDatabaseReference.updateChildren(childUpdates);
