@@ -354,7 +354,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
                 mProfileOwnerUid = newUser.get("uid").toString();
                 username = newUser.get("username").toString();
-                mUsernameText.setText(username);
+                mUsernameText.setText("@" + username);
                 mFullnameText.setText(newUser.get("fullname").toString());
                 if (newUser.get("profile_picture")!=null) {
                     String imageUrl = newUser.get("profile_picture").toString();

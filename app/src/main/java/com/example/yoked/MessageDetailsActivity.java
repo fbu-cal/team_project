@@ -269,6 +269,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
                         //childUpdates.put("/user-messages/" + senderId + "/" + receiverId + "/" + key, messageValues);
                         //put message in conv-messages
                         childUpdates.put("/conversation-messages/"  + currentUserId + "/"+ conversationKey + "/" + key, messageValues);
+                        childUpdates.put("/conversation-messages/"  + receiverId + "/"+ conversationKey + "/" + key, messageValues);
 
                         DatabaseReference ref = FirebaseDatabase.getInstance()
                                 .getReference("user-conversations")

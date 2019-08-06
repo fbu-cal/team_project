@@ -243,6 +243,7 @@ public class MainMessenger extends AppCompatActivity {
                             Map<String, Object> childUpdates = new HashMap<>();
 
                             childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
+                            childUpdates.put("user-conversations/" + receiverId + "/" + conversationKey, conversationValues);
                             mDatabaseReference.updateChildren(childUpdates);
                             //Intent intent = new Intent(context, MessageDetailsActivity.class);
                             //intent.putExtra("conversation", (Parcelable) conversation);
