@@ -1,115 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_view"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    app:cardCornerRadius="10dp">
 
-    <TextView
-        android:id="@+id/username_text_view"
-        android:layout_width="0dp"
-        android:layout_height="22dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:text="Username"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/profile_image_view"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/body_text_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:text="Body"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/profile_image_view" />
-
-
-    <View
-        android:id="@+id/view"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:background="#000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="0dp" />
+        android:layout_height="match_parent"
+        android:paddingLeft="0dp">
 
-    <ImageButton
-        android:id="@+id/like_button"
-        android:layout_width="28dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:background="#ffffff"
-        android:scaleType="centerInside"
-        android:tint="@color/yokedYellow"
-        app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/tagged_text_view"
-        app:srcCompat="@drawable/ufi_heart" />
+        <TextView
+            android:id="@+id/username_text_view"
+            android:layout_width="0dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:clickable="true"
+            android:text="Username"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/profile_image_view"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/like_count_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:text="Likes"
-        app:layout_constraintStart_toEndOf="@+id/like_button"
-        app:layout_constraintTop_toTopOf="@+id/like_button" />
+        <TextView
+            android:id="@+id/body_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:text="Body"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/post_image_view"
+            app:layout_constraintTop_toBottomOf="@+id/profile_image_view" />
 
-    <ImageView
-        android:id="@+id/profile_image_view"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:color/black" />
+        <ImageButton
+            android:id="@+id/like_button"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/transparent"
+            android:scaleType="centerInside"
+            android:tint="@color/yokedYellow"
+            app:layout_constraintStart_toEndOf="@+id/post_image_view"
+            app:layout_constraintTop_toBottomOf="@+id/tagged_text_view"
+            app:srcCompat="@drawable/ufi_heart" />
 
-    <ImageView
-        android:id="@+id/post_image_view"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:color/black" />
+        <TextView
+            android:id="@+id/like_count_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:text="Likes"
+            app:layout_constraintBottom_toBottomOf="@+id/like_button"
+            app:layout_constraintStart_toEndOf="@+id/like_button"
+            app:layout_constraintTop_toTopOf="@+id/like_button" />
 
-    <TextView
-        android:id="@+id/time_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:text="Time"
-        app:layout_constraintStart_toEndOf="@+id/profile_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
+        <TextView
+            android:id="@+id/comment_count_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/comment_image_view"
+            app:layout_constraintStart_toEndOf="@+id/comment_image_view"
+            app:layout_constraintTop_toTopOf="@+id/comment_image_view" />
 
-    <TextView
-        android:id="@+id/tagged_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/body_text_view" />
+        <ImageView
+            android:id="@+id/profile_image_view"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toEndOf="@+id/post_image_view"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:color/black" />
+
+        <ImageView
+            android:id="@+id/post_image_view"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:color/black" />
+
+        <TextView
+            android:id="@+id/time_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:text="Time"
+            app:layout_constraintStart_toEndOf="@+id/profile_image_view"
+            app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
+
+        <TextView
+            android:id="@+id/tagged_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            app:layout_constraintStart_toEndOf="@+id/post_image_view"
+            app:layout_constraintTop_toBottomOf="@+id/body_text_view" />
+
+        <ImageView
+            android:id="@+id/comment_image_view"
+            android:layout_width="30dp"
+            android:layout_height="25dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginLeft="32dp"
+            android:background="@color/transparent"
+            android:tint="@color/yokedYellow"
+            app:layout_constraintBottom_toBottomOf="@+id/like_button"
+            app:layout_constraintStart_toEndOf="@+id/like_count_text_view"
+            app:layout_constraintTop_toTopOf="@+id/like_button"
+            app:srcCompat="@drawable/ufi_comment" />
+
+    </android.support.constraint.ConstraintLayout>
 
 
-</android.support.constraint.ConstraintLayout>
+</android.support.v7.widget.CardView>
