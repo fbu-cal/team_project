@@ -269,6 +269,8 @@ public class MessageDetailsActivity extends AppCompatActivity {
                         //childUpdates.put("/user-messages/" + senderId + "/" + receiverId + "/" + key, messageValues);
                         //put message in conv-messages
                         childUpdates.put("/conversation-messages/"  + currentUserId + "/"+ conversationKey + "/" + key, messageValues);
+                        childUpdates.put("/conversation-messages/"  + receiverId + "/"+ conversationKey + "/" + key, messageValues);
+
 
                         DatabaseReference ref = FirebaseDatabase.getInstance()
                                 .getReference("user-conversations")
@@ -283,6 +285,20 @@ public class MessageDetailsActivity extends AppCompatActivity {
                                 .child(conversationKey)
                                 .child("timeStamp");
                         timeStamp.setValue(date);
+
+                        DatabaseReference refReceiver = FirebaseDatabase.getInstance()
+                                .getReference("user-conversations")
+                                .child(receiverId)
+                                .child(conversationKey)
+                                .child("latestMessageText");
+                        refReceiver.setValue(messageText);
+
+                        DatabaseReference timeStampReciever = FirebaseDatabase.getInstance()
+                                .getReference("user-conversations")
+                                .child(receiverId)
+                                .child(conversationKey)
+                                .child("timeStamp");
+                        timeStampReciever.setValue(date);
 
                         mDatabaseReference.updateChildren(childUpdates);
                         mMessageTextInput.setText("");
@@ -320,6 +336,20 @@ public class MessageDetailsActivity extends AppCompatActivity {
                             .child(conversationKey)
                             .child("timeStamp");
                     timeStamp.setValue(date);
+
+                    DatabaseReference refReceiver = FirebaseDatabase.getInstance()
+                            .getReference("user-conversations")
+                            .child(receiverId)
+                            .child(conversationKey)
+                            .child("latestMessageText");
+                    refReceiver.setValue(messageText);
+
+                    DatabaseReference timeStampReciever = FirebaseDatabase.getInstance()
+                            .getReference("user-conversations")
+                            .child(receiverId)
+                            .child(conversationKey)
+                            .child("timeStamp");
+                    timeStampReciever.setValue(date);
 
                     mDatabaseReference.updateChildren(childUpdates);
                     mMessageTextInput.setText("");
