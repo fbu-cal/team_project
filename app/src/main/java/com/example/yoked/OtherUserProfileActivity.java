@@ -335,8 +335,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     userFriends = new HashMap<>();
                 userFriends.put(mCurrentUserUid, status);
                 mDatabase.child(path).updateChildren(userFriends);
-                mAddFriendButton.setText(status);
-                mAddFriendButton.setEnabled(false);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
