@@ -16,6 +16,8 @@
         android:layout_marginRight="32dp"
         android:layout_marginBottom="100dp"
         android:text="logout"
+        android:background="@drawable/transparent_bg_bordered_button"
+        android:textColor="@color/lightGray"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -30,6 +32,8 @@
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
         android:text="upload profile picture"
+        android:background="@drawable/transparent_bg_bordered_button"
+        android:textColor="@color/lightGray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

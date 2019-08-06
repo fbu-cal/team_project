@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "fbu-cal-project"
+    "default": "fbu-cal-project",
+    "staging": "fbu-cal-project"
   }
 }
