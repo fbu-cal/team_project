@@ -19,6 +19,7 @@ import com.example.team_project.fragments.NotificationFragment;
 import com.example.team_project.fragments.PostsFragment;
 import com.example.team_project.fragments.ProfileFragment;
 import com.example.team_project.models.Match;
+import com.example.team_project.models.NotifMatch;
 import com.example.team_project.models.Notification;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -333,43 +334,33 @@ public class MainActivity extends AppCompatActivity {
         }
         if (anyMatchCheck > 0) {
             getOtherUserStatus(otherUserId, freeTime);
-            //writeNewPost(mUserId, otherUserId, freeTime);
-            //checkNotification(friendName, otherUserId, currentName);
-            sendNotification(mUserId, otherUserId, "You have free time that" +
-                    " overlaps with " + currentName);
-            sendNotification(otherUserId, mUserId, "You have free time that" +
-                    " overlaps with " + friendName);
+            checkNotification(friendName, otherUserId, currentName);
         }
     }
 
-    /*private void checkNotification(final String friendName,final String otherUserId, final String currentName) {
-        mReference.child("user-notif-sent").child(mUserId).child(otherUserId).
+    private void checkNotification(final String friendName, final String otherUserId, final String currentName) {
+        mReference.child("user-notif-match").child(mUserId).child(otherUserId).
                 addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                HashMap<String, Object> notifCheck = (HashMap<String, Object>) dataSnapshot.getValue();
-                if (notifCheck != null) {
-                    if (notifCheck.get("firstNotif") != null) {
-                        if ((Boolean) notifCheck.get("firstNotif")) {
-                            // don't do anything because user has notification already
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        HashMap<String, Object> notifSentCheck = (HashMap<String, Object>) dataSnapshot.getValue();
+                        if (notifSentCheck == null) {
+                            sendNotification(mUserId, otherUserId, "You have free time that" +
+                                    " overlaps with " + currentName);
+                            sendNotification(otherUserId, mUserId, "You have free time that" +
+                                    " overlaps with " + friendName);
+                            writeNotifSent(mUserId, otherUserId, true);
                         }
                     }
-                } else {
-                    sendNotification(mUserId, otherUserId, "You have free time that" +
-                            " overlaps with " + currentName);
-                    sendNotification(otherUserId, mUserId, "You have free time that" +
-                            " overlaps with " + friendName);
-                    *//*writeNewNotif(mUserId, otherUserId, true,false);
-                    writeNewNotif(otherUserId, mUserId, true, false);*//*
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            }
-        });
-    }*/
+                    }
+                });
+    }
+
+
 
     /**
      * mOtherUserStatus would be a hash map of their user comparing with status with all users
@@ -402,6 +393,15 @@ public class MainActivity extends AppCompatActivity {
            }
        });
    }
+
+    private void writeNotifSent(String userId, String otherUserId, boolean check) {
+        NotifMatch notifMatch = new NotifMatch(userId, otherUserId, check);
+        Map<String, Object> postValues = notifMatch.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/user-notif-match/" + userId + "/" + otherUserId + "/", postValues);
+        Log.i("CalendarActivity", "Key: " + userId);
+        mReference.updateChildren(childUpdates);
+    }
 
     /**
      * @param userId - checks current user

@@ -17,14 +17,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import com.example.team_project.models.Match;
-
-import java.util.Iterator;
 import java.util.Map;
 
 
@@ -37,8 +34,7 @@ public class MatchActivity extends Activity {
     private String mUserId;
     private FirebaseAuth mAuth;
     HashMap<String, String> mNameToId;
-    //String mOtherUserId;
-    //String mOtherUserName;
+    private ArrayList mArrayOrder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +44,7 @@ public class MatchActivity extends Activity {
         mUserId = mAuth.getCurrentUser().getUid();
         mReference = FirebaseDatabase.getInstance().getReference();
         mNameToId = new HashMap<String, String>();
-
+        mArrayOrder = new ArrayList<>();
 
         getUserMatch();
         /**
@@ -73,8 +69,6 @@ public class MatchActivity extends Activity {
                 public void removeFirstObjectInAdapter() {
                     // this is the simplest way to delete an object from the Adapter (/AdapterView)
                     Log.d("LIST", "removed object!");
-                    //String mOtherUserId = mNameToId.get(mMatches.get(0));
-                    //String mOtherUserName = mMatches.get(0);
                     mMatches.remove(0);
                     arrayAdapter.notifyDataSetChanged();
                 }
@@ -105,18 +99,12 @@ public class MatchActivity extends Activity {
                 @Override
                 public void onRightCardExit(Object dataObject) {
                     Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
-                    rightUserMatch((String) dataObject);
+                    rightUserMatch();
                     //writeNewPost(mUserId, otherUserId, );
                 }
 
-                //TODO Comment this out and see what happens when things are working
                 @Override
                 public void onAdapterAboutToEmpty(int itemsInAdapter) {
-                    // Ask for more data here
-                    /*mMatches.add("Empty ".concat(String.valueOf(i)));
-                    arrayAdapter.notifyDataSetChanged();
-                    Log.d("LIST", "notified");
-                    i++;*/
                 }
 
                 @Override
@@ -138,8 +126,6 @@ public class MatchActivity extends Activity {
     }
 
     private void getUserMatch () {
-        //String matchKey = mReference.child("user-match/" + userId).push().getKey();
-        //Log.i("MatchActivity", "key: " + matchKey);
         mReference.child("user-match").child(mUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -150,9 +136,11 @@ public class MatchActivity extends Activity {
                     Log.i("MatchActivity", "match info: " + matchInfo);
                     for (Map.Entry<String, Object> matchHold : matchInfo.entrySet()) {
                         HashMap<String, Object> matchValueCurrent = (HashMap<String, Object>) matchHold.getValue();
-                        if (!(Boolean) matchValueCurrent.get("currentUserStatus")) {
-                            getUserInfo(matchValueCurrent);
-                            Log.i("MatchActivity", "match info loop: " + matchValueCurrent);
+                        if (matchValueCurrent.get("currentUserStatus") != null) {
+                            if (!(Boolean) matchValueCurrent.get("currentUserStatus")) {
+                                getUserInfo(matchValueCurrent);
+                                Log.i("MatchActivity", "match info loop: " + matchValueCurrent);
+                            }
                         }
                     }
                 }
@@ -174,7 +162,10 @@ public class MatchActivity extends Activity {
                     userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
                     if (userInfo != null) {
                         mNameToId.put((String) userInfo.get("fullname"), (String) matchHold.get("otherUserId"));
-                        mMatches.add((String) userInfo.get("fullname"));
+                        mArrayOrder.add(userInfo.get("fullname"));
+                        String timeAndName =  "Meet " + userInfo.get("fullname") + " at " + matchHold.get("freeTime");
+
+                        mMatches.add(timeAndName);
                         arrayAdapter.notifyDataSetChanged();
                     }
                 }
@@ -186,9 +177,11 @@ public class MatchActivity extends Activity {
         });
     }
 
-    private void rightUserMatch (final String otherUserName) {
+    private void rightUserMatch () {
         //String matchKey = mReference.child("user-match/" + userId).push().getKey();
         //Log.i("MatchActivity", "key: " + matchKey);
+        final String otherUserName = (String) mArrayOrder.get(0);
+        mArrayOrder.remove(0);
         mReference.child("user-match").child(mUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

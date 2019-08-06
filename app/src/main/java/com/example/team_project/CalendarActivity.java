@@ -87,7 +87,6 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         //link the user with there calendar using there uid
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
-
         getUserCalendar();
 
         /**
@@ -100,9 +99,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             public void onClick(View v) {
                 if (mFreeTime.size() != 0 || deleteCount > 0) {
                     writeNewPost(userId, mFreeTime);
-                    //Log.i("CalendarActivity", "!!!Map22!!: " + mCurrentUserNewCalendar.get("mFreeTime"));
                     Toast.makeText(CalendarActivity.this, "data inserted successfully", Toast.LENGTH_LONG).show();
-                    //Log.i("CalendarActivity", "!!!Map22: " + mCurrentUserNewCalendar);
                 }
             }
         });
@@ -114,15 +111,9 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
      * to add time there would be a different calendar model
      * created so I had to go through my arrayList to check
      * if it already contains an item so there is no duplicates
-     */
-
-
-    /**
      * when dates selected it will be sent to a function that will
      * add the time to an arrayList of the Users free time
      */
-
-
 
     @Override
     public void onClick(View v) {
@@ -132,7 +123,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("fridayMorning")) {
                     if (mPosts.get("fridayMorning")) {
                         mFreeTime.remove("fridayMorning");
-                        mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mFridayMorningSunImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("fridayMorning");
@@ -144,7 +135,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("fridayAfternoon")) {
                     if (mPosts.get("fridayAfternoon")) {
                         mFreeTime.remove("fridayAfternoon");
-                        mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mFridayAfternoonSunsetImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("fridayAfternoon");
@@ -156,7 +147,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("fridayEvening")) {
                     if (mPosts.get("fridayEvening")) {
                         mFreeTime.remove("fridayEvening");
-                        mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mFridayEveningMoonImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("fridayEvening");
@@ -168,7 +159,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("saturdayMorning")) {
                     if (mPosts.get("saturdayMorning")) {
                         mFreeTime.remove("saturdayMorning");
-                        mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mSaturdayMorningSunImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("saturdayMorning");
@@ -180,7 +171,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("saturdayAfternoon")) {
                     if (mPosts.get("saturdayAfternoon")) {
                         mFreeTime.remove("saturdayAfternoon");
-                        mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mSaturdayAfternoonSunsetImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("saturdayAfternoon");
@@ -192,7 +183,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("saturdayEvening")) {
                     if (mPosts.get("saturdayEvening")) {
                         mFreeTime.remove("saturdayEvening");
-                        mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mSaturdayEveningImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("saturdayEvening");
@@ -204,7 +195,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("sundayMorning")) {
                     if (mPosts.get("sundayMorning")) {
                         mFreeTime.remove("sundayMorning");
-                        mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mSundayMorningSunImageButton.setColorFilter(null);
                         deleteCount++;
                     }
                     addToAvailableTimes("sundayMorning");
@@ -215,7 +206,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("sundayMorning")) {
                     if (mPosts.get("sundayAfternoon")) {
                         mFreeTime.remove("sundayAfternoon");
-                        mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mSundayAfternoonsunsetImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("sundayAfternoon");
@@ -227,7 +218,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
                 if (mPosts.containsKey("sundayEvening")) {
                     if (mPosts.get("sundayEvening")) {
                         mFreeTime.remove("sundayEvening");
-                        mSundayEveningImageButton.setColorFilter(Color.argb(200, 255, 0, 0));
+                        mSundayEveningImageButton.setColorFilter(null);
                         deleteCount++;
                     } else {
                         addToAvailableTimes("sundayEvening");
@@ -261,13 +252,17 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
                 if (mNewCalendar != null) {
-                    mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
+                    if ( mNewCalendar.get("mFreeTime") != null) {
+                        mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
+                        makeComplete();
+                        Log.i("CalendarActivity", "mPosts: " + mPosts);
+                        checkData();
+                    } else {
+                        makeCompleteStart();
+                    }
+                } else {
+                    makeCompleteStart();
                 }
-                makeComplete();
-                Log.i("CalendarActivity", "mPosts: " + mPosts);
-                checkData();
-
-
             }
 
             @Override
@@ -275,6 +270,22 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
 
             }
         });
+    }
+
+    /**
+     * It broke because if there is no calendar data
+     * it needs to do something and would give me null pointers
+     */
+    private void makeCompleteStart() {
+        mPosts.put("fridayMorning", false);
+        mPosts.put("fridayAfternoon", false);
+        mPosts.put("fridayEvening", false);
+        mPosts.put("saturdayMorning", false);
+        mPosts.put("saturdayAfternoon", false);
+        mPosts.put("saturdayEvening", false);
+        mPosts.put("sundayMorning", false);
+        mPosts.put("sundayAfternoon", false);
+        mPosts.put("sundayEvening", false);
     }
 
     public void deleteCalendar() {
@@ -318,39 +329,39 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         Log.i("CalendarActivity", "mPosts: " + mPosts);
         if (mPosts.get("fridayMorning")) {
             addToAvailableTimes("fridayMorning");
-            mFridayMorningSunImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("fridayAfternoon")) {
             addToAvailableTimes("fridayAfternoon");
-            mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("fridayEvening")) {
             addToAvailableTimes("fridayEvening");
-            mFridayEveningMoonImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("saturdayMorning")) {
             addToAvailableTimes("saturdayMorning");
-            mSaturdayMorningSunImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("saturdayAfternoon")) {
             addToAvailableTimes("saturdayAfternoon");
-            mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("saturdayEvening")) {
             addToAvailableTimes("saturdayEvening");
-            mSaturdayEveningImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("sundayMorning")) {
             addToAvailableTimes("sundayMorning");
-            mSundayMorningSunImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("sundayAfternoon")) {
             addToAvailableTimes("sundayAfternoon");
-            mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
         if (mPosts.get("sundayEvening")) {
             addToAvailableTimes("sundayEvening");
-            mSundayEveningImageButton.setColorFilter(Color.argb(152, 125, 251, 152));
+            mSundayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
         }
     }
 
@@ -365,15 +376,11 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         String calendarKey = mReference.child("calendar").push().getKey();
         Calendar calendar = new Calendar(userId, mFreeTime);
         Map<String, Object> postValues = calendar.toMap();
-
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/calendar/" + calendarKey, postValues);
         childUpdates.put("/user-calendar/" + userId + "/" , postValues);
-
-        //Log.i("CalendarActivity", "Key: ");
         Log.i("CalendarActivity", "Key: " + userId);
         mReference.updateChildren(childUpdates);
-        //Toast.makeText(this, "Post Successful!", Toast.LENGTH_LONG).show();
         Intent launchPosts = new Intent(this, MainActivity.class);
         startActivity(launchPosts);
     }
