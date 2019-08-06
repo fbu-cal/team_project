@@ -163,7 +163,7 @@ public class MatchActivity extends Activity {
                     if (userInfo != null) {
                         mNameToId.put((String) userInfo.get("fullname"), (String) matchHold.get("otherUserId"));
                         mArrayOrder.add(userInfo.get("fullname"));
-                        String timeAndName =  "Meet " + userInfo.get("fullname") + " at " + matchHold.get("freeTime");
+                        String timeAndName =  "Meet " + userInfo.get("fullname") + " on " + matchHold.get("freeTime");
 
                         mMatches.add(timeAndName);
                         arrayAdapter.notifyDataSetChanged();

@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Add badge view for notifications
         addBadgeView();
+        getCurrentUserData();
     }
 
     @Override
