@@ -1,29 +1,49 @@
 package com.example.team_project;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.DataSetObserver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
+import static com.example.team_project.MessageAdapter.ViewHolder.mProfilePicture;
+
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> implements ListAdapter {
 
     private ArrayList<Map<String, Object>> mMessages;
     Context context;
+    DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
     public MessageAdapter(Context context, ArrayList<Map<String, Object>> messages) {
         this.context=context;
@@ -48,7 +68,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         viewHolder.mUsername.setText(message.get("username").toString());
         viewHolder.mMessageText.setText(message.get("messageText").toString());
 
-        String stringDate = message.get("timeSent").toString();
+        String stringDate = message.get("timeStamp").toString();
         Date date = new Date();
         try {
             date = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy").parse(stringDate);
@@ -114,7 +134,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         public TextView mUsername;
         public TextView mMessageText;
         public TextView mMessageTimeStamp;
-        public ImageView mProfileImage;
+        public static ImageView mProfilePicture;
         
         public ViewHolder(View itemView) {
             super(itemView);
@@ -122,7 +142,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             mUsername = itemView.findViewById(R.id.tvUsername);
             mMessageText = itemView.findViewById(R.id.tvMessageText);
             mMessageTimeStamp = itemView.findViewById(R.id.tvDate);
-            mProfileImage = itemView.findViewById(R.id.ivProfileImage);
+            mProfilePicture = itemView.findViewById(R.id.ivProfileImage);
         }
 
         @Override
@@ -132,24 +152,70 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     public static String getRelativeTimeAgo(Date date) {
-        String relativeDate = "";
+        String relativeDate;
         long dateMillis = date.getTime();
         relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
                 System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString();
         return relativeDate;
     }
 
-    //@Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case android.R.id.home:
-//
-//
-//                ((ComposeMessageActivity)context).finish();
-//                return true;
-//
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
+    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
+        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
+    }
+
+    public void findProfilePicture (String userId) {
+        Query query = mDatabaseReference.child("users").child(userId);
+        Log.i("ConversationView", userId);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                String imageUrl = newUser.get("profile_picture").toString();
+                // if profile pic is already set
+                if (!imageUrl.equals("")) {
+                    Log.i("PostViewHolder", "imageUrl: " + imageUrl);
+                    try {
+                        // set profile picture
+                        Bitmap realImage = getCircleBitmap(decodeFromFirebaseBase64(imageUrl));
+
+                        Log.i("PostViewHolder", "pic: " + mProfilePicture);
+                        if (mProfilePicture!=null) {
+                            mProfilePicture.setImageBitmap(realImage);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e("PostViewHolder", "Profile pic issue", e);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+    private Bitmap getCircleBitmap(Bitmap bitmap) {
+        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(output);
+
+        final int color = Color.RED;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        final RectF rectF = new RectF(rect);
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawOval(rectF, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        bitmap.recycle();
+
+        return output;
+    }
 }

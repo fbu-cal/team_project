@@ -13,6 +13,7 @@ import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -32,13 +33,16 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 public class ConversationViewHolder extends RecyclerView.ViewHolder {
 
     public TextView mUsername;
-    //public TextView mLastMessage;
+    public TextView mLastMessage;
     public ImageView mProfilePicture;
     public TextView mTimeStamp;
     public String otherUser;
@@ -55,11 +59,26 @@ public class ConversationViewHolder extends RecyclerView.ViewHolder {
         mProfilePicture = itemView.findViewById(R.id.ivProfileImage);
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        mLastMessage = itemView.findViewById(R.id.tvConversationText);
     }
 
     public void bindToPost(final Conversation conversation) {
+
+
         findUser(conversation.otherUser);
-        //mTimeStamp.setText()
+        mLastMessage.setText(conversation.latestMessageText);
+
+        if (conversation.timeStamp!=null) {
+            String stringDate = conversation.getTimeStamp().toString();
+
+            Date date = new Date();
+            try {
+                date = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy").parse(stringDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            mTimeStamp.setText(getRelativeTimeAgo(date));
+        }
     }
 
     public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
@@ -126,5 +145,13 @@ public class ConversationViewHolder extends RecyclerView.ViewHolder {
         bitmap.recycle();
 
         return output;
+    }
+
+    public static String getRelativeTimeAgo(Date date) {
+        String relativeDate;
+        long dateMillis = date.getTime();
+        relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
+                System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString();
+        return relativeDate;
     }
 }

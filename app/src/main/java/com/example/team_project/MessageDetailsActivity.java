@@ -1,21 +1,31 @@
 package com.example.team_project;
 
 import android.annotation.TargetApi;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.example.team_project.models.Conversation;
 import com.example.team_project.models.Message;
 import com.example.team_project.models.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,8 +38,8 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +54,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
     private LinearLayoutManager mLinearLayoutManager;
     private String uid;
     public String username;
+    private Parcelable conversation;
     String currentUserId;
     String mConversationKey;
 
@@ -68,6 +79,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
         uid = getIntent().getStringExtra("uid");
         username = getIntent().getStringExtra("username");
+        //conversation = getIntent().getBundleExtra("conversation");
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar!=null) {
@@ -128,11 +140,13 @@ public class MessageDetailsActivity extends AppCompatActivity {
         // [END recent_messages_query]
 
         return recentMessagesQuery;
+
     }
 
     public void populateMessages(final String currentUser, final String receiverId){
 
-        // Set up FirebaseRecyclerAdapter with the Query
+        //
+        mMessageAdapter.findProfilePicture(getOtherUser(currentUser,receiverId));
         //set ConversationKey (it cannot be null)
         getConversationKey(mDatabaseReference,  currentUser, receiverId);
         final Handler handler = new Handler();
@@ -226,7 +240,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
                     Map<String, Object> map = (HashMap<String, Object>) data.getValue();
 
-
+                    //determine if new conversation exists
                     if (receiverId.equals(map.get("otherUser"))) {
                         conversationExists = true;
                     }
@@ -242,7 +256,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
                         //conversation.latestMessageText = messageText;
                         //set message delivery time
                         Date date = new Date();
-                        message.setTimeSent(date);
+                        message.setTimeStamp(date);
                         Map<String, Object> messageValues = message.toMap();
 
                         Map<String, Object> childUpdates = new HashMap<>();
@@ -255,6 +269,20 @@ public class MessageDetailsActivity extends AppCompatActivity {
                         //childUpdates.put("/user-messages/" + senderId + "/" + receiverId + "/" + key, messageValues);
                         //put message in conv-messages
                         childUpdates.put("/conversation-messages/"  + currentUserId + "/"+ conversationKey + "/" + key, messageValues);
+
+                        DatabaseReference ref = FirebaseDatabase.getInstance()
+                                .getReference("user-conversations")
+                                .child(currentUserId)
+                                .child(conversationKey)
+                                .child("latestMessageText");
+                        ref.setValue(messageText);
+
+                        DatabaseReference timeStamp = FirebaseDatabase.getInstance()
+                                .getReference("user-conversations")
+                                .child(currentUserId)
+                                .child(conversationKey)
+                                .child("timeStamp");
+                        timeStamp.setValue(date);
 
                         mDatabaseReference.updateChildren(childUpdates);
                         mMessageTextInput.setText("");
@@ -271,7 +299,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
                     //set message delivery time
                     Date date = new Date();
-                    message.setTimeSent(date);
+                    message.setTimeStamp(date);
 
                     Map<String, Object> messageValues = message.toMap();
                     Map<String, Object> childUpdates = new HashMap<>();
@@ -279,8 +307,23 @@ public class MessageDetailsActivity extends AppCompatActivity {
                     //childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
                     childUpdates.put("/conversation-messages/" + currentUserId + "/" + conversationKey + "/" + key, messageValues);
 
+                    DatabaseReference ref = FirebaseDatabase.getInstance()
+                            .getReference("user-conversations")
+                            .child(currentUserId)
+                            .child(conversationKey)
+                            .child("latestMessageText");
+                    ref.setValue(messageText);
+
+                    DatabaseReference timeStamp = FirebaseDatabase.getInstance()
+                            .getReference("user-conversations")
+                            .child(currentUserId)
+                            .child(conversationKey)
+                            .child("timeStamp");
+                    timeStamp.setValue(date);
+
                     mDatabaseReference.updateChildren(childUpdates);
                     mMessageTextInput.setText("");
+                    //mDatabaseReference.child("user-conversations").child(currentUserId).
                 }
             }
 
@@ -294,7 +337,8 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
         Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(currentUserId);
         Log.i("MessageDetails", "Q: " + query);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            // Retrieve new messages as they are added to Firebase
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -312,6 +356,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
                 }
             }
 
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
@@ -320,6 +365,64 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
     public void setConvoKey(String conversationKey){
         mConversationKey = conversationKey;
+    }
+
+    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
+        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
+    }
+
+    public void findProfilePicture (String userId) {
+        Query query = mDatabaseReference.child("users").child(userId);
+        Log.i("ConversationView", userId);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                String imageUrl = newUser.get("profile_picture").toString();
+                // if profile pic is already set
+                if (!imageUrl.equals("")) {
+                    Log.i("PostViewHolder", "imageUrl: " + imageUrl);
+                    try {
+                        // set profile picture
+                        Bitmap realImage = getCircleBitmap(decodeFromFirebaseBase64(imageUrl));
+
+                        Log.i("PostViewHolder", "realImage: " + realImage);
+                        //.setImageBitmap(realImage);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e("PostViewHolder", "Profile pic issue", e);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+    private Bitmap getCircleBitmap(Bitmap bitmap) {
+        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(output);
+
+        final int color = Color.RED;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        final RectF rectF = new RectF(rect);
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawOval(rectF, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        bitmap.recycle();
+
+        return output;
     }
 
 }

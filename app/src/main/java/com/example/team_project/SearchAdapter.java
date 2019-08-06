@@ -2,6 +2,7 @@ package com.example.team_project;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -118,6 +119,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
 
                             childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
                             mDatabaseReference.updateChildren(childUpdates);
+                            //Intent intent = new Intent(context, MessageDetailsActivity.class);
+                            //intent.putExtra("conversation", (Parcelable) conversation);
                         }
 
                     }

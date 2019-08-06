@@ -134,7 +134,7 @@ public class ConversationAdapter extends RecyclerView.Adapter<MessageAdapter.Vie
         }
     }
     public static String getRelativeTimeAgo(Date date) {
-        String relativeDate = "";
+        String relativeDate;
         long dateMillis = date.getTime();
         relativeDate = DateUtils.getRelativeTimeSpanString(dateMillis,
                 System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString();
