@@ -5,22 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/calendar_button"
-        android:layout_width="0dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:background="@drawable/transparent_bg_bordered_button"
-        android:text="Calendar"
-        android:textColor="@color/lightGray"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/tabs"
-        app:layout_constraintTop_toBottomOf="@+id/profile_image_view" />
-
     <ImageView
         android:id="@+id/profile_image_view"
         android:layout_width="100dp"
@@ -40,12 +24,12 @@
         android:layout_marginLeft="16dp"
         android:text="Full Name"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        app:layout_constraintBottom_toTopOf="@+id/username_text_view"
+        app:layout_constraintBottom_toTopOf="@+id/background_text_view"
         app:layout_constraintStart_toEndOf="@+id/profile_image_view"
         app:layout_constraintTop_toTopOf="@+id/profile_image_view" />
 
     <TextView
-        android:id="@+id/username_text_view"
+        android:id="@+id/background_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -67,7 +51,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calendar_button"
+        app:layout_constraintTop_toBottomOf="@+id/profile_image_view"
         app:tabGravity="fill"
         app:tabIndicatorColor="@color/yokedYellow"
         app:tabMode="fixed" />
@@ -110,6 +94,6 @@
         android:text="Friends"
         android:clickable="true"
         app:layout_constraintStart_toEndOf="@+id/profile_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
+        app:layout_constraintTop_toBottomOf="@+id/background_text_view" />
 
 </android.support.constraint.ConstraintLayout>

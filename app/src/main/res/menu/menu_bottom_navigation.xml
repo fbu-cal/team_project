@@ -11,7 +11,7 @@
         android:id="@+id/action_compose"
         android:enabled="true"
         android:icon="@drawable/instagram_new_post_custom"
-        android:title="Compose"
+        android:title="Calendar"
         app:showAsAction="always" />
     <item
         android:id="@+id/action_notification"

@@ -1,14 +1,19 @@
 package com.example.yoked;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.yoked.R;
 import com.example.yoked.models.Notification;
+import com.example.yoked.models.Utilities;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -17,6 +22,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
+
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,14 +34,15 @@ import java.util.Map;
 
 public class MatchActivity extends Activity {
 
-    private ArrayList<String> mMatches;
-    private ArrayAdapter<String> arrayAdapter;
+    private ArrayList<Match> mMatches;
+    private MatchArrayAdapter arrayAdapter;
     private int i;
     DatabaseReference mReference;
     private String mUserId;
     private FirebaseAuth mAuth;
     HashMap<String, String> mNameToId;
     private ArrayList mArrayOrder;
+    private ImageButton mBackImageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +53,15 @@ public class MatchActivity extends Activity {
         mReference = FirebaseDatabase.getInstance().getReference();
         mNameToId = new HashMap<String, String>();
 
+        mBackImageButton = findViewById(R.id.back_image_button);
+        mBackImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent toHome = new Intent (MatchActivity.this, MainActivity.class);
+                startActivity(toHome);
+            }
+        });
+
         getUserMatch();
         /**
          * Adding to mMatches is the name card,
@@ -53,77 +70,79 @@ public class MatchActivity extends Activity {
          * maybe profile image
          */
 
-        mMatches = new ArrayList<>();
+            mMatches = new ArrayList<>();
 
-        arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, mMatches);
-
-        /**
-         * Removes the cards from the array here
-         */
-        SwipeFlingAdapterView flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
-        flingContainer.setAdapter(arrayAdapter);
-        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
-
-            @Override
-            public void removeFirstObjectInAdapter() {
-                // this is the simplest way to delete an object from the Adapter (/AdapterView)
-                Log.d("LIST", "removed object!");
-                mMatches.remove(0);
-                arrayAdapter.notifyDataSetChanged();
-            }
+            arrayAdapter = new MatchArrayAdapter(this, R.layout.item_choice, mMatches);
 
             /**
-             * If it comes out left then the user does not want to
-             * hangout with them so nothing needs to be done
+             * Removes the cards from the array here
              */
+            SwipeFlingAdapterView flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
+            flingContainer.setAdapter(arrayAdapter);
+            flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
 
-            @Override
-            public void onLeftCardExit(Object dataObject) {
-                //Do something on the left!
-                //You also have access to the original object.
-                //If you want to use it just cast it (String) dataObject
-                //makeToast, "Left!");
-                Toast.makeText(MatchActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
-                //writeNewPost(mUserId, status);
+                @Override
+                public void removeFirstObjectInAdapter() {
+                    // this is the simplest way to delete an object from the Adapter (/AdapterView)
+                    Log.d("LIST", "removed object!");
+                    mMatches.remove(0);
+                    arrayAdapter.notifyDataSetChanged();
+                }
 
-            }
+                /**
+                 * If it comes out left then the user does not want to
+                 * hangout with them so nothing needs to be done
+                 */
+
+                @Override
+                public void onLeftCardExit(Object dataObject) {
+                    //Do something on the left!
+                    //You also have access to the original object.
+                    //If you want to use it just cast it (String) dataObject
+                    //makeToast, "Left!");
+                    Toast.makeText(MatchActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
+                    //writeNewPost(mUserId, status);
+
+                }
+
+                /**
+                 * If swiped right then add it to somewhere on database
+                 * and check if other user also swiped right
+                 * if they do hit them both with a notification
+                 * if not let them know later
+                 */
+
+                @Override
+                public void onRightCardExit(Object dataObject) {
+                    Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
+                    Match dataDigest = (Match) dataObject;
+                    String uid = ((Match) dataObject).otherUserId;
+                    getOtherUsernameForRightSwipe(uid);
+//                    String otherUserName = dataDigest.split(" ")[0];
+                    //rightUserMatch(otherUserName);
+                    //writeNewPost(mUserId, otherUserId, );
+                }
+
+                @Override
+                public void onAdapterAboutToEmpty(int itemsInAdapter) {
+                }
+
+                @Override
+                public void onScroll(float scrollProgressPercent) {
+
+                }
+            });
+
 
             /**
-             * If swiped right then add it to somewhere on database
-             * and check if other user also swiped right
-             * if they do hit them both with a notification
-             * if not let them know later
+             * Can implement a closer look if wanted here
              */
+            flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClicked(int itemPosition, Object dataObject) {
 
-            @Override
-            public void onRightCardExit(Object dataObject) {
-                Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
-                String dataDigest = (String) dataObject;
-                String otherUserName = dataDigest.split(" ")[0];
-                rightUserMatch(otherUserName);
-                //writeNewPost(mUserId, otherUserId, );
-            }
-
-            @Override
-            public void onAdapterAboutToEmpty(int itemsInAdapter) {
-            }
-
-            @Override
-            public void onScroll(float scrollProgressPercent) {
-
-            }
-        });
-
-
-        /**
-         * Can implement a closer look if wanted here
-         */
-        flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClicked(int itemPosition, Object dataObject) {
-
-            }
-        });
+                }
+            });
     }
 
     private void getUserMatch () {
@@ -139,7 +158,17 @@ public class MatchActivity extends Activity {
                         HashMap<String, Object> matchValueCurrent = (HashMap<String, Object>) matchHold.getValue();
                         if (matchValueCurrent.get("currentUserStatus") != null) {
                             if (!(Boolean) matchValueCurrent.get("currentUserStatus")) {
-                                getUserInfo(matchValueCurrent);
+                                // getUserInfo(matchValueCurrent);
+                                String userId = matchValueCurrent.get("userId").toString();
+                                String otherUserId = matchValueCurrent.get("otherUserId").toString();
+                                String freeTime = matchValueCurrent.get("freeTime").toString();
+                                Boolean currentUserStatus = (Boolean) matchValueCurrent.get("currentUserStatus");
+                                Boolean otherUserStatus = (Boolean) matchValueCurrent.get("otherUserStatus");
+
+                                Match match = new Match (userId, otherUserId, freeTime, currentUserStatus, otherUserStatus);
+                                mMatches.add(match);
+                                arrayAdapter.notifyDataSetChanged();
+
                                 Log.i("MatchActivity", "match info loop: " + matchValueCurrent);
                             }
                         }
@@ -152,40 +181,38 @@ public class MatchActivity extends Activity {
         });
     }
 
-    private void getUserInfo(final HashMap matchHold) {
-        String otherUserId = (String) matchHold.get("otherUserId");
-        Log.i("MatchActivity", "other user Id: " + matchHold.get("otherUserId"));
-        mReference.child("users").child(otherUserId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                HashMap<String, Object> userInfo = null;
-                if (dataSnapshot != null) {
-                    userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
-                    if (userInfo != null) {
-                        mNameToId.put((String) userInfo.get("username"), (String) matchHold.get("otherUserId"));
-                        String timeAndName =  userInfo.get("username") + " @ " + matchHold.get("freeTime");
+//    private void getUserInfo(final HashMap matchHold) {
+//        String otherUserId = (String) matchHold.get("otherUserId");
+//        Log.i("MatchActivity", "other user Id: " + matchHold.get("otherUserId"));
+//        mReference.child("users").child(otherUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                HashMap<String, Object> userInfo = null;
+//                if (dataSnapshot != null) {
+//                    userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
+//                    if (userInfo != null) {
+//                        mNameToId.put((String) userInfo.get("username"), (String) matchHold.get("otherUserId"));
+//                        String timeAndName =  userInfo.get("username") + " @ " + matchHold.get("freeTime");
+//
+//                        mMatches.add(timeAndName);
+//                        arrayAdapter.notifyDataSetChanged();
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//            }
+//        });
+//    }
 
-                        mMatches.add(timeAndName);
-                        arrayAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-    }
-
-    private void rightUserMatch (final String otherUserName) {
+    private void rightUserMatch (final String otherUserName, final String otherUserId) {
         //String matchKey = mReference.child("user-match/" + userId).push().getKey();
         //Log.i("MatchActivity", "key: " + matchKey);
         mReference.child("user-match").child(mUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                HashMap<String, Object> matchInfo = null;
-                matchInfo = (HashMap<String, Object>) dataSnapshot.getValue();
-                String otherUserId = mNameToId.get(otherUserName);
+                HashMap<String, Object> matchInfo = (HashMap<String, Object>) dataSnapshot.getValue();
                 if (matchInfo != null) {
                     HashMap<String, Object> dataToWrite =
                             (HashMap<String, Object>) matchInfo.get(otherUserId);
@@ -200,6 +227,21 @@ public class MatchActivity extends Activity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
+    }
+
+    private void getOtherUsernameForRightSwipe(final String otherUserUid) {
+        Query query = mReference.child("users").child(otherUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                rightUserMatch(newUser.get("username").toString(), otherUserUid);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
     }

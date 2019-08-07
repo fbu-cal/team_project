@@ -29,7 +29,7 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public PostViewHolder(View itemView) {
         super(itemView);
 
-        mAuthor = itemView.findViewById(R.id.username_text_view);
+        mAuthor = itemView.findViewById(R.id.background_text_view);
         mLikeButton = itemView.findViewById(R.id.like_button);
         mLikeCount = itemView.findViewById(R.id.like_count_text_view);
         mBody = itemView.findViewById(R.id.body_text_view);

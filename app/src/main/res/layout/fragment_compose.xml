@@ -3,103 +3,253 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    tools:context=".CalendarActivity">
 
-    <EditText
-        android:id="@+id/description_edit_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
-        android:ems="10"
-        android:hint="Type description here."
-        android:inputType="textPersonName"
-        app:backgroundTint="@color/yokedYellow"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/post_image_view" />
-
-    <Button
-        android:id="@+id/post_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
-        android:text="post"
-        android:background="@color/yokedYellow"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tag_friends_button" />
-
-    <ImageView
-        android:id="@+id/post_image_view"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginTop="64dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/square_placeholder_image" />
-
-    <Button
-        android:id="@+id/tag_friends_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
-        android:text="Tag Friends"
-        android:background="@drawable/transparent_bg_bordered_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/description_edit_text" />
-
-    <Button
-        android:id="@+id/take_picture_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginRight="32dp"
-        android:text="Take Picture"
-        android:background="@color/yokedYellowLight"
-        app:layout_constraintBottom_toTopOf="@+id/upload_picture_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toTopOf="@+id/post_image_view" />
-
-    <Button
-        android:id="@+id/upload_picture_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
+    <ImageButton
+        android:id="@+id/sundayEveningImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/moon"
+        app:layout_constraintStart_toEndOf="@+id/saturdayEveningImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/sundayAfternoonSunsetImageButton" />
+
+    <ImageButton
+        android:id="@+id/fridayMorningSunImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/sun"
+        app:layout_constraintStart_toEndOf="@+id/morningTextView"
+        app:layout_constraintTop_toBottomOf="@+id/FridayTextView" />
+
+    <TextView
+        android:id="@+id/CalendarPlaceHold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Your Calendar"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/fridayAfternoonSunsetImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/sun_set"
+        app:layout_constraintStart_toStartOf="@+id/fridayMorningSunImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/fridayMorningSunImageButton" />
+
+    <ImageButton
+        android:id="@+id/sundayAfternoonSunsetImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/sun_set"
+        app:layout_constraintBottom_toTopOf="@+id/saturdayEveningImageButton"
+        app:layout_constraintStart_toEndOf="@+id/saturdayAfternoonSunsetImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/sundayMorningSunImageButton" />
+
+    <ImageButton
+        android:id="@+id/saturdayAfternoonSunsetImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/sun_set"
+        app:layout_constraintStart_toEndOf="@+id/fridayAfternoonSunsetImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/saturdayMorningSunImageButton" />
+
+    <ImageButton
+        android:id="@+id/sundayMorningSunImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/sun"
+        app:layout_constraintBottom_toBottomOf="@+id/saturdayMorningSunImageButton"
+        app:layout_constraintStart_toEndOf="@+id/saturdayMorningSunImageButton"
+        app:layout_constraintTop_toTopOf="@+id/saturdayMorningSunImageButton" />
+
+    <ImageButton
+        android:id="@+id/saturdayMorningSunImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/sun"
+        app:layout_constraintBottom_toBottomOf="@+id/fridayMorningSunImageButton"
+        app:layout_constraintStart_toEndOf="@+id/fridayMorningSunImageButton"
+        app:layout_constraintTop_toTopOf="@+id/fridayMorningSunImageButton" />
+
+    <ImageButton
+        android:id="@+id/saturdayEveningImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/moon"
+        app:layout_constraintStart_toEndOf="@+id/fridayEveningMoonImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/saturdayAfternoonSunsetImageButton" />
+
+    <ImageButton
+        android:id="@+id/fridayEveningMoonImageButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/moon"
+        app:layout_constraintStart_toStartOf="@+id/fridayAfternoonSunsetImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/fridayAfternoonSunsetImageButton" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
-        android:layout_marginBottom="8dp"
-        android:text="Upload Picture"
-        android:background="@color/yokedYellowLight"
-        app:layout_constraintBottom_toBottomOf="@+id/post_image_view"
+        android:fontFamily="@font/roboto_medium"
+        android:text="Mark what times you're free to match with your friends!"
+        android:textSize="18dp"
+        android:textStyle="italic"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/take_picture_button" />
-    <!--style="@style/Widget.AppCompat.Button.Borderless"-->
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/CalendarPlaceHold" />
 
+    <TextView
+        android:id="@+id/afternoonTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Afternoon"
+        app:layout_constraintBottom_toBottomOf="@+id/fridayAfternoonSunsetImageButton"
+        app:layout_constraintEnd_toStartOf="@+id/fridayAfternoonSunsetImageButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/fridayAfternoonSunsetImageButton" />
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="wrap_content"
+        android:layout_height="19dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Evening"
+        app:layout_constraintBottom_toBottomOf="@+id/fridayEveningMoonImageButton"
+        app:layout_constraintEnd_toStartOf="@+id/fridayEveningMoonImageButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/fridayEveningMoonImageButton" />
+
+    <TextView
+        android:id="@+id/morningTextView"
+        android:layout_width="56dp"
+        android:layout_height="19dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginBottom="8dp"
+        android:text="Morning"
+        app:layout_constraintBottom_toTopOf="@+id/fridayAfternoonSunsetImageButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/fridayMorningSunImageButton" />
+
+    <TextView
+        android:id="@+id/FridayTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="19dp"
+        android:layout_marginStart="128dp"
+        android:layout_marginLeft="128dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Friday"
+        app:layout_constraintEnd_toEndOf="@+id/fridayMorningSunImageButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView9" />
+
+    <TextView
+        android:id="@+id/saturdayTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="19dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:text="Saturday"
+        app:layout_constraintEnd_toEndOf="@+id/saturdayMorningSunImageButton"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/saturdayMorningSunImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/textView9" />
+
+    <TextView
+        android:id="@+id/sundayTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="19dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Sunday"
+        app:layout_constraintEnd_toEndOf="@+id/sundayMorningSunImageButton"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/sundayMorningSunImageButton"
+        app:layout_constraintTop_toBottomOf="@+id/textView9" />
+
+    <Button
+        android:id="@+id/editCalendarButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginBottom="64dp"
+        android:text="Submit Calendar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

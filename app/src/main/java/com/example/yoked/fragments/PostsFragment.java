@@ -11,8 +11,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.yoked.ComposePostActivity;
 import com.example.yoked.OtherUserProfileActivity;
 import com.example.yoked.PostDetailActivity;
 import com.example.yoked.PostViewHolder;
@@ -39,10 +41,9 @@ import java.util.Map;
 
 public class PostsFragment extends Fragment {
 
-    private static final String TAG = "PostsFragment";
-
     private DatabaseReference mDatabase;
 
+    private Button mCreatePostButton;
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
@@ -60,6 +61,7 @@ public class PostsFragment extends Fragment {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        mCreatePostButton = rootView.findViewById(R.id.create_post_button);
         mRecycler = (RecyclerView) rootView.findViewById(R.id.post_recycler_view);
         mRecycler.setHasFixedSize(true);
 
@@ -76,6 +78,15 @@ public class PostsFragment extends Fragment {
         mManager.setStackFromEnd(true);
         mRecycler.setLayoutManager(mManager);
         mUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        // set up create post button
+        mCreatePostButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent toCreatePost = new Intent(getActivity(), ComposePostActivity.class);
+                startActivity(toCreatePost);
+            }
+        });
 
         // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = getQuery(mDatabase);

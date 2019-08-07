@@ -30,40 +30,8 @@ public class Match {
         return userId;
     }
 
-    public String getOtherUserId() {
-        return otherUserId;
-    }
-
-    public String getFreeTime() {
-        return freeTime;
-    }
-
-    public Boolean getCurrentUserStatus() {
-        return currentUserStatus;
-    }
-
-    public Boolean getOtherUserStatus() {
-        return otherUserStatus;
-    }
-
     public void setUserId(String userId) {
         this.userId = userId;
-    }
-
-    public void setOtherUserId(String otherUserId) {
-        this.otherUserId = otherUserId;
-    }
-
-    public void setFreeTime(String freeTime) {
-        this.freeTime = freeTime;
-    }
-
-    public void setCurrentUserStatus(Boolean currentUserStatus) {
-        this.currentUserStatus = currentUserStatus;
-    }
-
-    public void setOtherUserStatus(Boolean otherUserStatus) {
-        this.otherUserStatus = otherUserStatus;
     }
 
     @Exclude

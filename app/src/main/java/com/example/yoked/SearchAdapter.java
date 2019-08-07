@@ -65,7 +65,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
         public ViewHolder(View itemView) {
             super(itemView);
             // perform findViewById lookups
-            tvUsername = (TextView) itemView.findViewById(R.id.username_text_view);
+            tvUsername = (TextView) itemView.findViewById(R.id.background_text_view);
             itemView.setOnClickListener(this);
         }
 

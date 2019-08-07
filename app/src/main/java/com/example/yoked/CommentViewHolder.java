@@ -27,7 +27,7 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
     public CommentViewHolder(View itemView) {
         super(itemView);
 
-        mUsername = itemView.findViewById(R.id.username_text_view);
+        mUsername = itemView.findViewById(R.id.background_text_view);
         mCommentText = itemView.findViewById(R.id.comment_text_view);
         mTimestamp = itemView.findViewById(R.id.timestamp_text_view);
         mProfilePicture = itemView.findViewById(R.id.profile_image_view);
