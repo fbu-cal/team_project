@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -38,13 +39,12 @@ import java.io.IOException;
 import static android.view.View.GONE;
 
 public class NotificationFragment extends Fragment {
-    private static final String TAG = "PostsFragment";
+
     private DatabaseReference mDatabase;
     private FirebaseRecyclerAdapter<Notification, NotificationViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
     private String mCurrentUserUid;
-
 
     private boolean mShouldRefreshOnResume = false;
 
