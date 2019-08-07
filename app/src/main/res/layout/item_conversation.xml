@@ -31,8 +31,8 @@
         android:id="@+id/tvDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp"
         app:layout_constraintBottom_toTopOf="@+id/tvConversationText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tvUsername" />
@@ -50,13 +50,13 @@
 
     <View
         android:id="@+id/horizontalLine"
-        android:layout_width="350dp"
+        android:layout_width="355dp"
         android:layout_height="1dp"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="40dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="40dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginRight="18dp"
         android:background="#c0c0c0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

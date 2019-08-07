@@ -39,6 +39,7 @@ import com.google.firebase.database.ValueEventListener;
 
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -146,7 +147,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
     public void populateMessages(final String currentUser, final String receiverId){
 
         //
-        mMessageAdapter.findProfilePicture(getOtherUser(currentUser,receiverId));
+        // mMessageAdapter.findProfilePicture(getOtherUser(currentUser,receiverId));
         //set ConversationKey (it cannot be null)
         getConversationKey(mDatabaseReference,  currentUser, receiverId);
         final Handler handler = new Handler();
@@ -255,7 +256,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
                         //conversation.latestMessageText = messageText;
                         //set message delivery time
-                        Date date = new Date();
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+                        final String date = simpleDateFormat.format(new Date());
+                        //Date date = new Date();
                         message.setTimeStamp(date);
                         Map<String, Object> messageValues = message.toMap();
 
@@ -271,6 +274,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
                         childUpdates.put("/conversation-messages/"  + currentUserId + "/"+ conversationKey + "/" + key, messageValues);
                         childUpdates.put("/conversation-messages/"  + receiverId + "/"+ conversationKey + "/" + key, messageValues);
 
+
                         DatabaseReference ref = FirebaseDatabase.getInstance()
                                 .getReference("user-conversations")
                                 .child(currentUserId)
@@ -284,6 +288,20 @@ public class MessageDetailsActivity extends AppCompatActivity {
                                 .child(conversationKey)
                                 .child("timeStamp");
                         timeStamp.setValue(date);
+
+                        DatabaseReference refReceiver = FirebaseDatabase.getInstance()
+                                .getReference("user-conversations")
+                                .child(receiverId)
+                                .child(conversationKey)
+                                .child("latestMessageText");
+                        refReceiver.setValue(messageText);
+
+                        DatabaseReference timeStampReciever = FirebaseDatabase.getInstance()
+                                .getReference("user-conversations")
+                                .child(receiverId)
+                                .child(conversationKey)
+                                .child("timeStamp");
+                        timeStampReciever.setValue(date);
 
                         mDatabaseReference.updateChildren(childUpdates);
                         mMessageTextInput.setText("");
@@ -299,7 +317,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
                     //Map<String, Object> conversationValues = conversation.toMap();
 
                     //set message delivery time
-                    Date date = new Date();
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+                    final String date = simpleDateFormat.format(new Date());
+                    //Date date = new Date();
                     message.setTimeStamp(date);
 
                     Map<String, Object> messageValues = message.toMap();
@@ -321,6 +341,20 @@ public class MessageDetailsActivity extends AppCompatActivity {
                             .child(conversationKey)
                             .child("timeStamp");
                     timeStamp.setValue(date);
+
+                    DatabaseReference refReceiver = FirebaseDatabase.getInstance()
+                            .getReference("user-conversations")
+                            .child(receiverId)
+                            .child(conversationKey)
+                            .child("latestMessageText");
+                    refReceiver.setValue(messageText);
+
+                    DatabaseReference timeStampReciever = FirebaseDatabase.getInstance()
+                            .getReference("user-conversations")
+                            .child(receiverId)
+                            .child(conversationKey)
+                            .child("timeStamp");
+                    timeStampReciever.setValue(date);
 
                     mDatabaseReference.updateChildren(childUpdates);
                     mMessageTextInput.setText("");
