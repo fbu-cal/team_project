@@ -59,7 +59,7 @@ public class PostDetailActivity extends AppCompatActivity {
         mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         mFullname = findViewById(R.id.fullname_text_view);
-        mUsername = findViewById(R.id.username_text_view);
+        mUsername = findViewById(R.id.background_text_view);
         mBody = findViewById(R.id.body_text_view);
         mTagged = findViewById(R.id.tagged_text_view);
         mTime = findViewById(R.id.time_text_view);

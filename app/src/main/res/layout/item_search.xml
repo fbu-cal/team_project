@@ -6,7 +6,7 @@
     android:layout_height="wrap_content">
 
     <TextView
-        android:id="@+id/username_text_view"
+        android:id="@+id/background_text_view"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_marginStart="24dp"
@@ -26,7 +26,7 @@
         android:layout_height="0.5dp"
         android:layout_marginTop="16dp"
         android:background="#000000"
-        app:layout_constraintTop_toBottomOf="@+id/username_text_view"
+        app:layout_constraintTop_toBottomOf="@+id/background_text_view"
         tools:layout_editor_absoluteX="115dp" />
 
     <ImageView

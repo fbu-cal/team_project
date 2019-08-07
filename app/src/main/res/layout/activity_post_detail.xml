@@ -30,7 +30,7 @@
         app:layout_constraintTop_toTopOf="@+id/profile_image_view" />
 
     <TextView
-        android:id="@+id/username_text_view"
+        android:id="@+id/background_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -60,7 +60,7 @@
         android:layout_marginTop="9dp"
         android:text="Time"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
-        app:layout_constraintTop_toBottomOf="@+id/username_text_view" />
+        app:layout_constraintTop_toBottomOf="@+id/background_text_view" />
 
     <TextView
         android:id="@+id/body_text_view"

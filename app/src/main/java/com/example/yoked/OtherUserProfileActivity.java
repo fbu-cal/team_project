@@ -3,7 +3,6 @@ package com.example.yoked;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,7 +20,6 @@ import com.example.yoked.models.Post;
 import com.example.yoked.models.Utilities;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -45,6 +44,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     private TextView mUsernameText, mFullnameText, mFriendCountText;
     private ImageView mProfileImage;
     private Button mAddFriendButton;
+    private ImageButton mBackImageButton;
     private RecyclerView mRecyclerView;
 
     private DatabaseReference mDatabase;
@@ -57,12 +57,22 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_other_user_profile);
 
-        mUsernameText = findViewById(R.id.username_text_view);
+        mUsernameText = findViewById(R.id.background_text_view);
         mFullnameText = findViewById(R.id.fullname_text_view);
         mFriendCountText = findViewById(R.id.friend_count_text_view);
         mProfileImage = findViewById(R.id.profile_image_view);
         mAddFriendButton = findViewById(R.id.add_friend_button);
         mRecyclerView = findViewById(R.id.post_recycler_view);
+        mBackImageButton = findViewById(R.id.back_image_button);
+
+        mBackImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent toHome = new Intent (OtherUserProfileActivity.this, MainActivity.class);
+                startActivity(toHome);
+            }
+        });
+
         mDatabase = FirebaseDatabase.getInstance().getReference();
         // get current logged in user uid
         mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();

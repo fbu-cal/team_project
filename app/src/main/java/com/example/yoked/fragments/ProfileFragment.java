@@ -15,12 +15,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.yoked.CalendarActivity;
 import com.example.yoked.MyPostsFragment;
 import com.example.yoked.MyTagsFragment;
 import com.example.yoked.OtherUserProfileActivity;
@@ -41,7 +39,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
@@ -82,7 +79,7 @@ public class ProfileFragment extends Fragment {
 
         mProfileImage = view.findViewById(R.id.profile_image_view);
         mFullname = view.findViewById(R.id.fullname_text_view);
-        mUsername = view.findViewById(R.id.username_text_view);
+        mUsername = view.findViewById(R.id.background_text_view);
         mFriendCount = view.findViewById(R.id.friend_count_text_view);
         mSettingsButton = view.findViewById(R.id.settings_button);
 

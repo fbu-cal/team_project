@@ -12,15 +12,12 @@ import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.yoked.models.Post;
 import com.example.yoked.models.User;
 import com.example.yoked.R;
 import com.google.firebase.database.ChildEventListener;
@@ -30,9 +27,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.Map;
 
 public class SearchViewHolder extends RecyclerView.ViewHolder {
@@ -43,7 +37,7 @@ public class SearchViewHolder extends RecyclerView.ViewHolder {
     public SearchViewHolder(View itemView) {
         super(itemView);
 
-        mUsername = (TextView) itemView.findViewById(R.id.username_text_view);
+        mUsername = (TextView) itemView.findViewById(R.id.background_text_view);
         mProfileImage = itemView.findViewById(R.id.profile_image_view);
     }
 
