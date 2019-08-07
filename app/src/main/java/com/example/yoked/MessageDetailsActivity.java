@@ -58,6 +58,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
     private Parcelable conversation;
     String currentUserId;
     String mConversationKey;
+    String mAutopoulatedMessage;
 
     private DatabaseReference mDatabaseReference;
 
@@ -80,6 +81,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
         uid = getIntent().getStringExtra("uid");
         username = getIntent().getStringExtra("username");
+        mAutopoulatedMessage = getIntent().getStringExtra("message");
+        mMessageTextInput.setText(mAutopoulatedMessage);
+
         //conversation = getIntent().getBundleExtra("conversation");
 
         ActionBar actionBar = getSupportActionBar();

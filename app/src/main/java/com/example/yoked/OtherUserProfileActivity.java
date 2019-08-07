@@ -52,6 +52,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     private FirebaseRecyclerAdapter<Post, PostViewHolder> mAdapter;
     private LinearLayoutManager mManager;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,10 +91,10 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         updateTextButton();
 
         // Set up FirebaseRecyclerAdapter with the Query
-        setUpRecycler();
+        getUserCalendar();
     }
 
-    private void setUpRecycler() {
+    private void setUpRecycler(final ArrayList freeTime) {
         // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = mDatabase.child("user-posts")
                 .child(mProfileOwnerUid)
@@ -166,11 +167,84 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     acceptRequest();
                 }
                 else if (buttonText.equals("Message Friend")) {
-                    goToMessages();
+                    goToMessages(freeTime);
                 }
             }
         });
     }
+
+    private void getUserCalendar() {
+        mDatabase.child("user-calendar/").
+                child(mCurrentUserUid).addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                HashMap<String, Object> currentUserCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                HashMap<String, Boolean> currentUserFreeTime = null;
+                if (currentUserCalendar != null) {
+                    if ((HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime") != null) {
+                        currentUserFreeTime = (HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime");
+                        getATime(currentUserCalendar);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+    private void getATime(HashMap currentUserCalendar) {
+        ArrayList freeTime = new ArrayList();
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("fridayMorning")) {
+                freeTime.add("Friday Morning");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("fridayAfternoon")) {
+                freeTime.add("Friday Afternoon");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("fridayEvening")) {
+                freeTime.add("Friday Evening");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("saturdayMorning")) {
+                freeTime.add("Saturday Morning");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("saturdayAfternoon")) {
+                freeTime.add("Saturday Afternoon");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("saturdayEvening")) {
+                freeTime.add("Saturday Evening");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("sundayMorning")) {
+                freeTime.add("Sunday Morning");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("sundayAfternoon")) {
+                freeTime.add("Sunday Afternoon");
+            }
+        }
+        if (freeTime == null) {
+            if ((boolean) currentUserCalendar.get("sundayEvening")) {
+                freeTime.add("Sunday Evening");
+            }
+        }
+        setUpRecycler(freeTime);
+    }
+
 
     // go to messages with user if clicked
 //    private void goToMessages() {
@@ -528,7 +602,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Set up FirebaseRecyclerAdapter with the Query
-        setUpRecycler();
+        setUpRecycler(null);
     }
 
     public void updateTaggedLikes(final Post model, final DatabaseReference postRef) {
@@ -541,7 +615,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         }
     }
 
-    public void goToMessages () {
+    public void goToMessages (final ArrayList freeTime) {
         Query query = FirebaseDatabase.getInstance().getReference("users")
                 .child(mProfileOwnerUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
@@ -550,10 +624,17 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Map<String, Object> user = (Map<String, Object>) dataSnapshot.getValue();
                 String username = user.get("username").toString();
+                String message = "";
+                if (freeTime != null) {
+                    message = "Hey, lets hang out! I am free at " + freeTime;
+                } else {
+                    message = "Hey, lets hang out!";
+                }
 
                 Intent intent = new Intent(OtherUserProfileActivity.this , MessageDetailsActivity.class);
                 intent.putExtra("uid",mProfileOwnerUid);
                 intent.putExtra("username", username);
+                intent.putExtra("message", message);
                 startActivity(intent);
             }
 
