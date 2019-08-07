@@ -377,7 +377,7 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         Calendar calendar = new Calendar(userId, mFreeTime);
         Map<String, Object> postValues = calendar.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/calendar/" + calendarKey, postValues);
+        //childUpdates.put("/calendar/" + calendarKey, postValues);
         childUpdates.put("/user-calendar/" + userId + "/" , postValues);
         Log.i("CalendarActivity", "Key: " + userId);
         mReference.updateChildren(childUpdates);

@@ -44,7 +44,6 @@ public class MatchActivity extends Activity {
         mUserId = mAuth.getCurrentUser().getUid();
         mReference = FirebaseDatabase.getInstance().getReference();
         mNameToId = new HashMap<String, String>();
-        mArrayOrder = new ArrayList<>();
 
         getUserMatch();
         /**
@@ -99,7 +98,9 @@ public class MatchActivity extends Activity {
                 @Override
                 public void onRightCardExit(Object dataObject) {
                     Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
-                    rightUserMatch();
+                    String dataDigest = (String) dataObject;
+                    String otherUserName = dataDigest.split(" ")[0];
+                    rightUserMatch(otherUserName);
                     //writeNewPost(mUserId, otherUserId, );
                 }
 
@@ -161,9 +162,8 @@ public class MatchActivity extends Activity {
                 if (dataSnapshot != null) {
                     userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
                     if (userInfo != null) {
-                        mNameToId.put((String) userInfo.get("fullname"), (String) matchHold.get("otherUserId"));
-                        mArrayOrder.add(userInfo.get("fullname"));
-                        String timeAndName =  "Meet " + userInfo.get("fullname") + " on " + matchHold.get("freeTime");
+                        mNameToId.put((String) userInfo.get("username"), (String) matchHold.get("otherUserId"));
+                        String timeAndName =  userInfo.get("username") + " @ " + matchHold.get("freeTime");
 
                         mMatches.add(timeAndName);
                         arrayAdapter.notifyDataSetChanged();
@@ -177,11 +177,9 @@ public class MatchActivity extends Activity {
         });
     }
 
-    private void rightUserMatch () {
+    private void rightUserMatch (final String otherUserName) {
         //String matchKey = mReference.child("user-match/" + userId).push().getKey();
         //Log.i("MatchActivity", "key: " + matchKey);
-        final String otherUserName = (String) mArrayOrder.get(0);
-        mArrayOrder.remove(0);
         mReference.child("user-match").child(mUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -194,7 +192,7 @@ public class MatchActivity extends Activity {
                     writeNewPost(mUserId, otherUserId, (String)dataToWrite.get("freeTime"),
                             true, (Boolean) dataToWrite.get("otherUserStatus"));
                     writeNewPost(otherUserId, mUserId, (String)dataToWrite.get("freeTime"),
-                            (Boolean) dataToWrite.get("currentUserStatus"), true);
+                            (Boolean) dataToWrite.get("otherUserStatus"), true);
                     if ((Boolean) dataToWrite.get("otherUserStatus")) {
                         getCurrentUsername(otherUserId, otherUserName);
                     }
@@ -211,15 +209,14 @@ public class MatchActivity extends Activity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 HashMap<String, Object> userInfo = null;
+                String matchBody = "Click here to be redirected to messages";
                 if (dataSnapshot != null) {
                     userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
                     if (userInfo != null) {
-                        String currentUsername = ((String) userInfo.get("fullname"));
+                        String currentUsername = ((String) userInfo.get("username"));
                         //finalMatchCheck(otherUserId, otherUserName, currentUsername);
-                        sendNotification(mUserId, otherUserId, "You have a final match with " +
-                                otherUserName);
-                        sendNotification(otherUserId, mUserId, "You have a final match with " +
-                                currentUsername);
+                        sendNotification(mUserId, otherUserId, matchBody, currentUsername);
+                        sendNotification(otherUserId, mUserId, matchBody, otherUserName);
                     }
                 }
             }
@@ -231,9 +228,7 @@ public class MatchActivity extends Activity {
     }
 
     /**
-     *
      * @param userId - checks user
-     *
      */
 
     private void writeNewPost(String userId, String otherUserId, String freeTime,
@@ -241,22 +236,21 @@ public class MatchActivity extends Activity {
         Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus);
         Map<String, Object> postValues = match.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/match/", postValues);
+        //childUpdates.put("/match/", postValues);
         childUpdates.put("/user-match/" + userId + "/" + otherUserId + "/", postValues);
         Log.i("CalendarActivity", "Key: " + userId);
         mReference.updateChildren(childUpdates);
     }
 
-    private void sendNotification(final String toUid, final String fromUid, final String body) {
-        Query query = mReference.child("users").child(toUid);
+    private void sendNotification(final String fromUid, final String toUid, final String body, final String name) {
+        Query query = mReference.child("users").child(fromUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
-                String title = newUser.get("username").toString();
+                String title = "Invite from " + name;
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
                 String timestamp = simpleDateFormat.format(new Date());
-                //Uri uri = Uri.parse("R.drawable.match.png");
                 String imageUrl = "";
                 if (newUser.get("profile_picture") != null)
                     imageUrl = newUser.get("profile_picture").toString();
