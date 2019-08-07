@@ -42,6 +42,7 @@ public class MainMessenger extends AppCompatActivity {
     private DatabaseReference mDatabaseReference;
     String username;
     String currentUserId;
+    private LinearLayoutManager mLinearLayoutManager;
 
     public SpinnerDialog mSpinnerDialog;
 
@@ -53,6 +54,10 @@ public class MainMessenger extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
+        mLinearLayoutManager = new LinearLayoutManager(MainMessenger.this);
+        mLinearLayoutManager.setReverseLayout(true);
+        mLinearLayoutManager.setStackFromEnd(true);
+
         mRecyclerViewConversations = findViewById(R.id.rvMessages);
         mComposeMessageButton = findViewById(R.id.btnComposeMessage);
 
@@ -62,7 +67,7 @@ public class MainMessenger extends AppCompatActivity {
 
         //mAdapter = new MessageAdapter(this, mConversations);
         //mRecyclerViewConversations.setAdapter(mAdapter);
-        mRecyclerViewConversations.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerViewConversations.setLayoutManager(mLinearLayoutManager);
 
         mComposeMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,7 +115,7 @@ public class MainMessenger extends AppCompatActivity {
     public Query getQuery(DatabaseReference databaseReference, String currentUser) {
         // [START recent_messages_query]
         // due to sorting by push() keys
-        Query recentConversationsQuery = databaseReference.child("user-conversations/" + currentUser);
+        Query recentConversationsQuery = databaseReference.child("user-conversations/" + currentUser).orderByChild("timeStamp");
 
         // [END recent_messages_query]
 
