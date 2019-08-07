@@ -17,7 +17,7 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
         <ImageButton
-            android:id="@+id/search_image_button"
+            android:id="@+id/back_image_button"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_gravity="left"

@@ -49,7 +49,6 @@ import in.galaxyofandroid.spinerdialog.SpinnerDialog;
 
 
 public class ProfileFragment extends Fragment {
-    private Button mCalendarButton;
     private ImageButton mSettingsButton;
     private ImageView mProfileImage;
     private TextView mFullname, mUsername, mFriendCount;
@@ -81,19 +80,11 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         mCurrentUserUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        mCalendarButton = view.findViewById(R.id.calendar_button);
         mProfileImage = view.findViewById(R.id.profile_image_view);
         mFullname = view.findViewById(R.id.fullname_text_view);
         mUsername = view.findViewById(R.id.username_text_view);
         mFriendCount = view.findViewById(R.id.friend_count_text_view);
         mSettingsButton = view.findViewById(R.id.settings_button);
-
-        mCalendarButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchCalendar();
-            }
-        });
 
         mSettingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,11 +107,6 @@ public class ProfileFragment extends Fragment {
         getAllWidgets(view);
         bindWidgetsWithAnEvent();
         setupTabLayout();
-    }
-
-    private void launchCalendar() {
-        final Intent intent = new Intent(getActivity(), CalendarActivity.class);
-        startActivity(intent);
     }
 
     private void launchSettings() {
@@ -217,19 +203,21 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                final ArrayList<String> friendList = new ArrayList<String>();
+                final ArrayList<String> friendUsernameList = new ArrayList<String>();
+                final ArrayList<String> friendUidList = new ArrayList<String>();
                 if (friendMap!=null) {
                     for (String userId : friendMap.keySet()) {
-                        friendList.add(friendMap.get(userId).toString());
+                        friendUsernameList.add(friendMap.get(userId).toString());
+                        friendUidList.add(userId);
                     }
                 }
                 // spinner
-                final SpinnerDialog spinnerDialog = new SpinnerDialog(getActivity(), friendList, "Select Friend");
+                final SpinnerDialog spinnerDialog = new SpinnerDialog(getActivity(), friendUsernameList, "Select Friend");
                 spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
                     @Override
                     public void onClick(String s, int i) {
                         Intent toOtherProfile = new Intent(getActivity(), OtherUserProfileActivity.class);
-                        toOtherProfile.putExtra("uid", friendList.get(i));
+                        toOtherProfile.putExtra("uid", friendUidList.get(i));
                         startActivity(toOtherProfile);
                     }
                 });

@@ -1,60 +1,55 @@
 package com.example.yoked.fragments;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Matrix;
-import android.media.ThumbnailUtils;
+import android.graphics.Color;
+import android.media.Image;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.yoked.MainActivity;
 import com.example.yoked.R;
-import com.example.yoked.models.Notification;
-import com.example.yoked.models.User;
-import com.example.yoked.models.Post;
+import com.example.yoked.models.Calendar;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
-import in.galaxyofandroid.spinerdialog.SpinnerDialog;
+public class ComposeFragment extends Fragment implements View.OnClickListener {
 
-public class ComposeFragment extends Fragment {
+    //These buttons will pass in the data to the server
+    private Button mSubmitCalendarButton;
+    private ImageButton mFridayMorningButton, mFridayAfternoon, mFridayEvening;
+    private ImageButton mSaturdayMorningButton, mSaturdayAfternoon, mSaturdayEvening;
+    private ImageButton mSundayMorning, mSundayAfternoon, mSundayEvening;
 
-    private static final int REQUEST_IMAGE_CAPTURE = 111;
-    private static final int REQUEST_IMAGE_UPLOAD = 222;
-    private DatabaseReference mDatabase;
-    private String mCurrentUser;
-    private String mImageEncoded;
+    // List of strings with all keys for times
+    private ArrayList<String> mAllTimesList = new ArrayList<String>();
+    private ArrayList<ImageButton> mAllButtonsList = new ArrayList<ImageButton>();
 
-    private EditText mDescription;
-    private Button mPostButton, mTagFriendButton, mTakePictureButton, mUploadPictureButton;
-    private ImageView mPostImage;
+    DatabaseReference mReference;
+    Calendar mCalendar;
+    public HashMap<String, Boolean> mFreeTime;
+    private FirebaseAuth mAuth;
+    String userId;
+    private HashMap<String, Boolean> mPosts;
+    public List<String> mUserFreeTime;
+    public HashMap<String, Object> mNewCalendar;
+    private int deleteCount;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -66,303 +61,203 @@ public class ComposeFragment extends Fragment {
     // Any view setup should occur here.  E.g., view lookups and attaching view listeners.
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        mDescription = view.findViewById(R.id.description_edit_text);
-        mPostButton = view.findViewById(R.id.post_button);
-        mPostImage = view.findViewById(R.id.post_image_view);
-        mTagFriendButton = view.findViewById(R.id.tag_friends_button);
-        mTakePictureButton = view.findViewById(R.id.take_picture_button);
-        mUploadPictureButton = view.findViewById(R.id.upload_picture_button);
+        deleteCount = 0;
+        mPosts = new HashMap<String, Boolean>();
+        mFreeTime = new HashMap<String, Boolean>();
+        //set up the variables with their buttons
+        mSubmitCalendarButton = view.findViewById(R.id.editCalendarButton);
+        mUserFreeTime = new ArrayList<>();
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        //set up the variables with their buttons
+        initializeImageButtons(view);
 
-        addSpinner();
+        // puts all keys into mAllTimesList and all image buttons into mAllButtonsList
+        setAllTimesAndButtonsList();
 
-        mTakePictureButton.setOnClickListener(new View.OnClickListener() {
+        for (ImageButton button : mAllButtonsList) {
+            button.setOnClickListener(this);
+        }
+
+        //Pass in information to Calendar class so then can be packaged to FireBase
+        mReference = FirebaseDatabase.getInstance().getReference();
+        //link the user with there calendar using there uid
+        mAuth = FirebaseAuth.getInstance();
+        userId = mAuth.getCurrentUser().getUid();
+        getUserCalendar();
+
+        /**
+         * when clicked data will be sent from ArrayList here to the other
+         * file one and then push to data base
+         */
+
+        mSubmitCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onLaunchCamera(v);
-            }
-        });
-
-        mUploadPictureButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onLaunchGallery(v);
-            }
-        });
-
-        mPostButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                final String description = mDescription.getText().toString();
-
-                // get user;s username
-                mDatabase.child("users").child(userId).addListenerForSingleValueEvent(
-                        new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                // Get user value
-                                User user = dataSnapshot.getValue(User.class);
-                                // [START_EXCLUDE]
-                                if (user == null) {
-                                    // User is null, error out
-                                    Log.e("ComposeFragment", "User " + userId + " is unexpectedly null");
-                                    Toast.makeText(getActivity(),
-                                            "Error: could not fetch user.",
-                                            Toast.LENGTH_SHORT).show();
-                                } else {
-                                    // Write new post
-                                    writeNewPost(userId, user.username, description, mImageEncoded);
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
-                                Log.w("ComposeFragment", "getUser:onCancelled", databaseError.toException());
-                            }
-                        }
-                );
-            }
-        });
-    }
-
-    private void addSpinner() {
-        Query query = mDatabase.child("users").child(mCurrentUser);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                ArrayList<String> friendList = new ArrayList<String>();
-                if (friendMap!=null) {
-                    for (String userId : friendMap.keySet()) {
-                        friendList.add(friendMap.get(userId).toString());
-                    }
+                if (mFreeTime.size() != 0 || deleteCount > 0) {
+                    writeNewPost(userId, mFreeTime);
+                    Toast.makeText(getActivity(), "data inserted successfully", Toast.LENGTH_LONG).show();
                 }
-                // spinner
-                final SpinnerDialog spinnerDialog = new SpinnerDialog(getActivity(), friendList, "Select Friend");
-                spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
-                    @Override
-                    public void onClick(String s, int i) {
-                        Toast.makeText(getActivity(), "Selected: " + s, Toast.LENGTH_LONG);
-                        mTagFriendButton.setText("Tagged @" + s);
-                    }
-                });
-
-                mTagFriendButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        spinnerDialog.showSpinerDialog();
-                    }
-                });
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Bitmap imageBitmap = null;
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
-            Bundle extras = data.getExtras();
-            imageBitmap = (Bitmap) extras.get("data");
+    public void onClick(View v) {
+        for (int i = 0; i < mAllButtonsList.size(); i++) {
+            if (v.getId() == mAllButtonsList.get(i).getId()) {
+                handleButtonOnClick(mAllTimesList.get(i), mAllButtonsList.get(i));
+            }
         }
-        else if (requestCode == REQUEST_IMAGE_UPLOAD) {
-            if (data != null) {
-                try {
-                    imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), data.getData());
-                } catch (IOException e) {
-                    e.printStackTrace();
+    }
+
+    /**
+     * After this the on Click for the selection is made
+     * it will call this function and it will add
+     * to the times the user is available
+     */
+
+    private void addToAvailableTimes(String freeTime) {
+        mFreeTime.put(freeTime, true);
+    }
+
+    /**
+     * This allows to access the data of a user and there calendar
+     * through the map in the calendar class
+     * the logs are for testing of the data is being gotten
+     */
+    private void getUserCalendar() {
+        mReference.child("user-calendar/" + userId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                if (mNewCalendar != null) {
+                    if ( mNewCalendar.get("mFreeTime") != null) {
+                        mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
+                        makeComplete();
+                        Log.i("CalendarActivity", "mPosts: " + mPosts);
+                        checkData();
+                    } else {
+                        makeCompleteStart();
+                    }
+                } else {
+                    makeCompleteStart();
                 }
             }
-        }
-        // Configure byte output stream
-        if (imageBitmap != null) {
-            // compress bitmap
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
-            // crop bitmap and encode
-            int dimension = getSquareCropDimensionForBitmap(imageBitmap);
-            Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
-            encodeBitmap(croppedBitmap);
-            mPostImage.setImageBitmap(croppedBitmap);
-        }
-    }
 
-    public void onLaunchCamera(View view) {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }
-    }
-
-    private void onLaunchGallery(View view)
-    {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select File"), 222);
-    }
-
-    private void writeNewPost(final String userId, final String username, final String description, final String postImageUrl) {
-        // update posts and user-posts
-        final String key = mDatabase.child("posts").push().getKey();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
-        final String timestamp = simpleDateFormat.format(new Date());
-        Log.d("MainActivity", "Current Timestamp: " + timestamp);
-        String taggedFriend = mTagFriendButton.getText().toString();
-        if (postImageUrl!=null && !postImageUrl.equals("") && !description.equals("")) {
-            if (taggedFriend.equals("Tag Friends"))
-                taggedFriend = null;
-            else
-                taggedFriend = taggedFriend.split(" ")[1].substring(1);
-            //final Post post = new Post(userId, username, description, postImageUrl, timestamp, taggedFriend);
-            // send notification to tagged user if tagged user exists
-            // add taggedUid to post
-            // add tagged post to user-tagged-posts
-            if (taggedFriend != null) {
-                String taggedUsername = taggedFriend;
-                Query query = FirebaseDatabase.getInstance().getReference("users")
-                        .orderByChild("username").equalTo(taggedUsername);
-                final String finalTaggedFriend = taggedFriend;
-                query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
-                    @Override
-                    public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-                        Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-                        String taggedUid = newUser.get("uid").toString();
-                        sendFirebaseNotification(mCurrentUser, taggedUid, "has tagged you in a post", key);
-                        // create post object
-                        Post post = new Post(userId, username, description, postImageUrl, timestamp, finalTaggedFriend, taggedUid);
-                        // MainActivity.notificationBadge.setVisibility(View.VISIBLE);
-                        // post to user-tagged-posts
-                        Map<String, Object> postValues = post.toMap();
-                        Map<String, Object> childUpdates = new HashMap<>();
-                        childUpdates.put("/user-tagged-posts/" + taggedUid + "/" + key, postValues);
-                        childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
-                        mDatabase.updateChildren(childUpdates);
-                        // update user-feed
-                        updateAllFeeds(postValues, key);
-                    }
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                    }
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                    }
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                    }
-                });
-            }
-            // if no tagged friend
-            else {
-                Post post = new Post(userId, username, description, postImageUrl, timestamp, null, null);
-                // upload post to user-posts
-                final Map<String, Object> postValues = post.toMap();
-                final Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
-                mDatabase.updateChildren(childUpdates);
-                // update user-feed
-                updateAllFeeds(postValues, key);
-                Toast.makeText(getActivity(), "Post Successful!", Toast.LENGTH_LONG).show();
-                mDescription.setText("");
-            }
-            Intent launchPosts = new Intent(getActivity(), MainActivity.class);
-            startActivity(launchPosts);
-        }
-        else {
-            Toast.makeText(getActivity(), "Post Unsuccessful! Missing image or description!", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    // updates user feeds for all the friends of the current user when a new post is made
-    private void updateAllFeeds(final Map<String, Object> postValues, final String key) {
-        updateIndividualFeed(postValues, key, mCurrentUser);
-        Query query = mDatabase.child("users").child(mCurrentUser);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                if (friendMap!=null) {
-                    for (String friend : friendMap.keySet()) {
-                        updateIndividualFeed(postValues, key, friend);
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
     }
 
-    public void updateIndividualFeed (Map<String, Object> postValues, String key, String friend) {
-        Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/user-feed/" + friend + "/" + key, postValues);
-        mDatabase.updateChildren(childUpdates);
+    /**
+     * It broke because if there is no calendar data
+     * it needs to do something and would give me null pointers
+     */
+    private void makeCompleteStart() {
+        for (String timeKey : mAllTimesList) {
+            mPosts.put(timeKey, false);
+        }
     }
 
-    public void encodeBitmap(Bitmap bitmap) {
-        // save image to firebase
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 40, baos);
-        mImageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+    public void deleteCalendar() {
+        DatabaseReference deleteUserCalendar = FirebaseDatabase.getInstance().getReference
+                ("/user-calendar/" + userId);
+        deleteUserCalendar.removeValue();
     }
 
-    public int getSquareCropDimensionForBitmap(Bitmap bitmap)
-    {
-        //use the smallest dimension of the image to crop to
-        return Math.min(bitmap.getWidth(), bitmap.getHeight());
-    }
-
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
-    }
-
-    private void sendFirebaseNotification(final String fromUid, final String toUid, final String body, final String key) {
-        Query query = mDatabase.child("users").child(fromUid);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
-                String title = newUser.get("username").toString();
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
-                String timestamp = simpleDateFormat.format(new Date());
-                String imageUrl = "";
-                if (newUser.get("profile_picture")!=null)
-                    imageUrl = newUser.get("profile_picture").toString();
-                Notification notif = new Notification
-                        ("tagged", imageUrl, title, body, timestamp, toUid, fromUid);
-                notif.key = key;
-                updateFirebaseNotification(toUid, notif);
+    private void makeComplete() {
+        for (String timeKey : mAllTimesList) {
+            if (!mPosts.containsKey(timeKey)) {
+                mPosts.put(timeKey, false);
             }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
-            }
-        });
+        }
     }
 
-    private void updateFirebaseNotification(String toUid, Notification notif) {
-        String key = mDatabase.child("notification").push().getKey();
-        Map<String, Object> notifValues = notif.toMap();
+    private void checkData() {
+        Log.i("CalendarActivity", "mPosts: " + mPosts.get("fridayMorning"));
+        Log.i("CalendarActivity", "mPosts: " + mPosts);
+        int grayColor = Color.argb(200, 200, 200, 200);
+        for (int i = 0; i < mAllTimesList.size(); i++) {
+            // if the time is in the user's calendar, add to available times and tint button
+            if (mPosts.get(mAllTimesList.get(i))) {
+                addToAvailableTimes(mAllTimesList.get(i));
+                tintImageButton(mAllButtonsList.get(i), grayColor);
+            }
+        }
+    }
+
+    /**
+     *  this method adds the data to the calender class
+     *  which then later puts it in toMap in the class
+     *  the structure of the data base is decided with the
+     *  child updates , then it launches to the home screen
+     */
+    private void writeNewPost(String userId, HashMap mFreeTime) {
+        deleteCalendar();
+        String calendarKey = mReference.child("calendar").push().getKey();
+        Calendar calendar = new Calendar(userId, mFreeTime);
+        Map<String, Object> postValues = calendar.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
-        //childUpdates.put("/posts/" + key, postValues);
-        childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
-        mDatabase.updateChildren(childUpdates);
-        // update user-feed
-        Toast.makeText(getActivity(), "Sent Notification", Toast.LENGTH_LONG).show();
+        //childUpdates.put("/calendar/" + calendarKey, postValues);
+        childUpdates.put("/user-calendar/" + userId + "/" , postValues);
+        Log.i("CalendarActivity", "Key: " + userId);
+        mReference.updateChildren(childUpdates);
+        Intent launchPosts = new Intent(getActivity(), MainActivity.class);
+        startActivity(launchPosts);
+    }
+
+    // tints the given image button to the given color
+    private void tintImageButton(ImageButton button, int color) {
+        button.setColorFilter(color);
+    }
+
+    // handles on click for given button
+    private void handleButtonOnClick(String time, ImageButton button) {
+        if (mPosts.containsKey(time)) {
+            if (mPosts.get(time)) {
+                mFreeTime.remove(time);
+                button.setColorFilter(null);
+                deleteCount++;
+            } else {
+                addToAvailableTimes(time);
+                button.setColorFilter(Color.argb(200, 200, 200, 200));
+            }
+        }
+    }
+
+    public void initializeImageButtons(View view) {
+        mFridayEvening = view.findViewById(R.id.fridayEveningMoonImageButton);
+        mFridayAfternoon = view.findViewById(R.id.fridayAfternoonSunsetImageButton);
+        mFridayMorningButton = view.findViewById(R.id.fridayMorningSunImageButton);
+        mSaturdayMorningButton = view.findViewById(R.id.saturdayMorningSunImageButton);
+        mSaturdayAfternoon = view.findViewById(R.id.saturdayAfternoonSunsetImageButton);
+        mSaturdayEvening = view.findViewById(R.id.saturdayEveningImageButton);
+        mSundayMorning = view.findViewById(R.id.sundayMorningSunImageButton);
+        mSundayAfternoon = view.findViewById(R.id.sundayAfternoonSunsetImageButton);
+        mSundayEvening = view.findViewById(R.id.sundayEveningImageButton);
+    }
+
+    public void setAllTimesAndButtonsList() {
+        mAllTimesList.add("fridayMorning");
+        mAllTimesList.add("fridayAfternoon");
+        mAllTimesList.add("fridayEvening");
+        mAllTimesList.add("saturdayMorning");
+        mAllTimesList.add("saturdayAfternoon");
+        mAllTimesList.add("saturdayEvening");
+        mAllTimesList.add("sundayMorning");
+        mAllTimesList.add("sundayAfternoon");
+        mAllTimesList.add("sundayEvening");
+        mAllButtonsList.add(mFridayMorningButton);
+        mAllButtonsList.add(mFridayAfternoon);
+        mAllButtonsList.add(mFridayEvening);
+        mAllButtonsList.add(mSaturdayMorningButton);
+        mAllButtonsList.add(mSaturdayAfternoon);
+        mAllButtonsList.add(mSaturdayEvening);
+        mAllButtonsList.add(mSundayMorning);
+        mAllButtonsList.add(mSundayAfternoon);
+        mAllButtonsList.add(mSundayEvening);
     }
 
 }

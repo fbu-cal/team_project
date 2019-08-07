@@ -327,41 +327,42 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
     private void checkData() {
         Log.i("CalendarActivity", "mPosts: " + mPosts.get("fridayMorning"));
         Log.i("CalendarActivity", "mPosts: " + mPosts);
+        int grayColor = Color.argb(200, 200, 200, 200);
         if (mPosts.get("fridayMorning")) {
             addToAvailableTimes("fridayMorning");
-            mFridayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mFridayMorningSunImageButton, grayColor);
         }
         if (mPosts.get("fridayAfternoon")) {
             addToAvailableTimes("fridayAfternoon");
-            mFridayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mFridayAfternoonSunsetImageButton, grayColor);
         }
         if (mPosts.get("fridayEvening")) {
             addToAvailableTimes("fridayEvening");
-            mFridayEveningMoonImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mFridayEveningMoonImageButton, grayColor);
         }
         if (mPosts.get("saturdayMorning")) {
             addToAvailableTimes("saturdayMorning");
-            mSaturdayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mSaturdayMorningSunImageButton, grayColor);
         }
         if (mPosts.get("saturdayAfternoon")) {
             addToAvailableTimes("saturdayAfternoon");
-            mSaturdayAfternoonSunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mSaturdayAfternoonSunsetImageButton, grayColor);
         }
         if (mPosts.get("saturdayEvening")) {
             addToAvailableTimes("saturdayEvening");
-            mSaturdayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mSaturdayEveningImageButton, grayColor);
         }
         if (mPosts.get("sundayMorning")) {
             addToAvailableTimes("sundayMorning");
-            mSundayMorningSunImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mSundayMorningSunImageButton, grayColor);
         }
         if (mPosts.get("sundayAfternoon")) {
             addToAvailableTimes("sundayAfternoon");
-            mSundayAfternoonsunsetImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mSundayAfternoonsunsetImageButton, grayColor);
         }
         if (mPosts.get("sundayEvening")) {
             addToAvailableTimes("sundayEvening");
-            mSundayEveningImageButton.setColorFilter(Color.argb(200, 200, 200, 200));
+            tintImageButton(mSundayEveningImageButton, grayColor);
         }
     }
 
@@ -383,6 +384,11 @@ public class CalendarActivity extends AppCompatActivity implements View.OnClickL
         mReference.updateChildren(childUpdates);
         Intent launchPosts = new Intent(this, MainActivity.class);
         startActivity(launchPosts);
+    }
+
+    // tints the given image button to the given color
+    private void tintImageButton(ImageButton button, int color) {
+        button.setColorFilter(color);
     }
 
 }
