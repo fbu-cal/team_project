@@ -11,7 +11,7 @@ public class Message {
     private String receiverId;
     private String messageText;
     private String username;
-    private Date timeStamp;
+    private String timeStamp;
     private long messageTimeStamp;
 
     public Message(String senderId, String receiverId, String username, String messageText){
@@ -49,7 +49,7 @@ public class Message {
 //        return timeStamp;
 //    }
 
-    public void setTimeStamp(Date timeStamp) {
+    public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
     }
 
@@ -61,7 +61,7 @@ public class Message {
         result.put("receiverId", receiverId);
         result.put("messageText", messageText);
         result.put("username", username);
-        result.put("timeStamp", timeStamp.toString());
+        result.put("timeStamp", timeStamp);
         return result;
     }
     // [END post_to_map]

@@ -3,6 +3,7 @@ package com.example.yoked;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,6 +20,7 @@ import com.example.yoked.models.Post;
 import com.example.yoked.models.Utilities;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -154,6 +156,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     acceptRequest();
                 }
                 else if (buttonText.equals("Message Friend")) {
+                    Log.i("goToMessages", "" + mDatabase.child(mProfileOwnerUid).child("username").toString());
                     goToMessages();
                 }
             }
@@ -161,9 +164,10 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     }
 
     // go to messages with user if clicked
-    private void goToMessages() {
-        // TODO - use intent to redirect user to message conversation with other user
-    }
+//    private void goToMessages() {
+//        // TODO - use intent to redirect user to message conversation with other user
+//
+//    }
 
     // Method for accepting friend requests. Will update friendStatuses and friendList for both users.
     private void acceptRequest() {
@@ -524,5 +528,27 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             String userTaggedPostPath = "/user-tagged-posts/" + taggedUid + "/" + postRef.getKey();
             onLikeClicked(userTaggedPostQuery, userTaggedPostPath);
         }
+    }
+
+    public void goToMessages () {
+        Query query = FirebaseDatabase.getInstance().getReference("users")
+                .child(mProfileOwnerUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Map<String, Object> user = (Map<String, Object>) dataSnapshot.getValue();
+                String username = user.get("username").toString();
+
+                Intent intent = new Intent(OtherUserProfileActivity.this , MessageDetailsActivity.class);
+                intent.putExtra("uid",mProfileOwnerUid);
+                intent.putExtra("username", username);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
     }
 }

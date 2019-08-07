@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
-import static com.example.yoked.MessageAdapter.ViewHolder.mProfilePicture;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> implements ListAdapter {
 
@@ -67,6 +66,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         //populate the view according to Message model
         viewHolder.mUsername.setText(message.get("username").toString());
         viewHolder.mMessageText.setText(message.get("messageText").toString());
+
+        findProfilePicture(viewHolder, message.get("senderId").toString());
 
         String stringDate = message.get("timeStamp").toString();
         Date date = new Date();
@@ -134,7 +135,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         public TextView mUsername;
         public TextView mMessageText;
         public TextView mMessageTimeStamp;
-        public static ImageView mProfilePicture;
+        public ImageView mProfilePicture;
         
         public ViewHolder(View itemView) {
             super(itemView);
@@ -164,7 +165,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
     }
 
-    public void findProfilePicture (String userId) {
+    public void findProfilePicture (final MessageAdapter.ViewHolder viewHolder, String userId) {
         Query query = mDatabaseReference.child("users").child(userId);
         Log.i("ConversationView", userId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -178,10 +179,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                     try {
                         // set profile picture
                         Bitmap realImage = getCircleBitmap(decodeFromFirebaseBase64(imageUrl));
-
-                        Log.i("PostViewHolder", "pic: " + mProfilePicture);
-                        if (mProfilePicture!=null) {
-                            mProfilePicture.setImageBitmap(realImage);
+                        if (realImage!=null) {
+                            viewHolder.mProfilePicture.setImageBitmap(realImage);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
