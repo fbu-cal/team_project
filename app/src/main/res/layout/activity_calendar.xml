@@ -184,8 +184,8 @@
         android:layout_width="wrap_content"
         android:layout_height="19dp"
         android:layout_marginTop="72dp"
-        android:layout_marginEnd="80dp"
-        android:layout_marginRight="80dp"
+        android:layout_marginEnd="72dp"
+        android:layout_marginRight="72dp"
         android:text="Evening"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView9" />
@@ -201,7 +201,7 @@
         android:layout_marginRight="8dp"
         android:text="Morning"
         app:layout_constraintEnd_toStartOf="@+id/afternoonTextView"
-        app:layout_constraintHorizontal_bias="0.666"
+        app:layout_constraintHorizontal_bias="0.761"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView9" />
 
