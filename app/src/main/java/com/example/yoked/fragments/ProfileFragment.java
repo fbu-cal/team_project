@@ -16,12 +16,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.yoked.CalendarActivity;
 import com.example.yoked.MyPostsFragment;
 import com.example.yoked.MyTagsFragment;
+import com.example.yoked.OtherUserProfileActivity;
 import com.example.yoked.PostViewHolder;
 import com.example.yoked.R;
 import com.example.yoked.UserSettingsActivity;
@@ -38,14 +40,19 @@ import com.google.firebase.database.ValueEventListener;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
+import in.galaxyofandroid.spinerdialog.SpinnerDialog;
+
 
 public class ProfileFragment extends Fragment {
-    private Button mCalendarButton, mSettingsButton;
+    private Button mCalendarButton;
+    private ImageButton mSettingsButton;
     private ImageView mProfileImage;
-    private TextView mFullname, mUsername;
+    private TextView mFullname, mUsername, mFriendCount;
     // context for rendering
     Context context;
     private String mCurrentUserUid;
@@ -78,6 +85,7 @@ public class ProfileFragment extends Fragment {
         mProfileImage = view.findViewById(R.id.profile_image_view);
         mFullname = view.findViewById(R.id.fullname_text_view);
         mUsername = view.findViewById(R.id.username_text_view);
+        mFriendCount = view.findViewById(R.id.friend_count_text_view);
         mSettingsButton = view.findViewById(R.id.settings_button);
 
         mCalendarButton.setOnClickListener(new View.OnClickListener() {
@@ -94,82 +102,20 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+        mFriendCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addSpinner();
+            }
+        });
+
         setUserInformation();
 
-//        mRecyclerView = view.findViewById(R.id.post_recycler_view);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-
-//        mRecyclerView.setHasFixedSize(true);
-//        // Set up Layout Manager, reverse layout
-//        mManager = new LinearLayoutManager(getContext());
-//        mManager.setReverseLayout(true);
-//        mManager.setStackFromEnd(true);
-//        mRecyclerView.setLayoutManager(mManager);
 
         getAllWidgets(view);
         bindWidgetsWithAnEvent();
         setupTabLayout();
-
-//        // Set up FirebaseRecyclerAdapter with the Query
-//        Query postsQuery = getQuery(mDatabase);
-//        mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
-//                PostViewHolder.class, postsQuery) {
-//            @Override
-//            protected void populateViewHolder(final PostViewHolder viewHolder, final Post model, final int position) {
-//                final DatabaseReference postRef = getRef(position);
-//
-//                // Set click listener for the whole post view
-//                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                    // Launch PostDetailActivity
-//                    Intent intent = new Intent(getActivity(), PostDetailActivity.class);
-//                    intent.putExtra("uid", model.uid);
-//                    intent.putExtra("postRefKey", postRef.getKey());
-//                    startActivity(intent);
-//                    }
-//                });
-//
-//                // Determine if the current user has liked this post and set UI accordingly
-//                if (model.likes.containsKey(mCurrentUserUid)) {
-//                    viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart_active);
-//                } else {
-//                    viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
-//                }
-//
-//                // Bind Post to ViewHolder, setting OnClickListener for the star button
-//                try {
-//                    viewHolder.bindToPost(model, postRef.getKey(), new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View starView) {
-//                                    // Need to write to both places the post is stored
-//                                    //Query globalPostQuery = mDatabase.child("posts").child(postRef.getKey());
-//                                    Query userPostQuery = mDatabase.child("user-posts").child(model.uid).child(postRef.getKey());
-//                                    //String globalPostPath = "/posts/" + postRef.getKey();
-//                                    String userPostPath = "/user-posts/" + model.uid + "/" + postRef.getKey();
-//                                    //onLikeClicked(globalPostQuery, globalPostPath);
-//                                    onLikeClicked(userPostQuery, userPostPath);
-//                                    updateAllFeedsLikes(postRef.getKey());
-//                                }
-//                            },
-//                            new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View v) {
-//                                    // nothing. already on correct activity
-//                                }
-//                            }, (new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            // go to user profile when tagged clicked
-//                            findTaggedUser(model);
-//                        }
-//                    }));
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-//        mRecyclerView.setAdapter(mAdapter);
     }
 
     private void launchCalendar() {
@@ -207,100 +153,23 @@ public class ProfileFragment extends Fragment {
                         }
                     }
                 }
+                long friendCount = dataSnapshot.child("friendList").getChildrenCount();
+                if (friendCount == 1)
+                    mFriendCount.setText(friendCount + " Friend");
+                else
+                    mFriendCount.setText(friendCount + " Friends");
+
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
     }
-
-    private void onLikeClicked (Query query, final String path) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String likesPath = path + "/likes";
-                String likeCountPath = path + "/likeCount";
-                Map<String, Object> likesMap = (Map<String, Object>) dataSnapshot.child("likes").getValue();
-                Long likeCount = (Long) dataSnapshot.child("likeCount").getValue();
-                if (likesMap == null) {
-                    likesMap = new HashMap<>();
-                    likeCount = likeCount + 1;
-                    likesMap.put(mCurrentUserUid, true);
-                }
-                else {
-                    if (likesMap.containsKey(mCurrentUserUid)) {
-                        likeCount = likeCount - 1;
-                        likesMap.remove(mCurrentUserUid);
-                        mDatabase.child(likesPath).removeValue();
-                    }
-                    else {
-                        likeCount = likeCount + 1;
-                        likesMap.put(mCurrentUserUid, true);
-                    }
-                }
-                mDatabase.child(likesPath).updateChildren(likesMap);
-                mDatabase.child(likeCountPath).setValue(likeCount);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    // updates likes for post in all user feeds
-    private void updateAllFeedsLikes(final String postRefKey) {
-        Query query = mDatabase.child("users").child(mCurrentUserUid);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // update current user's feed
-                Query userTempQuery = mDatabase.child("user-feed").child(mCurrentUserUid).child(postRefKey);
-                String userTempPath = "/user-feed/" + mCurrentUserUid + "/" + postRefKey;
-                onLikeClicked(userTempQuery, userTempPath);
-                // update current user's friend's feeds
-                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
-                if (friendMap != null) {
-                    for (String friend : friendMap.keySet()) {
-                        Query tempQuery = mDatabase.child("user-feed").child(friend).child(postRefKey);
-                        String tempPath = "/user-feed/" + friend + "/" + postRefKey;
-                        onLikeClicked(tempQuery, tempPath);
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
-            }
-        });
-    }
-
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        // Check should we need to refresh the fragment
-//        if(mShouldRefreshOnResume){
-//            refreshFragment();
-//        }
-//    }
-//
-//    @Override
-//    public void onStop() {
-//        super.onStop();
-//        mShouldRefreshOnResume = true;
-//    }
-//
-//    public void refreshFragment()
-//    {
-//        Fragment fragment = new ProfileFragment();
-//        FragmentManager fragmentManager = getChildFragmentManager();
-//        fragmentManager.beginTransaction().replace(R.id.container_flowlayout, fragment).commit();
-//    }
 
     private void getAllWidgets(View view) {
         mTabLayout = (TabLayout) view.findViewById(R.id.tabs);
     }
+
     private void setupTabLayout() {
         fragmentOne = new MyPostsFragment();
         fragmentTwo = new MyTagsFragment();
@@ -340,5 +209,36 @@ public class ProfileFragment extends Fragment {
         ft.replace(R.id.frame_container, fragment);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         ft.commit();
+    }
+
+    private void addSpinner() {
+        Query query = mDatabase.child("users").child(mCurrentUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                final ArrayList<String> friendList = new ArrayList<String>();
+                if (friendMap!=null) {
+                    for (String userId : friendMap.keySet()) {
+                        friendList.add(friendMap.get(userId).toString());
+                    }
+                }
+                // spinner
+                final SpinnerDialog spinnerDialog = new SpinnerDialog(getActivity(), friendList, "Select Friend");
+                spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
+                    @Override
+                    public void onClick(String s, int i) {
+                        Intent toOtherProfile = new Intent(getActivity(), OtherUserProfileActivity.class);
+                        toOtherProfile.putExtra("uid", friendList.get(i));
+                        startActivity(toOtherProfile);
+                    }
+                });
+                spinnerDialog.showSpinerDialog();
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
     }
 }

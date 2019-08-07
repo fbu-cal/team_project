@@ -3,6 +3,7 @@ package com.example.yoked;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,6 +20,7 @@ import com.example.yoked.models.Post;
 import com.example.yoked.models.Utilities;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,17 +30,19 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import in.galaxyofandroid.spinerdialog.OnSpinerItemClick;
+import in.galaxyofandroid.spinerdialog.SpinnerDialog;
+
 public class OtherUserProfileActivity extends AppCompatActivity {
 
-    private String mProfileOwnerUid;
-    private String mCurrentUserUid;
-    private String username;
+    private String mProfileOwnerUid, mCurrentUserUid;
 
-    private TextView mUsernameText, mFullnameText;
+    private TextView mUsernameText, mFullnameText, mFriendCountText;
     private ImageView mProfileImage;
     private Button mAddFriendButton;
     private RecyclerView mRecyclerView;
@@ -55,6 +59,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
 
         mUsernameText = findViewById(R.id.username_text_view);
         mFullnameText = findViewById(R.id.fullname_text_view);
+        mFriendCountText = findViewById(R.id.friend_count_text_view);
         mProfileImage = findViewById(R.id.profile_image_view);
         mAddFriendButton = findViewById(R.id.add_friend_button);
         mRecyclerView = findViewById(R.id.post_recycler_view);
@@ -72,7 +77,14 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         // unwrap the post passed in via intent, using its simple name as a key
         mProfileOwnerUid = getIntent().getStringExtra("uid");
         // set variables with content from post
-        findUser();
+        setUserProfileInformation();
+
+        mFriendCountText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addSpinner();
+            }
+        });
 
         // update mAddFriend button to reflect current friend status
         updateTextButton();
@@ -161,9 +173,10 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     }
 
     // go to messages with user if clicked
-    private void goToMessages() {
-        // TODO - use intent to redirect user to message conversation with other user
-    }
+//    private void goToMessages() {
+//        // TODO - use intent to redirect user to message conversation with other user
+//
+//    }
 
     // Method for accepting friend requests. Will update friendStatuses and friendList for both users.
     private void acceptRequest() {
@@ -335,8 +348,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     userFriends = new HashMap<>();
                 userFriends.put(mCurrentUserUid, status);
                 mDatabase.child(path).updateChildren(userFriends);
-                mAddFriendButton.setText(status);
-                mAddFriendButton.setEnabled(false);
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -346,15 +357,14 @@ public class OtherUserProfileActivity extends AppCompatActivity {
     }
 
     // find the profile owner's info and set information on screen
-    public void findUser () {
+    public void setUserProfileInformation () {
         Query query = mDatabase.child("users").child(mProfileOwnerUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
                 mProfileOwnerUid = newUser.get("uid").toString();
-                username = newUser.get("username").toString();
-                mUsernameText.setText(username);
+                mUsernameText.setText("@" + newUser.get("username").toString());
                 mFullnameText.setText(newUser.get("fullname").toString());
                 if (newUser.get("profile_picture")!=null) {
                     String imageUrl = newUser.get("profile_picture").toString();
@@ -371,6 +381,11 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                         }
                     }
                 }
+                long friendCount = dataSnapshot.child("friendList").getChildrenCount();
+                if (friendCount == 1)
+                    mFriendCountText.setText(friendCount + " Friend");
+                else
+                    mFriendCountText.setText(friendCount + " Friends");
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -524,5 +539,58 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             String userTaggedPostPath = "/user-tagged-posts/" + taggedUid + "/" + postRef.getKey();
             onLikeClicked(userTaggedPostQuery, userTaggedPostPath);
         }
+    }
+
+    public void goToMessages () {
+        Query query = FirebaseDatabase.getInstance().getReference("users")
+                .child(mProfileOwnerUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Map<String, Object> user = (Map<String, Object>) dataSnapshot.getValue();
+                String username = user.get("username").toString();
+
+                Intent intent = new Intent(OtherUserProfileActivity.this , MessageDetailsActivity.class);
+                intent.putExtra("uid",mProfileOwnerUid);
+                intent.putExtra("username", username);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
+    }
+
+    private void addSpinner() {
+        Query query = mDatabase.child("users").child(mProfileOwnerUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
+                final ArrayList<String> friendList = new ArrayList<String>();
+                if (friendMap!=null) {
+                    for (String userId : friendMap.keySet()) {
+                        friendList.add(friendMap.get(userId).toString());
+                    }
+                }
+                // spinner
+                final SpinnerDialog spinnerDialog = new SpinnerDialog(OtherUserProfileActivity.this, friendList, "Select Friend");
+                spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
+                    @Override
+                    public void onClick(String s, int i) {
+                        Intent toOtherProfile = new Intent(OtherUserProfileActivity.this, OtherUserProfileActivity.class);
+                        toOtherProfile.putExtra("uid", friendList.get(i));
+                        startActivity(toOtherProfile);
+                    }
+                });
+                spinnerDialog.showSpinerDialog();
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
     }
 }

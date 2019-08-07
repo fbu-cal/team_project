@@ -11,7 +11,7 @@ import java.util.Map;
 public class Conversation {
     public String currentUser;
     public String otherUser;
-    public Date timeStamp;
+    public String timeStamp;
     public String latestMessageText;
 
     public Conversation () {
@@ -48,11 +48,11 @@ public class Conversation {
 //    }
 
 
-    public Date getTimeStamp() {
+    public String getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(Date timeStamp) {
+    public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
     }
 

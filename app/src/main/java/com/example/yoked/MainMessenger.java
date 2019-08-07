@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -72,6 +73,9 @@ public class MainMessenger extends AppCompatActivity {
                 goToSearch();
             }
         });
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle("");
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -237,12 +241,17 @@ public class MainMessenger extends AppCompatActivity {
                         }
                         if (!conversationExists){
                             String conversationKey = mDatabaseReference.child("conversations").push().getKey();
-                            Conversation conversation = new Conversation(currentUserId, receiverId);
-                            Map<String,Object> conversationValues = conversation.toMap();
+                            Conversation conversationCurrentUser = new Conversation(currentUserId, receiverId);
+                            Map<String,Object> conversationCurrentUserValues = conversationCurrentUser.toMap();
+
+                            Conversation conversationReceiverUser = new Conversation(receiverId, currentUserId);
+                            Map<String,Object> conversationReceiverUserValues = conversationReceiverUser.toMap();
 
                             Map<String, Object> childUpdates = new HashMap<>();
 
-                            childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
+                            childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationCurrentUserValues);
+                            childUpdates.put("user-conversations/" + receiverId + "/" + conversationKey, conversationReceiverUserValues);
+
                             mDatabaseReference.updateChildren(childUpdates);
                             //Intent intent = new Intent(context, MessageDetailsActivity.class);
                             //intent.putExtra("conversation", (Parcelable) conversation);
