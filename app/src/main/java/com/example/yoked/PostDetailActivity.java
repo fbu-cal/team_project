@@ -92,8 +92,8 @@ public class PostDetailActivity extends AppCompatActivity {
         mRecycler.setLayoutManager(mManager);
         // Set up FirebaseRecyclerAdapter with the Query
         Query commentsQuery = mDatabase.child("post-comments")
-                                .child(mPostRefKey)
-                                .limitToFirst(100);
+                .child(mPostRefKey)
+                .limitToFirst(100);
         mAdapter = new FirebaseRecyclerAdapter<Comment, CommentViewHolder>(Comment.class, R.layout.item_comment,
                 CommentViewHolder.class, commentsQuery) {
             @Override

@@ -53,77 +53,77 @@ public class MatchActivity extends Activity {
          * maybe profile image
          */
 
-            mMatches = new ArrayList<>();
+        mMatches = new ArrayList<>();
 
-            arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, mMatches);
+        arrayAdapter = new ArrayAdapter<>(this, R.layout.item_choice, R.id.helloText, mMatches);
 
-            /**
-             * Removes the cards from the array here
-             */
-            SwipeFlingAdapterView flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
-            flingContainer.setAdapter(arrayAdapter);
-            flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
+        /**
+         * Removes the cards from the array here
+         */
+        SwipeFlingAdapterView flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
+        flingContainer.setAdapter(arrayAdapter);
+        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
 
-                @Override
-                public void removeFirstObjectInAdapter() {
-                    // this is the simplest way to delete an object from the Adapter (/AdapterView)
-                    Log.d("LIST", "removed object!");
-                    mMatches.remove(0);
-                    arrayAdapter.notifyDataSetChanged();
-                }
-
-                /**
-                 * If it comes out left then the user does not want to
-                 * hangout with them so nothing needs to be done
-                 */
-
-                @Override
-                public void onLeftCardExit(Object dataObject) {
-                    //Do something on the left!
-                    //You also have access to the original object.
-                    //If you want to use it just cast it (String) dataObject
-                    //makeToast, "Left!");
-                    Toast.makeText(MatchActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
-                    //writeNewPost(mUserId, status);
-
-                }
-
-                /**
-                 * If swiped right then add it to somewhere on database
-                 * and check if other user also swiped right
-                 * if they do hit them both with a notification
-                 * if not let them know later
-                 */
-
-                @Override
-                public void onRightCardExit(Object dataObject) {
-                    Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
-                    String dataDigest = (String) dataObject;
-                    String otherUserName = dataDigest.split(" ")[0];
-                    rightUserMatch(otherUserName);
-                    //writeNewPost(mUserId, otherUserId, );
-                }
-
-                @Override
-                public void onAdapterAboutToEmpty(int itemsInAdapter) {
-                }
-
-                @Override
-                public void onScroll(float scrollProgressPercent) {
-
-                }
-            });
-
+            @Override
+            public void removeFirstObjectInAdapter() {
+                // this is the simplest way to delete an object from the Adapter (/AdapterView)
+                Log.d("LIST", "removed object!");
+                mMatches.remove(0);
+                arrayAdapter.notifyDataSetChanged();
+            }
 
             /**
-             * Can implement a closer look if wanted here
+             * If it comes out left then the user does not want to
+             * hangout with them so nothing needs to be done
              */
-            flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClicked(int itemPosition, Object dataObject) {
 
-                }
-            });
+            @Override
+            public void onLeftCardExit(Object dataObject) {
+                //Do something on the left!
+                //You also have access to the original object.
+                //If you want to use it just cast it (String) dataObject
+                //makeToast, "Left!");
+                Toast.makeText(MatchActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
+                //writeNewPost(mUserId, status);
+
+            }
+
+            /**
+             * If swiped right then add it to somewhere on database
+             * and check if other user also swiped right
+             * if they do hit them both with a notification
+             * if not let them know later
+             */
+
+            @Override
+            public void onRightCardExit(Object dataObject) {
+                Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
+                String dataDigest = (String) dataObject;
+                String otherUserName = dataDigest.split(" ")[0];
+                rightUserMatch(otherUserName);
+                //writeNewPost(mUserId, otherUserId, );
+            }
+
+            @Override
+            public void onAdapterAboutToEmpty(int itemsInAdapter) {
+            }
+
+            @Override
+            public void onScroll(float scrollProgressPercent) {
+
+            }
+        });
+
+
+        /**
+         * Can implement a closer look if wanted here
+         */
+        flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClicked(int itemPosition, Object dataObject) {
+
+            }
+        });
     }
 
     private void getUserMatch () {

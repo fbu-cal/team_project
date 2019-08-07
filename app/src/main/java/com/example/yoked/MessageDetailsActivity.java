@@ -110,9 +110,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
 //                                    // User is null, error out
 //                                    Log.e("MessageDetailsActivity", "User " + senderId + " is unexpectedly null");
 //                                } else {
-                                    // Write new message
+                                // Write new message
 
-                                    sendMessage(senderId, receiverId ,user.username, messageText);
+                                sendMessage(senderId, receiverId ,user.username, messageText);
                                 //}
                             }
 
@@ -157,40 +157,40 @@ public class MessageDetailsActivity extends AppCompatActivity {
                 final Query messagesQuery = getQuery( mDatabaseReference, currentUser, receiverId);//Do something after 100ms
 
 
-        Log.i("MessageDetailsActivity", messagesQuery.toString());
+                Log.i("MessageDetailsActivity", messagesQuery.toString());
 
-        messagesQuery.addChildEventListener(new ChildEventListener() {
-            // Retrieve new messages as they are added to Firebase
-            //@Override
-            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-                Map<String, Object> newMessage = (Map<String, Object>) snapshot.getValue();
-                Log.i("MessageDetailsActivity", "Username: " + newMessage.get("username"));
+                messagesQuery.addChildEventListener(new ChildEventListener() {
+                    // Retrieve new messages as they are added to Firebase
+                    //@Override
+                    public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
+                        Map<String, Object> newMessage = (Map<String, Object>) snapshot.getValue();
+                        Log.i("MessageDetailsActivity", "Username: " + newMessage.get("username"));
 
-                mMessages.add(newMessage);
-                mMessageAdapter.notifyItemInserted(mMessages.size()-1);
-                Log.i("MessageDetailsActivity", "" + mMessages.size());
+                        mMessages.add(newMessage);
+                        mMessageAdapter.notifyItemInserted(mMessages.size()-1);
+                        Log.i("MessageDetailsActivity", "" + mMessages.size());
 
 
-                System.out.println("Author: " + newMessage.get("username"));
-                System.out.println("Title: " + newMessage.get("messageText"));
-            }
+                        System.out.println("Author: " + newMessage.get("username"));
+                        System.out.println("Title: " + newMessage.get("messageText"));
+                    }
 
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    }
 
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                    }
 
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    }
+                });
             }
         }, 100);
     }
