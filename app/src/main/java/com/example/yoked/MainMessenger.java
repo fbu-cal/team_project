@@ -74,7 +74,6 @@ public class MainMessenger extends AppCompatActivity {
             public void onClick(View v) {
 //                Intent intent = new Intent(MainMessenger.this, SearchActivity.class);
 //                startActivity(intent);
-                Log.i("searchButton","Click successful");
                 goToSearch();
             }
         });

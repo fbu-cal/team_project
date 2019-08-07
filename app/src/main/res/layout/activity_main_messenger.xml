@@ -20,7 +20,7 @@
             android:contentDescription="Yoked"
             android:layout_height="65dp"
             android:layout_gravity="center"
-            android:src="@drawable/yoked_title_graphic"/>
+            android:src="@drawable/messages_feature_graphic"/>
 
     </android.support.v7.widget.Toolbar>
 
