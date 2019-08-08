@@ -94,7 +94,9 @@ public class PostsFragment extends Fragment {
         checkBadgeStatus();
 
         // Set up FirebaseRecyclerAdapter with the Query
-        Query postsQuery = getQuery(mDatabase);
+        Query postsQuery = mDatabase.child("user-feed")
+                .child(mUserId)
+                .limitToFirst(100);
         mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
                 PostViewHolder.class, postsQuery) {
             @Override
@@ -249,15 +251,6 @@ public class PostsFragment extends Fragment {
                     public void onCancelled(DatabaseError databaseError) {
                     }
                 });
-    }
-
-    public Query getQuery(DatabaseReference databaseReference) {
-        // Last 100 posts, these are automatically the 100 most recent
-        // due to sorting by push() keys
-        Query recentPostsQuery = databaseReference.child("user-feed")
-                .child(mUserId)
-                .limitToFirst(100);
-        return recentPostsQuery;
     }
 
     @Override
