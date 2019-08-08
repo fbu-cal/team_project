@@ -38,7 +38,7 @@ public class PostDetailActivity extends AppCompatActivity {
     private TextView mFullname, mUsername, mBody, mTagged, mTime, mLikeCount, mCommentCount;
     private EditText mCommentEditText;
     private ImageView mProfileImage, mPostImage;
-    private ImageButton mLikeButton, mCommentButton;
+    private ImageButton mLikeButton, mCommentButton, mBackButton;
     private Button mPostCommentButton;
 
     private DatabaseReference mDatabase;
@@ -71,6 +71,7 @@ public class PostDetailActivity extends AppCompatActivity {
         mCommentButton = findViewById(R.id.comment_image_button);
         mCommentEditText = findViewById(R.id.comment_edit_text);
         mPostCommentButton = findViewById(R.id.post_comment_button);
+        mBackButton = findViewById(R.id.back_image_button);
 
         // get uid from intent
         Intent intent = getIntent();
@@ -137,6 +138,14 @@ public class PostDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 goToTaggedProfile();
+            }
+        });
+
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent toHome = new Intent (PostDetailActivity.this, MainActivity.class);
+                startActivity(toHome);
             }
         });
 

@@ -178,12 +178,12 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
     private void checkData() {
         Log.i("CalendarActivity", "mPosts: " + mPosts.get("fridayMorning"));
         Log.i("CalendarActivity", "mPosts: " + mPosts);
-        int grayColor = Color.argb(200, 200, 200, 200);
+        int yokedYellow = Color.argb(255, 253, 174, 19);
         for (int i = 0; i < mAllTimesList.size(); i++) {
             // if the time is in the user's calendar, add to available times and tint button
             if (mPosts.get(mAllTimesList.get(i))) {
                 addToAvailableTimes(mAllTimesList.get(i));
-                tintImageButton(mAllButtonsList.get(i), grayColor);
+                tintImageButton(mAllButtonsList.get(i), yokedYellow);
             }
         }
     }
@@ -222,7 +222,7 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
                 deleteCount++;
             } else {
                 addToAvailableTimes(time);
-                button.setColorFilter(Color.argb(200, 200, 200, 200));
+                button.setColorFilter(Color.argb(255, 253, 174, 19));
             }
         }
     }

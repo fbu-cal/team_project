@@ -52,10 +52,12 @@ public class ProfilePictureActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Bitmap imageBitmap = null;
+        // from camera
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == this.RESULT_OK) {
             Bundle extras = data.getExtras();
             imageBitmap = (Bitmap) extras.get("data");
         }
+        // from gallery
         else if (requestCode == REQUEST_IMAGE_UPLOAD) {
             if (data != null) {
                 try {
@@ -68,7 +70,8 @@ public class ProfilePictureActivity extends AppCompatActivity {
         // Configure byte output stream
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         // Compress the image further
-        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+        // TODO - CHANGE TO HIGHER QUALITY FOR REAL
+        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
         int dimension = getSquareCropDimensionForBitmap(imageBitmap);
         Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
         mProfileImageView.setImageBitmap(croppedBitmap);

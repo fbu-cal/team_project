@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.example.yoked.models.Notification;
 import com.example.yoked.models.Post;
 import com.example.yoked.models.User;
+import com.example.yoked.models.Utilities;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -110,9 +111,9 @@ public class ComposePostActivity extends AppCompatActivity {
                                 if (user == null) {
                                     // User is null, error out
                                     Log.e("ComposeFragment", "User " + userId + " is unexpectedly null");
-                                    Toast.makeText(ComposePostActivity.this,
-                                            "Error: could not fetch user.",
-                                            Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(ComposePostActivity.this,
+//                                            "Error: could not fetch user.",
+//                                            Toast.LENGTH_SHORT).show();
                                 } else {
                                     // Write new post
                                     writeNewPost(userId, user.username, description, mImageEncoded);
@@ -146,7 +147,7 @@ public class ComposePostActivity extends AppCompatActivity {
                 spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
                     @Override
                     public void onClick(String s, int i) {
-                        Toast.makeText(ComposePostActivity.this, "Selected: " + s, Toast.LENGTH_LONG);
+                        // Toast.makeText(ComposePostActivity.this, "Selected: " + s, Toast.LENGTH_LONG);
                         mTagFriendButton.setText("Tagged @" + s);
                     }
                 });
@@ -168,10 +169,13 @@ public class ComposePostActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Bitmap imageBitmap = null;
+        // from camera
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             imageBitmap = (Bitmap) extras.get("data");
+            // imageBitmap = Utilities.rotateImage(imageBitmap, 90);
         }
+        // from gallery
         else if (requestCode == REQUEST_IMAGE_UPLOAD) {
             if (data != null) {
                 try {
@@ -185,6 +189,7 @@ public class ComposePostActivity extends AppCompatActivity {
         if (imageBitmap != null) {
             // compress bitmap
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            // TODO - CHANGE TO HIGHER QUALITY FOR REAL
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
             // crop bitmap and encode
             int dimension = getSquareCropDimensionForBitmap(imageBitmap);
@@ -272,14 +277,14 @@ public class ComposePostActivity extends AppCompatActivity {
                 mDatabase.updateChildren(childUpdates);
                 // update user-feed
                 updateAllFeeds(postValues, key);
-                Toast.makeText(ComposePostActivity.this, "Post Successful!", Toast.LENGTH_LONG).show();
+                // Toast.makeText(ComposePostActivity.this, "Post Successful!", Toast.LENGTH_LONG).show();
                 mDescription.setText("");
             }
             Intent launchPosts = new Intent(ComposePostActivity.this, MainActivity.class);
             startActivity(launchPosts);
         }
         else {
-            Toast.makeText(ComposePostActivity.this, "Post Unsuccessful! Missing image or description!", Toast.LENGTH_LONG).show();
+            // Toast.makeText(ComposePostActivity.this, "Post Unsuccessful! Missing image or description!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -323,14 +328,6 @@ public class ComposePostActivity extends AppCompatActivity {
         return Math.min(bitmap.getWidth(), bitmap.getHeight());
     }
 
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
-    }
-
     private void sendFirebaseNotification(final String fromUid, final String toUid, final String body, final String key) {
         Query query = mDatabase.child("users").child(fromUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -363,7 +360,7 @@ public class ComposePostActivity extends AppCompatActivity {
         childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
         mDatabase.updateChildren(childUpdates);
         // update user-feed
-        Toast.makeText(ComposePostActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
+        // Toast.makeText(ComposePostActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
     }
 
 }

@@ -136,14 +136,9 @@ public class MyTagsFragment extends Fragment {
     private void goToTaggedProfile(Post model) {
         final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String taggedFriendUid = model.taggedFriendUid;
-        if (taggedFriendUid.equals(currentUid)) {
-            Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
-        }
-        else {
-            Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
-            toOtherProfile.putExtra("uid", taggedFriendUid);
-            startActivity(toOtherProfile);
-        }
+        Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
+        toOtherProfile.putExtra("uid", taggedFriendUid);
+        startActivity(toOtherProfile);
     }
 
     private void onLikeClicked (Query query, final String path) {
