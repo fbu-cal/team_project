@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                            // Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
                             mProgressBar.setVisibility(View.GONE);
 
                             // reset edit texts to blank
@@ -78,7 +78,7 @@ public class LoginActivity extends AppCompatActivity {
                             startActivity(intent);
                         }
                         else {
-                            Toast.makeText(getApplicationContext(), "Login failed! Please try again later", Toast.LENGTH_LONG).show();
+                            // Toast.makeText(getApplicationContext(), "Login failed! Please try again later", Toast.LENGTH_LONG).show();
                             mProgressBar.setVisibility(View.GONE);
                         }
                     }
