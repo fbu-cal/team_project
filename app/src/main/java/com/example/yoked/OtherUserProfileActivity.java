@@ -104,7 +104,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         getUserCalendar();
     }
 
-    private void setUpRecycler(final ArrayList freeTime) {
+    private void setUpRecycler(final String freeTime) {
         // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = mDatabase.child("user-posts")
                 .child(mProfileOwnerUid)
@@ -194,8 +194,10 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 if (currentUserCalendar != null) {
                     if ((HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime") != null) {
                         currentUserFreeTime = (HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime");
-                        getATime(currentUserCalendar);
+                        getATime(currentUserFreeTime);
                     }
+                } else {
+                    setUpRecycler(null);
                 }
             }
 
@@ -206,53 +208,72 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         });
     }
     private void getATime(HashMap currentUserCalendar) {
-        ArrayList freeTime = new ArrayList();
+        String freeTime = null;
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("fridayMorning")) {
-                freeTime.add("Friday Morning");
+            if (currentUserCalendar.containsKey("fridayMorning")) {
+                if ((boolean) currentUserCalendar.get("fridayMorning")) {
+                    freeTime = "Friday Morning";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("fridayAfternoon")) {
-                freeTime.add("Friday Afternoon");
+            if (currentUserCalendar.containsKey("fridayAfternoon")) {
+                if ((boolean) currentUserCalendar.get("fridayAfternoon")) {
+                    freeTime = "Friday Afternoon";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("fridayEvening")) {
-                freeTime.add("Friday Evening");
+            if (currentUserCalendar.containsKey("fridayEvening")) {
+                if ((boolean) currentUserCalendar.get("fridayEvening")) {
+                    freeTime = "Friday Evening";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("saturdayMorning")) {
-                freeTime.add("Saturday Morning");
+            if (currentUserCalendar.containsKey("saturdayMorning")) {
+                if ((boolean) currentUserCalendar.get("saturdayMorning")) {
+                    freeTime = "Saturday Morning";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("saturdayAfternoon")) {
-                freeTime.add("Saturday Afternoon");
+            if (currentUserCalendar.containsKey("saturdayAfternoon")) {
+                if ((boolean) currentUserCalendar.get("saturdayAfternoon")) {
+                    freeTime = "Saturday Afternoon";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("saturdayEvening")) {
-                freeTime.add("Saturday Evening");
+            if (currentUserCalendar.containsKey("saturdayEvening")) {
+                if ((boolean) currentUserCalendar.get("saturdayEvening")) {
+                    freeTime = "Saturday Evening";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("sundayMorning")) {
-                freeTime.add("Sunday Morning");
+            if (currentUserCalendar.containsKey("sundayMorning")) {
+                if ((boolean) currentUserCalendar.get("sundayMorning")) {
+                    freeTime = "Sunday Morning";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("sundayAfternoon")) {
-                freeTime.add("Sunday Afternoon");
+            if (currentUserCalendar.containsKey("sundayAfternoon")) {
+                if ((boolean) currentUserCalendar.get("sundayAfternoon")) {
+                    freeTime = "Sunday Afternoon";
+                }
             }
         }
         if (freeTime == null) {
-            if ((boolean) currentUserCalendar.get("sundayEvening")) {
-                freeTime.add("Sunday Evening");
+            if (currentUserCalendar.containsKey("sundayEvening")) {
+                if ((boolean) currentUserCalendar.get("sundayEvening")) {
+                    freeTime = "Sunday Evening";
+                }
             }
         }
         setUpRecycler(freeTime);
+
     }
 
 
@@ -625,7 +646,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         }
     }
 
-    public void goToMessages (final ArrayList freeTime) {
+    public void goToMessages (final String freeTime) {
         Query query = FirebaseDatabase.getInstance().getReference("users")
                 .child(mProfileOwnerUid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
@@ -636,7 +657,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 String username = user.get("username").toString();
                 String message = "";
                 if (freeTime != null) {
-                    message = "Hey, lets hang out! I am free at " + freeTime;
+                    message = "Hey, lets hang out! I am free on " + freeTime;
                 } else {
                     message = "Hey, lets hang out!";
                 }

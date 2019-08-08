@@ -23,6 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +106,41 @@ public class MatchArrayAdapter extends ArrayAdapter<Match> {
                 Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
             }
         });
-        holder.mTimeText.setText(match.freeTime);
+        String formattedTime = getATime(match.freeTime);
+        holder.mTimeText.setText(formattedTime);
+    }
+
+    private String getATime(String freeTime) {
+        if (freeTime.equals("fridayMorning")) {
+            return "Friday Morning";
+        }
+        if (freeTime.equals("fridayAfternoon")) {
+            return "Friday Afternoon";
+        }
+        if (freeTime.equals("fridayEvening")) {
+            return "Friday Evening";
+        }
+
+        if (freeTime.equals("saturdayMorning")) {
+            return "Saturday Morning";
+        }
+        if (freeTime.equals("saturdayAfternoon")) {
+            return "Saturday Afternoon";
+        }
+        if (freeTime.equals("saturdayEvening")) {
+            return "Saturday Evening";
+        }
+
+        if (freeTime.equals("SundayMorning")) {
+            return "Sunday Morning";
+        }
+        if (freeTime.equals("SundayAfternoon")) {
+            return "Sunday Afternoon";
+        }
+        if (freeTime.equals("SundayEvening")) {
+            return "Sunday Evening";
+        }
+        return " ";
     }
 
 }

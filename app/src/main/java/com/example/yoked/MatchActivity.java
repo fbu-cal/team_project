@@ -101,7 +101,11 @@ public class MatchActivity extends Activity {
                     //If you want to use it just cast it (String) dataObject
                     //makeToast, "Left!");
                     Toast.makeText(MatchActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
+                    Match dataDigest = (Match) dataObject;
+                    String uid = ((Match) dataObject).otherUserId;
+                    getOtherUsernameForRightSwipe(uid, true);
                     //writeNewPost(mUserId, status);
+
 
                 }
 
@@ -117,7 +121,7 @@ public class MatchActivity extends Activity {
                     Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
                     Match dataDigest = (Match) dataObject;
                     String uid = ((Match) dataObject).otherUserId;
-                    getOtherUsernameForRightSwipe(uid);
+                    getOtherUsernameForRightSwipe(uid, false);
 //                    String otherUserName = dataDigest.split(" ")[0];
                     //rightUserMatch(otherUserName);
                     //writeNewPost(mUserId, otherUserId, );
@@ -164,10 +168,15 @@ public class MatchActivity extends Activity {
                                 String freeTime = matchValueCurrent.get("freeTime").toString();
                                 Boolean currentUserStatus = (Boolean) matchValueCurrent.get("currentUserStatus");
                                 Boolean otherUserStatus = (Boolean) matchValueCurrent.get("otherUserStatus");
+                                Boolean finished = (Boolean) matchValueCurrent.get("finished");
 
-                                Match match = new Match (userId, otherUserId, freeTime, currentUserStatus, otherUserStatus);
-                                mMatches.add(match);
-                                arrayAdapter.notifyDataSetChanged();
+                                if (!finished) {
+                                    Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus, finished);
+                                    mMatches.add(match);
+                                    arrayAdapter.notifyDataSetChanged();
+                                } else {
+                                    deleteNotif(otherUserId);
+                                }
 
                                 Log.i("MatchActivity", "match info loop: " + matchValueCurrent);
                             }
@@ -181,32 +190,48 @@ public class MatchActivity extends Activity {
         });
     }
 
-//    private void getUserInfo(final HashMap matchHold) {
-//        String otherUserId = (String) matchHold.get("otherUserId");
-//        Log.i("MatchActivity", "other user Id: " + matchHold.get("otherUserId"));
-//        mReference.child("users").child(otherUserId).addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                HashMap<String, Object> userInfo = null;
-//                if (dataSnapshot != null) {
-//                    userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
-//                    if (userInfo != null) {
-//                        mNameToId.put((String) userInfo.get("username"), (String) matchHold.get("otherUserId"));
-//                        String timeAndName =  userInfo.get("username") + " @ " + matchHold.get("freeTime");
-//
-//                        mMatches.add(timeAndName);
-//                        arrayAdapter.notifyDataSetChanged();
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//            }
-//        });
-//    }
+    private void deleteNotif(final String otherUserId) {
+        mReference.child("user-notifications").child(mUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    //current id == toUid
+                    if (data.getValue() != null) {
+                        Map<String, Object> notifInfo = (Map<String, Object>) data.getValue();
+                        if (mUserId.equals(notifInfo.get("toUid"))) {
+                            if (otherUserId.equals(notifInfo.get("fromUid"))) {
+                                String notifKey = data.getKey();
+                                DatabaseReference deleteUserNotif = FirebaseDatabase.getInstance().getReference
+                                        ("user-notifications").child(mUserId).child(notifKey);
+                                deleteUserNotif.removeValue();
+                            }
+                        }
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-    private void rightUserMatch (final String otherUserName, final String otherUserId) {
+            }
+        });
+    }
+
+    private void getOtherUsernameForRightSwipe(final String otherUserUid, final Boolean finished) {
+        Query query = mReference.child("users").child(otherUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                rightUserMatch(newUser.get("username").toString(), otherUserUid, finished);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+
+    private void rightUserMatch (final String otherUserName, final String otherUserId, final boolean finished) {
         //String matchKey = mReference.child("user-match/" + userId).push().getKey();
         //Log.i("MatchActivity", "key: " + matchKey);
         mReference.child("user-match").child(mUserId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -216,12 +241,20 @@ public class MatchActivity extends Activity {
                 if (matchInfo != null) {
                     HashMap<String, Object> dataToWrite =
                             (HashMap<String, Object>) matchInfo.get(otherUserId);
-                    writeNewPost(mUserId, otherUserId, (String)dataToWrite.get("freeTime"),
-                            true, (Boolean) dataToWrite.get("otherUserStatus"));
-                    writeNewPost(otherUserId, mUserId, (String)dataToWrite.get("freeTime"),
-                            (Boolean) dataToWrite.get("otherUserStatus"), true);
-                    if ((Boolean) dataToWrite.get("otherUserStatus")) {
-                        getCurrentUsername(otherUserId, otherUserName);
+                    if (!finished) {
+                        writeNewPost(mUserId, otherUserId, (String) dataToWrite.get("freeTime"),
+                                true, (Boolean) dataToWrite.get("otherUserStatus"), finished);
+                        writeNewPost(otherUserId, mUserId, (String) dataToWrite.get("freeTime"),
+                                (Boolean) dataToWrite.get("otherUserStatus"), true, finished);
+                        if ((Boolean) dataToWrite.get("otherUserStatus")) {
+                            getCurrentUsername(otherUserId, otherUserName);
+                        }
+                    } else {
+                        writeNewPost(mUserId, otherUserId, (String) dataToWrite.get("freeTime"),
+                                false, (Boolean) dataToWrite.get("otherUserStatus"), finished);
+                        writeNewPost(otherUserId, mUserId, (String) dataToWrite.get("freeTime"),
+                                (Boolean) dataToWrite.get("otherUserStatus"), false, finished);
+                        deleteNotif(otherUserId);
                     }
                 }
             }
@@ -231,27 +264,12 @@ public class MatchActivity extends Activity {
         });
     }
 
-    private void getOtherUsernameForRightSwipe(final String otherUserUid) {
-        Query query = mReference.child("users").child(otherUserUid);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
-                rightUserMatch(newUser.get("username").toString(), otherUserUid);
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
-            }
-        });
-    }
-
     private void getCurrentUsername(final String otherUserId, final String otherUserName) {
         mReference.child("users").child(mUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 HashMap<String, Object> userInfo = null;
-                String matchBody = "Click here to be redirected to messages";
+                String matchBody = "Click here to go to messages";
                 if (dataSnapshot != null) {
                     userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
                     if (userInfo != null) {
@@ -274,8 +292,8 @@ public class MatchActivity extends Activity {
      */
 
     private void writeNewPost(String userId, String otherUserId, String freeTime,
-                              Boolean currentUserStatus, Boolean otherUserStatus) {
-        Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus);
+                              Boolean currentUserStatus, Boolean otherUserStatus, Boolean finished) {
+        Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus, finished);
         Map<String, Object> postValues = match.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         //childUpdates.put("/match/", postValues);

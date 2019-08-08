@@ -3,6 +3,7 @@ package com.example.yoked.fragments;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.yoked.MainActivity;
+import com.example.yoked.MessageDetailsActivity;
 import com.example.yoked.NotificationViewHolder;
 import com.example.yoked.OtherUserProfileActivity;
 import com.example.yoked.PostDetailActivity;
@@ -35,6 +37,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import static android.view.View.GONE;
 
@@ -98,18 +101,11 @@ public class NotificationFragment extends Fragment {
                             markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                         }
                         if (model.type.equals("match")) {
-                            Intent intent = new Intent(getActivity(), MatchActivity.class);
-                            //intent.putExtra("hashMap", mMatches);
-                            //intent.putExtra("idToName", mIdToName);
-                            startActivity(intent);
-                            markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                            // Todo add a done so it no apear
+                            findmatch(viewHolder, model, notifRef);
                         }
                         if (model.type.equals("final match")) {
-                            Intent intent = new Intent(getActivity(), MainMessenger.class);
-                            //intent.putExtra("hashMap", mMatches);
-                            //intent.putExtra("idToName", mIdToName);
-                            startActivity(intent);
-                            markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                            findUserName(viewHolder, model, notifRef);
                         }
                         // TODO - implement on click for other types (Calendar Match & Message)
                     }
@@ -126,6 +122,52 @@ public class NotificationFragment extends Fragment {
             }
         };
         mRecycler.setAdapter(mAdapter);
+
+    }
+
+    private void findmatch(final NotificationViewHolder viewHolder, final Notification model, final DatabaseReference notifRef) {
+        mDatabase.child("user-match").child(model.toUid).child(model.fromUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                HashMap<String, Object> matchInfo = (HashMap<String, Object>) dataSnapshot.getValue();
+                if (matchInfo != null) {
+                    if ((Boolean) matchInfo.get("currentUserStatus")) {
+                        findUserName(viewHolder, model, notifRef);
+                    } else {
+                        Intent intent = new Intent(getActivity(), MatchActivity.class);
+                        startActivity(intent);
+                        markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void findUserName(final NotificationViewHolder viewHolder, final Notification model, final DatabaseReference notifRef) {
+        mDatabase.child("users").child(model.fromUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                HashMap<String, Object> userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
+                if (userInfo != null) {
+                    String username = (String) userInfo.get("username");
+                    Intent intent = new Intent(getActivity(), MessageDetailsActivity.class);
+                    intent.putExtra("uid", model.fromUid);
+                    intent.putExtra("username", username);
+                    startActivity(intent);
+                    markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
     }
 

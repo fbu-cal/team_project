@@ -2,7 +2,6 @@ package com.example.yoked.fragments;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -17,14 +16,20 @@ import android.widget.Toast;
 import com.example.yoked.MainActivity;
 import com.example.yoked.R;
 import com.example.yoked.models.Calendar;
+import com.example.yoked.models.Match;
+import com.example.yoked.models.NotifMatch;
+import com.example.yoked.models.Notification;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +99,8 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onClick(View v) {
                 if (mFreeTime.size() != 0 || deleteCount > 0) {
-                    writeNewPost(userId, mFreeTime);
+                    getCurrentUserData();
+                    writeNewCalendarCheck(userId, mFreeTime);
                     Toast.makeText(getActivity(), "data inserted successfully", Toast.LENGTH_LONG).show();
                 }
             }
@@ -131,7 +137,7 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 mNewCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
                 if (mNewCalendar != null) {
-                    if ( mNewCalendar.get("mFreeTime") != null) {
+                    if (mNewCalendar.get("mFreeTime") != null) {
                         mPosts = (HashMap<String, Boolean>) mNewCalendar.get("mFreeTime");
                         makeComplete();
                         Log.i("CalendarActivity", "mPosts: " + mPosts);
@@ -194,7 +200,7 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
      *  the structure of the data base is decided with the
      *  child updates , then it launches to the home screen
      */
-    private void writeNewPost(String userId, HashMap mFreeTime) {
+    private void writeNewCalendarCheck(String userId, HashMap mFreeTime) {
         deleteCalendar();
         String calendarKey = mReference.child("calendar").push().getKey();
         Calendar calendar = new Calendar(userId, mFreeTime);
@@ -258,6 +264,305 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
         mAllButtonsList.add(mSundayMorning);
         mAllButtonsList.add(mSundayAfternoon);
         mAllButtonsList.add(mSundayEvening);
+    }
+
+
+    /**
+     * This is where I can get current user info like friends
+     */
+    private void getCurrentUserData() {
+        mReference.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.child("friendList").getValue() != null) {
+                    String currentName = (String) dataSnapshot.child("fullname").getValue();
+                    Map<String, String> friendList = (Map<String, String>) dataSnapshot.child("friendList").getValue();
+                    if (friendList != null) {
+                        if (friendList.size() > 0) {
+                            for (String friendUid : friendList.keySet()) {
+                                String otherUserId = friendUid;
+                                String friendName = friendList.get(friendUid);
+                                //writeNewPost(mUserId, status);
+                                getUserCalendar(friendUid, friendName, currentName);
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    /**
+     * In this method I just want to get the current users free time
+     * and the one they are communicating with, this calls make complete
+     * which sets the times they are not free to false to not get
+     * a null pointer, checkFunc checks overlapping times and adds to
+     * the array to display
+     */
+
+    private void getUserCalendar(final String otherUserId, final String friendName, final String currentName) {
+        mReference.child("user-calendar/").
+                child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                HashMap<String, Object> currentUserCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                HashMap<String, Boolean> currentUserFreeTime = null;
+                if (currentUserCalendar != null) {
+                    if ((HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime") != null) {
+                        currentUserFreeTime = (HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime");
+                    }
+                    if (currentUserCalendar != null) {
+                        getOtherUserCalendar(otherUserId, currentUserFreeTime, friendName, currentName);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getOtherUserCalendar(final String otherUserId, final HashMap currentUserFreeTime,
+                                      final String friendName, final String currentName) {
+        mReference.child("user-calendar").child(otherUserId).
+                addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        HashMap<String, Object> otherUserCalendar = (HashMap<String, Object>) dataSnapshot.getValue();
+                        HashMap<String, Boolean> otherUserTime = null;
+                        if (otherUserCalendar != null) {
+                            if (otherUserCalendar.get("mFreeTime") != null) {
+                                otherUserTime = (HashMap<String, Boolean>) otherUserCalendar.get("mFreeTime");
+                                makeCompleteCheck(currentUserFreeTime, otherUserTime, otherUserId, friendName, currentName);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    /**
+     * This puts false on the times the users is not free,
+     * so there is no null pointer, this is called by getUserCalendar
+     */
+
+    private void makeCompleteCheck(HashMap currentUserFreeTime, HashMap otherUserTime, String otherUserId,
+                              String friendName, String currentName) {
+        if (!currentUserFreeTime.containsKey("fridayMorning")) {
+            currentUserFreeTime.put("fridayMorning", false);
+        }
+        if (!currentUserFreeTime.containsKey("fridayAfternoon")) {
+            currentUserFreeTime.put("fridayAfternoon", false);
+        }
+        if (!currentUserFreeTime.containsKey("fridayEvening")) {
+            currentUserFreeTime.put("fridayEvening", false);
+        }
+        if (!currentUserFreeTime.containsKey("saturdayMorning")) {
+            currentUserFreeTime.put("saturdayMorning", false);
+        }
+        if (!currentUserFreeTime.containsKey("saturdayAfternoon")) {
+            currentUserFreeTime.put("saturdayAfternoon", false);
+        }
+        if (!currentUserFreeTime.containsKey("saturdayEvening")) {
+            currentUserFreeTime.put("saturdayEvening", false);
+        }
+        if (!currentUserFreeTime.containsKey("sundayMorning")) {
+            currentUserFreeTime.put("sundayMorning", false);
+        }
+        if (!currentUserFreeTime.containsKey("sundayAfternoon")) {
+            currentUserFreeTime.put("sundayAfternoon", false);
+        }
+        if (!currentUserFreeTime.containsKey("sundayEvening")) {
+            currentUserFreeTime.put("sundayEvening", false);
+        }
+
+        //I could not add an and because the users data is different
+        if (!otherUserTime.containsKey("fridayMorning")) {
+            otherUserTime.put("fridayMorning", false);
+        }
+        if (!otherUserTime.containsKey("fridayAfternoon")) {
+            otherUserTime.put("fridayAfternoon", false);
+        }
+        if (!otherUserTime.containsKey("fridayEvening")) {
+            otherUserTime.put("fridayEvening", false);
+        }
+        if (!otherUserTime.containsKey("saturdayMorning")) {
+            otherUserTime.put("saturdayMorning", false);
+        }
+        if (!otherUserTime.containsKey("saturdayAfternoon")) {
+            otherUserTime.put("saturdayAfternoon", false);
+        }
+        if (!otherUserTime.containsKey("saturdayEvening")) {
+            otherUserTime.put("saturdayEvening", false);
+        }
+        if (!otherUserTime.containsKey("sundayMorning")) {
+            otherUserTime.put("sundayMorning", false);
+        }
+        if (!otherUserTime.containsKey("sundayAfternoon")) {
+            otherUserTime.put("sundayAfternoon", false);
+        }
+        if (!otherUserTime.containsKey("sundayEvening")) {
+            otherUserTime.put("sundayEvening", false);
+        }
+        checkFuncNotif(currentUserFreeTime, otherUserTime, otherUserId, friendName, currentName);
+    }
+
+    /**
+     * anyMatchCheck is an int that checks if they have any times they can hang
+     * if they can't then it puts the status as denied, this helps because it cuts
+     * loops short and helps performance, so the first if checks if they have that
+     * matching time, if they do i add the user to an array, the next loop checks
+     * if it is in it for that time already, if it is not then it wont add it,
+     * this is important bc we only want it the first time it runs and catches it
+     */
+
+    private void checkFuncNotif(HashMap currentUserFreeTime, HashMap otherUserTime, String otherUserId,
+                           String friendName, String currentName) {
+        Log.i("CalendarActivity", "!!!Map: " + currentUserFreeTime);
+        int anyMatchCheck = 0;
+        String freeTime = null;
+
+        for (String timeKey : mAllTimesList) {
+            if (freeTime == null) {
+                if ( (Boolean) currentUserFreeTime.get(timeKey) && (Boolean) otherUserTime.get(timeKey)) {
+                    freeTime = timeKey;
+                    anyMatchCheck++;
+                }
+            }
+        }
+        if (anyMatchCheck > 0) {
+            getOtherUserStatus(otherUserId, freeTime);
+            checkNotification(friendName, otherUserId, currentName);
+        }
+    }
+
+    private void checkNotification(final String friendName, final String otherUserId, final String currentName) {
+        mReference.child("user-notif-match").child(userId).child(otherUserId).
+                addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        String swipeMessage = "Click here to swipe";
+                        HashMap<String, Object> notifSentCheck = (HashMap<String, Object>) dataSnapshot.getValue();
+                        if (notifSentCheck == null) {
+                            sendNotification(userId, otherUserId, swipeMessage, currentName);
+                            sendNotification(otherUserId, userId, swipeMessage , friendName);
+                            writeNotifSent(userId, otherUserId, true);
+                            writeNotifSent(otherUserId, userId, true);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+
+    /**
+     * mOtherUserStatus would be a hash map of their user comparing with status with all users
+     */
+
+    private void getOtherUserStatus(final String otherUserId, final String freeTime) {
+        //String matchKey = mReference.child("user-match/" + userId).push().getKey();
+        //Log.i("MatchActivity", "key: " + matchKey);
+        mReference.child("user-match").child(userId).child(otherUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                HashMap<String, Object> otherUserCheck = (HashMap<String, Object>) dataSnapshot.getValue();
+                Boolean otherUserStatus = false;
+                Boolean currentUserStatus = false;
+                Boolean finished = false;
+                if (otherUserCheck != null) {
+                    if (otherUserCheck.containsKey("otherUserStatus")) {
+                        otherUserStatus = (Boolean) otherUserCheck.get("otherUserStatus");
+                    }
+                    if (otherUserCheck.containsKey("currentUserStatus")) {
+                        currentUserStatus = (Boolean) otherUserCheck.get("currentUserStatus");
+                    }
+                    if (otherUserCheck.containsKey("finished")) {
+                        finished = (Boolean) otherUserCheck.get("finished");
+                    }
+                }
+                writeNewCalendarCheck(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus, finished);
+                writeNewCalendarCheck(otherUserId, userId, freeTime, otherUserStatus, currentUserStatus, finished);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void writeNotifSent(String userId, String otherUserId, boolean check) {
+        NotifMatch notifMatch = new NotifMatch(userId, otherUserId, check);
+        Map<String, Object> postValues = notifMatch.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/user-notif-match/" + userId + "/" + otherUserId + "/", postValues);
+        Log.i("CalendarActivity", "Key: " + userId);
+        mReference.updateChildren(childUpdates);
+    }
+
+    /**
+     * @param userId - checks current user
+     */
+
+    private void writeNewCalendarCheck(String userId, String otherUserId, String freeTime,
+                                       Boolean currentUserStatus, Boolean otherUserStatus, Boolean finished) {
+        //deleteMatch(userId);
+        //String matchKey = mReference.child("match").push().getKey();
+        Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus, finished);
+        Map<String, Object> postValues = match.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        //childUpdates.put("/match/", postValues);
+        childUpdates.put("/user-match/" + userId + "/" + otherUserId + "/", postValues);
+        Log.i("CalendarActivity", "Key: " + userId);
+        mReference.updateChildren(childUpdates);
+    }
+
+    private void sendNotification(final String fromUid, final String toUid, final String body, final String name) {
+        Query query = mReference.child("users").child(fromUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                String title = "Match with " + name;
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy");
+                String timestamp = simpleDateFormat.format(new Date());
+                String imageUrl = "";
+                if (newUser.get("profile_picture") != null)
+                    imageUrl = newUser.get("profile_picture").toString();
+                Notification notif = new Notification
+                        ("match", imageUrl, title, body, timestamp, toUid, fromUid);
+                updateNotification(toUid, notif);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("OtherUser", ">>> Error:" + "find onCancelled:" + databaseError);
+            }
+        });
+    }
+    private void updateNotification(String toUid, Notification notif) {
+        String key = mReference.child("notification").push().getKey();
+        Map<String, Object> notifValues = notif.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        //childUpdates.put("/posts/" + key, postValues);
+        childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
+        mReference.updateChildren(childUpdates);
+        // update user-feed
     }
 
 }

@@ -13,17 +13,19 @@ public class Match {
     public String freeTime;
     public Boolean currentUserStatus;
     public Boolean otherUserStatus;
+    public Boolean finished;
 
     public Match() {
 
     }
 
-    public Match(String userId, String otherUserId, String freeTime, Boolean currentUserStatus, Boolean otherUserStatus) {
+    public Match(String userId, String otherUserId, String freeTime, Boolean currentUserStatus, Boolean otherUserStatus, Boolean finished) {
         this.userId = userId;
         this.otherUserId = otherUserId;
         this.freeTime = freeTime;
         this.currentUserStatus = currentUserStatus;
         this.otherUserStatus = otherUserStatus;
+        this.finished = finished;
     }
 
     public String getUserId() {
@@ -34,6 +36,46 @@ public class Match {
         this.userId = userId;
     }
 
+    public String getOtherUserId() {
+        return otherUserId;
+    }
+
+    public String getFreeTime() {
+        return freeTime;
+    }
+
+    public Boolean getCurrentUserStatus() {
+        return currentUserStatus;
+    }
+
+    public Boolean getOtherUserStatus() {
+        return otherUserStatus;
+    }
+
+    public Boolean getFinished() {
+        return finished;
+    }
+
+    public void setOtherUserId(String otherUserId) {
+        this.otherUserId = otherUserId;
+    }
+
+    public void setFreeTime(String freeTime) {
+        this.freeTime = freeTime;
+    }
+
+    public void setCurrentUserStatus(Boolean currentUserStatus) {
+        this.currentUserStatus = currentUserStatus;
+    }
+
+    public void setOtherUserStatus(Boolean otherUserStatus) {
+        this.otherUserStatus = otherUserStatus;
+    }
+
+    public void setFinished(Boolean finished) {
+        this.finished = finished;
+    }
+
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
@@ -42,6 +84,7 @@ public class Match {
         result.put("freeTime", freeTime);
         result.put("currentUserStatus", currentUserStatus);
         result.put("otherUserStatus", otherUserStatus);
+        result.put("finished", finished);
         return result;
     }
 }

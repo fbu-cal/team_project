@@ -35,6 +35,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +49,7 @@ public class PostsFragment extends Fragment {
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
     private String mUserId;
+    private ArrayList<String> mAllTimesList = new ArrayList<String>();
 
     private boolean mShouldRefreshOnResume = false;
 
@@ -87,6 +89,8 @@ public class PostsFragment extends Fragment {
                 startActivity(toCreatePost);
             }
         });
+
+        setAllTimesAList();
 
         // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = getQuery(mDatabase);
@@ -335,7 +339,7 @@ public class PostsFragment extends Fragment {
                     if ((HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime") != null) {
                         currentUserFreeTime = (HashMap<String, Boolean>) currentUserCalendar.get("mFreeTime");
                     }
-                    if (currentUserCalendar != null) {
+                    if (currentUserFreeTime != null) {
                         getOtherUserCalendar(otherUserId, currentUserFreeTime, friendName, currentName);
                     }
                 }
@@ -434,7 +438,7 @@ public class PostsFragment extends Fragment {
         if (!otherUserTime.containsKey("sundayEvening")) {
             otherUserTime.put("sundayEvening", false);
         }
-        checkFunc(currentUserFreeTime, otherUserTime, otherUserId, friendName, currentName);
+        checkFuncNotif(currentUserFreeTime, otherUserTime, otherUserId, friendName, currentName);
     }
 
     /**
@@ -446,55 +450,18 @@ public class PostsFragment extends Fragment {
      * this is important bc we only want it the first time it runs and catches it
      */
 
-    private void checkFunc(HashMap currentUserFreeTime, HashMap otherUserTime, String otherUserId,
-                           String friendName, String currentName) {
+    private void checkFuncNotif(HashMap currentUserFreeTime, HashMap otherUserTime, String otherUserId,
+                                String friendName, String currentName) {
         Log.i("CalendarActivity", "!!!Map: " + currentUserFreeTime);
         int anyMatchCheck = 0;
         String freeTime = null;
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("fridayMorning") == currentUserFreeTime.get("fridayMorning")) {
-                freeTime = "Friday Morning";
-                anyMatchCheck++;
-            }
-        }
-        if (freeTime == null) {
-            if (otherUserTime.get("fridayAfternoon") == otherUserTime.get("fridayAfternoon")) {
-                freeTime = "Friday Afternoon";
-            }
-        }
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("fridayEvening") == otherUserTime.get("fridayEvening")) {
-                freeTime = "Friday Evening";
-            }
-        }
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("saturdayMorning") == otherUserTime.get("saturdayMorning")) {
-                freeTime = "Saturday Morning";
-            }
-        }
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("saturdayAfternoon") == otherUserTime.get("saturdayAfternoon")) {
-                freeTime = "Saturday Afternoon";
-            }
-        }
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("saturdayEvening") == otherUserTime.get("saturdayEvening")) {
-                freeTime = "Saturday Evening";
-            }
-        }
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("sundayMorning") == otherUserTime.get("sundayMorning")) {
-                freeTime = "Sunday Morning";
-            }
-        }
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("sundayAfternoon") == otherUserTime.get("sundayAfternoon")) {
-                freeTime = "Sunday Afternoon";
-            }
-        }
-        if (freeTime == null) {
-            if (currentUserFreeTime.get("sundayEvening") == otherUserTime.get("sundayEvening")) {
-                freeTime = "Sunday Evening";
+
+        for (String timeKey : mAllTimesList) {
+            if (freeTime == null) {
+                if ( (Boolean) currentUserFreeTime.get(timeKey) && (Boolean) otherUserTime.get(timeKey)) {
+                    freeTime = timeKey;
+                    anyMatchCheck++;
+                }
             }
         }
         if (anyMatchCheck > 0) {
@@ -539,6 +506,7 @@ public class PostsFragment extends Fragment {
                 HashMap<String, Object> otherUserCheck = (HashMap<String, Object>) dataSnapshot.getValue();
                 Boolean otherUserStatus = false;
                 Boolean currentUserStatus = false;
+                Boolean finished = false;
                 if (otherUserCheck != null) {
                     if (otherUserCheck.containsKey("otherUserStatus")) {
                         otherUserStatus = (Boolean) otherUserCheck.get("otherUserStatus");
@@ -546,9 +514,12 @@ public class PostsFragment extends Fragment {
                     if (otherUserCheck.containsKey("currentUserStatus")) {
                         currentUserStatus = (Boolean) otherUserCheck.get("currentUserStatus");
                     }
+                    if (otherUserCheck.containsKey("finished")) {
+                        finished = (Boolean) otherUserCheck.get("finished");
+                    }
                 }
-                writeNewPost(mUserId, otherUserId, freeTime, currentUserStatus, otherUserStatus);
-                writeNewPost(otherUserId, mUserId, freeTime, otherUserStatus, currentUserStatus);
+                writeNewPost(mUserId, otherUserId, freeTime, currentUserStatus, otherUserStatus, finished);
+                writeNewPost(otherUserId, mUserId, freeTime, otherUserStatus, currentUserStatus, finished);
             }
 
             @Override
@@ -572,10 +543,10 @@ public class PostsFragment extends Fragment {
      */
 
     private void writeNewPost(String userId, String otherUserId, String freeTime,
-                              Boolean currentUserStatus, Boolean otherUserStatus) {
+                              Boolean currentUserStatus, Boolean otherUserStatus, Boolean finished) {
         //deleteMatch(userId);
         //String matchKey = mReference.child("match").push().getKey();
-        Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus);
+        Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus, finished);
         Map<String, Object> postValues = match.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         //childUpdates.put("/match/", postValues);
@@ -614,5 +585,18 @@ public class PostsFragment extends Fragment {
         childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
         mDatabase.updateChildren(childUpdates);
         // update user-feed
+    }
+
+    public void setAllTimesAList() {
+        mAllTimesList.add("fridayMorning");
+        mAllTimesList.add("fridayAfternoon");
+        mAllTimesList.add("fridayEvening");
+        mAllTimesList.add("saturdayMorning");
+        mAllTimesList.add("saturdayAfternoon");
+        mAllTimesList.add("saturdayEvening");
+        mAllTimesList.add("sundayMorning");
+        mAllTimesList.add("sundayAfternoon");
+        mAllTimesList.add("sundayEvening");
+
     }
 }
