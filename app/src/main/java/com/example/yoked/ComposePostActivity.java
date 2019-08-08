@@ -190,7 +190,7 @@ public class ComposePostActivity extends AppCompatActivity {
             // compress bitmap
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             // TODO - CHANGE TO HIGHER QUALITY FOR REAL
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 70, bytes);
             // crop bitmap and encode
             int dimension = getSquareCropDimensionForBitmap(imageBitmap);
             Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
@@ -318,7 +318,7 @@ public class ComposePostActivity extends AppCompatActivity {
     public void encodeBitmap(Bitmap bitmap) {
         // save image to firebase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 40, baos);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 70, baos);
         mImageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
     }
 
