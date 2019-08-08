@@ -691,7 +691,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
         mDatabase.updateChildren(childUpdates);
         // update user-feed
-        Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
+        // Toast.makeText(OtherUserProfileActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
         // MainActivity.notificationBadge.setVisibility(View.VISIBLE);
     }
 
