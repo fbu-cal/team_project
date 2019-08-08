@@ -110,9 +110,9 @@ public class ComposePostActivity extends AppCompatActivity {
                                 if (user == null) {
                                     // User is null, error out
                                     Log.e("ComposeFragment", "User " + userId + " is unexpectedly null");
-                                    Toast.makeText(ComposePostActivity.this,
-                                            "Error: could not fetch user.",
-                                            Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(ComposePostActivity.this,
+//                                            "Error: could not fetch user.",
+//                                            Toast.LENGTH_SHORT).show();
                                 } else {
                                     // Write new post
                                     writeNewPost(userId, user.username, description, mImageEncoded);
@@ -146,7 +146,7 @@ public class ComposePostActivity extends AppCompatActivity {
                 spinnerDialog.bindOnSpinerListener(new OnSpinerItemClick() {
                     @Override
                     public void onClick(String s, int i) {
-                        Toast.makeText(ComposePostActivity.this, "Selected: " + s, Toast.LENGTH_LONG);
+                        // Toast.makeText(ComposePostActivity.this, "Selected: " + s, Toast.LENGTH_LONG);
                         mTagFriendButton.setText("Tagged @" + s);
                     }
                 });
@@ -272,14 +272,14 @@ public class ComposePostActivity extends AppCompatActivity {
                 mDatabase.updateChildren(childUpdates);
                 // update user-feed
                 updateAllFeeds(postValues, key);
-                Toast.makeText(ComposePostActivity.this, "Post Successful!", Toast.LENGTH_LONG).show();
+                // Toast.makeText(ComposePostActivity.this, "Post Successful!", Toast.LENGTH_LONG).show();
                 mDescription.setText("");
             }
             Intent launchPosts = new Intent(ComposePostActivity.this, MainActivity.class);
             startActivity(launchPosts);
         }
         else {
-            Toast.makeText(ComposePostActivity.this, "Post Unsuccessful! Missing image or description!", Toast.LENGTH_LONG).show();
+            // Toast.makeText(ComposePostActivity.this, "Post Unsuccessful! Missing image or description!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -363,7 +363,7 @@ public class ComposePostActivity extends AppCompatActivity {
         childUpdates.put("/user-notifications/" + toUid + "/" + key, notifValues);
         mDatabase.updateChildren(childUpdates);
         // update user-feed
-        Toast.makeText(ComposePostActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
+        // Toast.makeText(ComposePostActivity.this, "Sent Notification", Toast.LENGTH_LONG).show();
     }
 
 }

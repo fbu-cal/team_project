@@ -64,19 +64,19 @@ public class SignupActivity extends AppCompatActivity {
         password = mPassword.getText().toString();
 
         if (TextUtils.isEmpty(email)) {
-            Toast.makeText(getApplicationContext(), "Please enter email...", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Please enter email", Toast.LENGTH_LONG).show();
             return;
         }
         if (TextUtils.isEmpty(password)) {
-            Toast.makeText(getApplicationContext(), "Please enter password!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Please enter password", Toast.LENGTH_LONG).show();
             return;
         }
         if (TextUtils.isEmpty(fullname)) {
-            Toast.makeText(getApplicationContext(), "Please enter fullname!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Please enter full name", Toast.LENGTH_LONG).show();
             return;
         }
         if (TextUtils.isEmpty(username)) {
-            Toast.makeText(getApplicationContext(), "Please enter username!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Please enter username", Toast.LENGTH_LONG).show();
             return;
         }
 

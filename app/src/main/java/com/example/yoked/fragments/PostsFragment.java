@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.yoked.ComposePostActivity;
+import com.example.yoked.MainActivity;
 import com.example.yoked.OtherUserProfileActivity;
 import com.example.yoked.PostDetailActivity;
 import com.example.yoked.PostViewHolder;
@@ -38,6 +39,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.view.View.GONE;
 
 public class PostsFragment extends Fragment {
 
@@ -88,6 +91,8 @@ public class PostsFragment extends Fragment {
             }
         });
 
+        checkBadgeStatus();
+
         // Set up FirebaseRecyclerAdapter with the Query
         Query postsQuery = getQuery(mDatabase);
         mAdapter = new FirebaseRecyclerAdapter<Post, PostViewHolder>(Post.class, R.layout.item_post,
@@ -109,7 +114,7 @@ public class PostsFragment extends Fragment {
                 });
 
                 // Determine if the current user has liked this post and set UI accordingly
-                if (model.likes.containsKey(getUid())) {
+                if (model.likes.containsKey(mUserId)) {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart_active);
                 } else {
                     viewHolder.mLikeButton.setImageResource(R.drawable.ufi_heart);
@@ -157,16 +162,10 @@ public class PostsFragment extends Fragment {
     }
 
     private void goToTaggedProfile(Post model) {
-        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String taggedUid = model.taggedFriendUid;
-        if (taggedUid.equals(currentUid)) {
-            Toast.makeText(getActivity(), "clicking on your own profile!", Toast.LENGTH_LONG);
-        }
-        else {
-            Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
-            toOtherProfile.putExtra("uid", taggedUid.toString());
-            startActivity(toOtherProfile);
-        }
+        Intent toOtherProfile = new Intent (getActivity(), OtherUserProfileActivity.class);
+        toOtherProfile.putExtra("uid", taggedUid);
+        startActivity(toOtherProfile);
     }
 
     private void onLikeClicked (Query query, final String path) {
@@ -180,17 +179,17 @@ public class PostsFragment extends Fragment {
                 if (likesMap == null) {
                     likesMap = new HashMap<>();
                     likeCount = Long.valueOf(1);
-                    likesMap.put(getUid(), true);
+                    likesMap.put(mUserId, true);
                 }
                 else {
-                    if (likesMap.containsKey(getUid())) {
+                    if (likesMap.containsKey(mUserId)) {
                         likeCount = likeCount - 1;
-                        likesMap.remove(getUid());
+                        likesMap.remove(mUserId);
                         mDatabase.child(likesPath).removeValue();
                     }
                     else {
                         likeCount = likeCount + 1;
-                        likesMap.put(getUid(), true);
+                        likesMap.put(mUserId, true);
                     }
                 }
                 mDatabase.child(likesPath).updateChildren(likesMap);
@@ -208,13 +207,13 @@ public class PostsFragment extends Fragment {
 
     // updates likes for post in all user feeds
     private void updateAllFeedsLikes(final String postRefKey) {
-        Query query = mDatabase.child("users").child(getUid());
+        Query query = mDatabase.child("users").child(mUserId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // update current user's feed
-                Query userTempQuery = mDatabase.child("user-feed").child(getUid()).child(postRefKey);
-                String userTempPath = "/user-feed/" + getUid() + "/" + postRefKey;
+                Query userTempQuery = mDatabase.child("user-feed").child(mUserId).child(postRefKey);
+                String userTempPath = "/user-feed/" + mUserId + "/" + postRefKey;
                 onLikeClicked(userTempQuery, userTempPath);
                 // update current user's friend's feeds
                 Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
@@ -233,23 +232,30 @@ public class PostsFragment extends Fragment {
         });
     }
 
-//    @Override
-//    public void onDestroy() {
-//        super.onDestroy();
-//        if (mAdapter != null) {
-//            mAdapter.cleanup();
-//        }
-//    }
-
-    public String getUid() {
-        return FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private void checkBadgeStatus() {
+        MainActivity.notificationBadge.setVisibility(GONE);
+        mDatabase.child("user-notifications").child(mUserId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Notification notification = snapshot.getValue(Notification.class);
+                            if (!notification.seen) {
+                                MainActivity.notificationBadge.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
     }
 
     public Query getQuery(DatabaseReference databaseReference) {
         // Last 100 posts, these are automatically the 100 most recent
         // due to sorting by push() keys
         Query recentPostsQuery = databaseReference.child("user-feed")
-                .child(getUid())
+                .child(mUserId)
                 .limitToFirst(100);
         return recentPostsQuery;
     }

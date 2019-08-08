@@ -6,6 +6,37 @@
     android:layout_height="match_parent"
     tools:context=".PostDetailActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:title="">
+
+        <ImageButton
+            android:id="@+id/back_image_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="left"
+            android:background="@color/transparent"
+            android:scaleType="centerInside"
+            android:src="@drawable/back_icon"
+            android:tint="@color/white"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="13dp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="65dp"
+            android:layout_gravity="center"
+            android:contentDescription="Yoked"
+            android:src="@drawable/yoked_title_graphic" />
+
+    </android.support.v7.widget.Toolbar>
+
     <ImageView
         android:id="@+id/profile_image_view"
         android:layout_width="50dp"
@@ -14,7 +45,7 @@
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/my_toolbar"
         app:srcCompat="@android:color/black" />
 
     <TextView

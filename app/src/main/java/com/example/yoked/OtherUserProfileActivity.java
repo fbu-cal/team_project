@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -179,8 +180,16 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 else if (buttonText.equals("Message Friend")) {
                     goToMessages(freeTime);
                 }
+                else if (buttonText.equals("Edit Profile")) {
+                    goToUserSettings();
+                }
             }
         });
+    }
+
+    private void goToUserSettings() {
+        Intent toSettings = new Intent (OtherUserProfileActivity.this, UserSettingsActivity.class);
+        startActivity(toSettings);
     }
 
     private void getUserCalendar() {
@@ -255,13 +264,6 @@ public class OtherUserProfileActivity extends AppCompatActivity {
         setUpRecycler(freeTime);
     }
 
-
-    // go to messages with user if clicked
-//    private void goToMessages() {
-//        // TODO - use intent to redirect user to message conversation with other user
-//
-//    }
-
     // Method for accepting friend requests. Will update friendStatuses and friendList for both users.
     private void acceptRequest() {
         // update for current user
@@ -324,14 +326,9 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot data : dataSnapshot.getChildren()) {
                     Map<String, Object> newUser = (HashMap<String, Object>) data.getValue();
-                    if (newUser.get("uid").toString().equals(currentUid)) {
-                        Toast.makeText(OtherUserProfileActivity.this, "clicking on your own profile!", Toast.LENGTH_LONG);
-                    }
-                    else {
-                        Intent toOtherProfile = new Intent (OtherUserProfileActivity.this, OtherUserProfileActivity.class);
-                        toOtherProfile.putExtra("uid", newUser.get("uid").toString());
-                        startActivity(toOtherProfile);
-                    }
+                    Intent toOtherProfile = new Intent (OtherUserProfileActivity.this, OtherUserProfileActivity.class);
+                    toOtherProfile.putExtra("uid", newUser.get("uid").toString());
+                    startActivity(toOtherProfile);
                 }
             }
             @Override
@@ -366,7 +363,11 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String path = "/users/" + mCurrentUserUid + "/friendStatuses";
                 Map<String, Object> userFriends = (Map<String, Object>) dataSnapshot.child("friendStatuses").getValue();
-                if (userFriends == null) {
+                if (mProfileOwnerUid.equals(mCurrentUserUid))
+                {
+                    mAddFriendButton.setText("Edit Profile");
+                }
+                else if (userFriends == null) {
                     mAddFriendButton.setText("Add Friend");
                 }
                 else {
@@ -661,9 +662,11 @@ public class OtherUserProfileActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> friendMap = (Map<String, Object>) dataSnapshot.child("friendList").getValue();
                 final ArrayList<String> friendList = new ArrayList<String>();
+                final ArrayList<String> friendUidList = new ArrayList<String>();
                 if (friendMap!=null) {
                     for (String userId : friendMap.keySet()) {
                         friendList.add(friendMap.get(userId).toString());
+                        friendUidList.add(userId);
                     }
                 }
                 // spinner
@@ -672,7 +675,7 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     @Override
                     public void onClick(String s, int i) {
                         Intent toOtherProfile = new Intent(OtherUserProfileActivity.this, OtherUserProfileActivity.class);
-                        toOtherProfile.putExtra("uid", friendList.get(i));
+                        toOtherProfile.putExtra("uid", friendUidList.get(i));
                         startActivity(toOtherProfile);
                     }
                 });
