@@ -1,6 +1,7 @@
 package com.example.yoked;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -25,6 +26,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.example.yoked.models.Message;
 import com.example.yoked.models.User;
@@ -53,13 +56,13 @@ public class MessageDetailsActivity extends AppCompatActivity {
     private ArrayList<Map<String, Object>> mMessages;
     private MessageAdapter mMessageAdapter;
     private LinearLayoutManager mLinearLayoutManager;
-    private String uid;
-    public String username;
-    private Parcelable conversation;
-    String currentUserId;
+    private String mUid;
+    public String mUsername;
+    String mCurrentUserId;
     String mConversationKey;
     String mAutopoulatedMessage;
-
+    private ImageButton mBackButton;
+    private TextView mActionBarTitle;
     private DatabaseReference mDatabaseReference;
 
     @Override
@@ -70,6 +73,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
         mMessageTextInput = findViewById(R.id.etMessageText);
         mSendButton = findViewById(R.id.btnSend);
         mRecyclerView = findViewById(R.id.rvMessages);
+        mBackButton = findViewById(R.id.back_image_button);
+        mActionBarTitle = findViewById(R.id.tvActionBarTitle);
+
         mMessages = new ArrayList<>();
         // construct the adapter from this data source
         mMessageAdapter = new MessageAdapter(this, mMessages);
@@ -79,23 +85,22 @@ public class MessageDetailsActivity extends AppCompatActivity {
         //set the adapter
         mRecyclerView.setAdapter(mMessageAdapter);
 
-        uid = getIntent().getStringExtra("uid");
-        username = getIntent().getStringExtra("username");
+        mUid = getIntent().getStringExtra("uid");
+        mUsername = getIntent().getStringExtra("username");
         mAutopoulatedMessage = getIntent().getStringExtra("message");
         mMessageTextInput.setText(mAutopoulatedMessage);
 
         //conversation = getIntent().getBundleExtra("conversation");
+        Log.i("actionBar", mUsername);
+        mActionBarTitle.setText(mUsername);
 
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar!=null) {
-            if (username != null) {
-                actionBar.setTitle(username);
-            } else {
-                actionBar.setDisplayShowTitleEnabled(false);
-                actionBar.setDisplayShowHomeEnabled(true);
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MessageDetailsActivity.this, MainMessenger.class);
+                startActivity(intent);
             }
-        }
-
+        });
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -129,8 +134,8 @@ public class MessageDetailsActivity extends AppCompatActivity {
             }
         });
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        populateMessages(currentUserId, uid);
+        mCurrentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        populateMessages(mCurrentUserId, mUid);
         findUser();
 
     }
@@ -140,7 +145,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
         // due to sorting by push() keys
         //String conversationKey = getConversationKey(databaseReference, getOtherUser(currentUser, otherUser));
         Log.i("getQueryyy","" + mConversationKey);
-        Query recentMessagesQuery = databaseReference.child("conversation-messages/" + currentUserId + "/" + mConversationKey);
+        Query recentMessagesQuery = databaseReference.child("conversation-messages/" + mCurrentUserId + "/" + mConversationKey);
         Log.i("MDA", "" + recentMessagesQuery);
         // [END recent_messages_query]
 
@@ -206,9 +211,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
                 Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-                if (newUser.get("uid").toString().equals(uid)) {
-                    uid = newUser.get("uid").toString();
-                    username = newUser.get("username").toString();
+                if (newUser.get("uid").toString().equals(mUid)) {
+                    mUid = newUser.get("uid").toString();
+                    mUsername = newUser.get("username").toString();
                     //mUsername.setText(username);
                 }
             }
@@ -228,7 +233,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
     }
 
     public String getOtherUser(String senderId, String receiverId){
-        if (receiverId==currentUserId){
+        if (receiverId==mCurrentUserId){
             return senderId;
         }else{
             return receiverId;
@@ -236,7 +241,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
     }
 
     private void sendMessage(final String senderId, final String receiverId , final String username, final String messageText){
-        Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(currentUserId);
+        Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(mCurrentUserId);
         Log.i("MessageDetails", "Q: " + query);
         query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
             @Override
@@ -275,20 +280,20 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
                         //childUpdates.put("/user-messages/" + senderId + "/" + receiverId + "/" + key, messageValues);
                         //put message in conv-messages
-                        childUpdates.put("/conversation-messages/"  + currentUserId + "/"+ conversationKey + "/" + key, messageValues);
+                        childUpdates.put("/conversation-messages/"  + mCurrentUserId + "/"+ conversationKey + "/" + key, messageValues);
                         childUpdates.put("/conversation-messages/"  + receiverId + "/"+ conversationKey + "/" + key, messageValues);
 
 
                         DatabaseReference ref = FirebaseDatabase.getInstance()
                                 .getReference("user-conversations")
-                                .child(currentUserId)
+                                .child(mCurrentUserId)
                                 .child(conversationKey)
                                 .child("latestMessageText");
                         ref.setValue(messageText);
 
                         DatabaseReference timeStamp = FirebaseDatabase.getInstance()
                                 .getReference("user-conversations")
-                                .child(currentUserId)
+                                .child(mCurrentUserId)
                                 .child(conversationKey)
                                 .child("timeStamp");
                         timeStamp.setValue(date);
@@ -330,18 +335,18 @@ public class MessageDetailsActivity extends AppCompatActivity {
                     Map<String, Object> childUpdates = new HashMap<>();
 
                     //childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationValues);
-                    childUpdates.put("/conversation-messages/" + currentUserId + "/" + conversationKey + "/" + key, messageValues);
+                    childUpdates.put("/conversation-messages/" + mCurrentUserId + "/" + conversationKey + "/" + key, messageValues);
 
                     DatabaseReference ref = FirebaseDatabase.getInstance()
                             .getReference("user-conversations")
-                            .child(currentUserId)
+                            .child(mCurrentUserId)
                             .child(conversationKey)
                             .child("latestMessageText");
                     ref.setValue(messageText);
 
                     DatabaseReference timeStamp = FirebaseDatabase.getInstance()
                             .getReference("user-conversations")
-                            .child(currentUserId)
+                            .child(mCurrentUserId)
                             .child(conversationKey)
                             .child("timeStamp");
                     timeStamp.setValue(date);
@@ -374,7 +379,7 @@ public class MessageDetailsActivity extends AppCompatActivity {
 
     public void getConversationKey(final DatabaseReference databaseReference, final String currentUser, final String otherUser){
 
-        Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(currentUserId);
+        Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(mCurrentUserId);
         Log.i("MessageDetails", "Q: " + query);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             // Retrieve new messages as they are added to Firebase

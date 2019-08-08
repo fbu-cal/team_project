@@ -100,7 +100,7 @@ public class MatchActivity extends Activity {
                     //You also have access to the original object.
                     //If you want to use it just cast it (String) dataObject
                     //makeToast, "Left!");
-                    Toast.makeText(MatchActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MatchActivity.this, "swiped left", Toast.LENGTH_SHORT).show();
                     Match dataDigest = (Match) dataObject;
                     String uid = ((Match) dataObject).otherUserId;
                     getOtherUsernameForRightSwipe(uid, true);
@@ -118,7 +118,7 @@ public class MatchActivity extends Activity {
 
                 @Override
                 public void onRightCardExit(Object dataObject) {
-                    Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MatchActivity.this, "swiped right", Toast.LENGTH_SHORT).show();
                     Match dataDigest = (Match) dataObject;
                     String uid = ((Match) dataObject).otherUserId;
                     getOtherUsernameForRightSwipe(uid, false);

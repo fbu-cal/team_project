@@ -30,8 +30,9 @@
         <!-- </intent-filter> -->
         <!-- </service> -->
         <activity
-            android:name=".MessageDetailsActivity"
-            android:theme="@style/DetailsTheme"></activity>
+            android:name=".MessageDetailsActivity"/>
+            <!--android:theme="@style/DetailsTheme">-->
+
         <activity
             android:name=".MainActivity"
             android:windowSoftInputMode="adjustPan" />
