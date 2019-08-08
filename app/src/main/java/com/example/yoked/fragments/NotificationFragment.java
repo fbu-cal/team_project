@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,13 +19,9 @@ import com.example.yoked.NotificationViewHolder;
 import com.example.yoked.OtherUserProfileActivity;
 import com.example.yoked.PostDetailActivity;
 import com.example.yoked.R;
+import com.example.yoked.models.Conversation;
 import com.example.yoked.models.Notification;
-import com.example.yoked.MainMessenger;
 import com.example.yoked.MatchActivity;
-import com.example.yoked.NotificationViewHolder;
-import com.example.yoked.OtherUserProfileActivity;
-import com.example.yoked.R;
-import com.example.yoked.models.Notification;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -38,6 +33,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import static android.view.View.GONE;
 
@@ -102,10 +98,12 @@ public class NotificationFragment extends Fragment {
                         }
                         if (model.type.equals("match")) {
                             // Todo add a done so it no apear
-                            findmatch(viewHolder, model, notifRef);
+                            Intent intent = new Intent(getActivity(), MatchActivity.class);
+                            startActivity(intent);
+                            markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                         }
                         if (model.type.equals("final match")) {
-                            findUserName(viewHolder, model, notifRef);
+                            findOverLap(viewHolder, model, notifRef, true);
                         }
                         // TODO - implement on click for other types (Calendar Match & Message)
                     }
@@ -125,18 +123,16 @@ public class NotificationFragment extends Fragment {
 
     }
 
-    private void findmatch(final NotificationViewHolder viewHolder, final Notification model, final DatabaseReference notifRef) {
+    private void findOverLap(final NotificationViewHolder viewHolder, final Notification model, final DatabaseReference notifRef, final Boolean check) {
         mDatabase.child("user-match").child(model.toUid).child(model.fromUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                HashMap<String, Object> matchInfo = (HashMap<String, Object>) dataSnapshot.getValue();
-                if (matchInfo != null) {
-                    if ((Boolean) matchInfo.get("currentUserStatus")) {
-                        findUserName(viewHolder, model, notifRef);
-                    } else {
-                        Intent intent = new Intent(getActivity(), MatchActivity.class);
-                        startActivity(intent);
-                        markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                HashMap<String, Object> overlapInfo = (HashMap<String, Object>) dataSnapshot.getValue();
+                if (overlapInfo != null) {
+                    String overlap = (String) overlapInfo.get("freeTime");
+                    if (overlap != null) {
+                        sendComposeMessageIntent(model.fromUid, overlap, viewHolder, model, notifRef, check);
+
                     }
                 }
             }
@@ -148,7 +144,76 @@ public class NotificationFragment extends Fragment {
         });
     }
 
-    private void findUserName(final NotificationViewHolder viewHolder, final Notification model, final DatabaseReference notifRef) {
+    public void sendComposeMessageIntent (final String targetUserUid, final String overlap,
+                                          final NotificationViewHolder viewHolder, final Notification model,
+                                          final DatabaseReference notifRef, final Boolean check) {
+        final DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        Query query = mDatabaseReference.child("users").child(targetUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                String username = newUser.get("username").toString();
+                String targetUserUsername = username;
+                Log.i("SearchAdapter", "Username" + targetUserUsername);
+                Intent intent = new Intent(getActivity(), MessageDetailsActivity.class);
+                intent.putExtra("username", targetUserUsername);
+                intent.putExtra("uid", targetUserUid);
+                // TODO - move into a method
+                final String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                final String receiverId = targetUserUid;
+                Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(currentUserId);
+                Log.i("MessageDetails", "Q: " + query);
+                query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        boolean conversationExists = false;
+                        for (DataSnapshot data : dataSnapshot.getChildren()) {
+                            Map<String, Object> map = (HashMap<String, Object>) data.getValue();
+                            if (receiverId.equals(map.get("otherUser"))) {
+                                conversationExists = true;
+                            }
+                            if (conversationExists) {
+                                break;
+                            }
+                        }
+                        if (!conversationExists) {
+                            String conversationKey = mDatabaseReference.child("conversations").push().getKey();
+                            Conversation conversationCurrentUser = new Conversation(currentUserId, receiverId);
+                            Map<String, Object> conversationCurrentUserValues = conversationCurrentUser.toMap();
+
+                            Conversation conversationReceiverUser = new Conversation(receiverId, currentUserId);
+                            Map<String, Object> conversationReceiverUserValues = conversationReceiverUser.toMap();
+
+                            Map<String, Object> childUpdates = new HashMap<>();
+
+                            childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationCurrentUserValues);
+                            childUpdates.put("user-conversations/" + receiverId + "/" + conversationKey, conversationReceiverUserValues);
+
+                            mDatabaseReference.updateChildren(childUpdates);
+                            //Intent intent = new Intent(context, MessageDetailsActivity.class);
+                            //intent.putExtra("conversation", (Parcelable) conversation);
+                        }
+                        if (check) {
+                            findUserNameMessage(viewHolder, model, notifRef, overlap);
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void findUserName(final NotificationViewHolder viewHolder, final Notification model, final DatabaseReference notifRef, final String overlap) {
         mDatabase.child("users").child(model.fromUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -158,6 +223,66 @@ public class NotificationFragment extends Fragment {
                     Intent intent = new Intent(getActivity(), MessageDetailsActivity.class);
                     intent.putExtra("uid", model.fromUid);
                     intent.putExtra("username", username);
+                    intent.putExtra("message", "We have overlapping times at " + getATime(overlap) + " we should hangout");
+                    startActivity(intent);
+                    markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+    private String getATime(String freeTime) {
+        if (freeTime.equals("fridayMorning")) {
+            return "Friday Morning";
+        }
+        if (freeTime.equals("fridayAfternoon")) {
+            return "Friday Afternoon";
+        }
+        if (freeTime.equals("fridayEvening")) {
+            return "Friday Evening";
+        }
+
+        if (freeTime.equals("saturdayMorning")) {
+            return "Saturday Morning";
+        }
+        if (freeTime.equals("saturdayAfternoon")) {
+            return "Saturday Afternoon";
+        }
+        if (freeTime.equals("saturdayEvening")) {
+            return "Saturday Evening";
+        }
+
+        if (freeTime.equals("SundayMorning")) {
+            return "Sunday Morning";
+        }
+        if (freeTime.equals("SundayAfternoon")) {
+            return "Sunday Afternoon";
+        }
+        if (freeTime.equals("SundayEvening")) {
+            return "Sunday Evening";
+        }
+        return " ";
+    }
+
+    private void findUserNameMessage(final NotificationViewHolder viewHolder, final Notification model, final DatabaseReference notifRef, final String Overlap) {
+        mDatabase.child("users").child(model.fromUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                HashMap<String, Object> userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
+                String message = "";
+                if (Overlap != null) {
+                    message = "Hey, we matched for " + getATime(Overlap) + "! Let's hang out!" ;
+                }
+                if (userInfo != null) {
+                    String username = (String) userInfo.get("username");
+                    Intent intent = new Intent(getActivity(), MessageDetailsActivity.class);
+                    intent.putExtra("uid", model.fromUid);
+                    intent.putExtra("username", username);
+                    intent.putExtra("message", message);
                     startActivity(intent);
                     markNotifAsSeen(model, notifRef.getKey(), viewHolder.itemView);
                 }

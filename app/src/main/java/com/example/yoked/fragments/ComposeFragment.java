@@ -275,7 +275,7 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.child("friendList").getValue() != null) {
-                    String currentName = (String) dataSnapshot.child("fullname").getValue();
+                    String currentName = (String) dataSnapshot.child("username").getValue();
                     Map<String, String> friendList = (Map<String, String>) dataSnapshot.child("friendList").getValue();
                     if (friendList != null) {
                         if (friendList.size() > 0) {

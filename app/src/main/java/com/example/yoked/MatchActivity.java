@@ -269,7 +269,7 @@ public class MatchActivity extends Activity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 HashMap<String, Object> userInfo = null;
-                String matchBody = "Click here to go to messages";
+                String matchBody = "Click here to message";
                 if (dataSnapshot != null) {
                     userInfo = (HashMap<String, Object>) dataSnapshot.getValue();
                     if (userInfo != null) {

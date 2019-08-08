@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.yoked.models.Conversation;
 import com.example.yoked.models.Notification;
 import com.example.yoked.models.Post;
 import com.example.yoked.models.Utilities;
@@ -177,8 +178,73 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                     acceptRequest();
                 }
                 else if (buttonText.equals("Message Friend")) {
-                    goToMessages(freeTime);
+                    sendComposeMessageIntent(mProfileOwnerUid, freeTime);
                 }
+            }
+        });
+    }
+
+    public void sendComposeMessageIntent (final String targetUserUid, final String freeTime) {
+        final DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        Query query = mDatabaseReference.child("users").child(targetUserUid);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
+                String username = newUser.get("username").toString();
+                String targetUserUsername = username;
+                Log.i("SearchAdapter", "Username" + targetUserUsername);
+                Intent intent = new Intent(OtherUserProfileActivity.this, MessageDetailsActivity.class);
+                intent.putExtra("username", targetUserUsername);
+                intent.putExtra("uid", targetUserUid);
+                // TODO - move into a method
+                final String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                final String receiverId = targetUserUid;
+                Query query = FirebaseDatabase.getInstance().getReference().child("user-conversations").child(currentUserId);
+                Log.i("MessageDetails", "Q: " + query);
+                query.addListenerForSingleValueEvent(new ValueEventListener() {// Retrieve new posts as they are added to Firebase
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        boolean conversationExists = false;
+                        for (DataSnapshot data : dataSnapshot.getChildren()) {
+                            Map<String, Object> map = (HashMap<String, Object>) data.getValue();
+                            if (receiverId.equals(map.get("otherUser"))) {
+                                conversationExists = true;
+                            }
+                            if (conversationExists) {
+                                break;
+                            }
+                        }
+                        if (!conversationExists) {
+                            String conversationKey = mDatabaseReference.child("conversations").push().getKey();
+                            Conversation conversationCurrentUser = new Conversation(currentUserId, receiverId);
+                            Map<String, Object> conversationCurrentUserValues = conversationCurrentUser.toMap();
+
+                            Conversation conversationReceiverUser = new Conversation(receiverId, currentUserId);
+                            Map<String, Object> conversationReceiverUserValues = conversationReceiverUser.toMap();
+
+                            Map<String, Object> childUpdates = new HashMap<>();
+
+                            childUpdates.put("user-conversations/" + currentUserId + "/" + conversationKey, conversationCurrentUserValues);
+                            childUpdates.put("user-conversations/" + receiverId + "/" + conversationKey, conversationReceiverUserValues);
+
+                            mDatabaseReference.updateChildren(childUpdates);
+                            //Intent intent = new Intent(context, MessageDetailsActivity.class);
+                            //intent.putExtra("conversation", (Parcelable) conversation);
+                        }
+                        goToMessages(freeTime);
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
     }
@@ -657,9 +723,9 @@ public class OtherUserProfileActivity extends AppCompatActivity {
                 String username = user.get("username").toString();
                 String message = "";
                 if (freeTime != null) {
-                    message = "Hey, lets hang out! I am free on " + freeTime;
+                    message = "Hey, let's hang out! I'm free on " + freeTime + ".";
                 } else {
-                    message = "Hey, lets hang out!";
+                    message = "Hey, let's hang out!";
                 }
 
                 Intent intent = new Intent(OtherUserProfileActivity.this , MessageDetailsActivity.class);
