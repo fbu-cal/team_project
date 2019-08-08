@@ -90,8 +90,8 @@ public class SignupActivity extends AppCompatActivity {
                             onAuthSuccess(task.getResult().getUser());
                             mProgressBar.setVisibility(View.GONE);
                         } else {
-                            Toast.makeText(SignupActivity.this, "Sign Up Failed",
-                                    Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(SignupActivity.this, "Sign Up Failed",
+//                                    Toast.LENGTH_SHORT).show();
                             mProgressBar.setVisibility(View.GONE);
                         }
                     }
