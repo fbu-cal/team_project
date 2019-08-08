@@ -13,14 +13,31 @@
         android:background="@color/yokedYellow"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        tools:layout_editor_absoluteX="26dp"
+        tools:layout_editor_absoluteY="0dp">
+
+        <ImageButton
+            android:id="@+id/back_image_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="left"
+            android:background="@color/transparent"
+            android:scaleType="centerInside"
+            android:src="@drawable/back_icon"
+            android:tint="@color/white"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="13dp" />
 
         <ImageView
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
-            android:contentDescription="Yoked"
             android:layout_height="65dp"
             android:layout_gravity="center"
-            android:src="@drawable/messages_feature_graphic"/>
+            android:contentDescription="Yoked"
+            android:src="@drawable/messages_feature_graphic"
+            tools:layout_editor_absoluteX="46dp"
+            android:layout_marginRight="36dp"/>
 
     </android.support.v7.widget.Toolbar>
 

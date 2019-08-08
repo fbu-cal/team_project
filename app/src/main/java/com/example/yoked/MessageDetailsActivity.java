@@ -1,6 +1,7 @@
 package com.example.yoked;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -25,6 +26,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.example.yoked.models.Message;
 import com.example.yoked.models.User;
@@ -59,7 +62,8 @@ public class MessageDetailsActivity extends AppCompatActivity {
     String currentUserId;
     String mConversationKey;
     String mAutopoulatedMessage;
-
+    private ImageButton mBackButton;
+    private TextView mActionBarTitle;
     private DatabaseReference mDatabaseReference;
 
     @Override
@@ -70,6 +74,9 @@ public class MessageDetailsActivity extends AppCompatActivity {
         mMessageTextInput = findViewById(R.id.etMessageText);
         mSendButton = findViewById(R.id.btnSend);
         mRecyclerView = findViewById(R.id.rvMessages);
+        mBackButton = findViewById(R.id.back_image_button);
+        mActionBarTitle = findViewById(R.id.tvActionBarTitle);
+
         mMessages = new ArrayList<>();
         // construct the adapter from this data source
         mMessageAdapter = new MessageAdapter(this, mMessages);
@@ -85,17 +92,26 @@ public class MessageDetailsActivity extends AppCompatActivity {
         mMessageTextInput.setText(mAutopoulatedMessage);
 
         //conversation = getIntent().getBundleExtra("conversation");
+        Log.i("actionBar", username);
+        mActionBarTitle.setText(username);
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar!=null) {
+//            if (username != null) {
+//                //actionBar.setTitle(username);
+//
+//            } else {
+//                actionBar.setDisplayShowTitleEnabled(false);
+//                actionBar.setDisplayShowHomeEnabled(true);
+//            }
+//        }
 
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar!=null) {
-            if (username != null) {
-                actionBar.setTitle(username);
-            } else {
-                actionBar.setDisplayShowTitleEnabled(false);
-                actionBar.setDisplayShowHomeEnabled(true);
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MessageDetailsActivity.this, MainMessenger.class);
+                startActivity(intent);
             }
-        }
-
+        });
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

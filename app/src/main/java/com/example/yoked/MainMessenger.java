@@ -12,6 +12,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 
 import com.example.yoked.models.Conversation;
 import com.example.yoked.models.Message;
@@ -43,6 +44,7 @@ public class MainMessenger extends AppCompatActivity {
     String username;
     String currentUserId;
     private LinearLayoutManager mLinearLayoutManager;
+    private ImageButton mBackButton;
 
     public SpinnerDialog mSpinnerDialog;
 
@@ -60,6 +62,7 @@ public class MainMessenger extends AppCompatActivity {
 
         mRecyclerViewConversations = findViewById(R.id.rvMessages);
         mComposeMessageButton = findViewById(R.id.btnComposeMessage);
+        mBackButton = findViewById(R.id.back_image_button);
 
         mConversations = new ArrayList<>();
         //mMessageAdapter = new MessageAdapter(this, mConversations);
@@ -69,6 +72,13 @@ public class MainMessenger extends AppCompatActivity {
         //mRecyclerViewConversations.setAdapter(mAdapter);
         mRecyclerViewConversations.setLayoutManager(mLinearLayoutManager);
 
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainMessenger.this, MainActivity.class);
+                startActivity(intent);
+            }
+        });
         mComposeMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
