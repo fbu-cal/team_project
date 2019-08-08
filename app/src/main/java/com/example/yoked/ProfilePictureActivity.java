@@ -71,7 +71,7 @@ public class ProfilePictureActivity extends AppCompatActivity {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         // Compress the image further
         // TODO - CHANGE TO HIGHER QUALITY FOR REAL
-        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
         int dimension = getSquareCropDimensionForBitmap(imageBitmap);
         Bitmap croppedBitmap = ThumbnailUtils.extractThumbnail(imageBitmap, dimension, dimension);
         mProfileImageView.setImageBitmap(croppedBitmap);
