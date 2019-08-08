@@ -62,6 +62,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginBottom="8dp"
         android:hint="type a message"
+        app:backgroundTint="@color/yokedYellow"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnSend"
         app:layout_constraintStart_toStartOf="parent" />
@@ -73,6 +74,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:text="Send"
+        android:background="@color/yokedYellow"
         app:layout_constraintBottom_toBottomOf="@+id/etMessageText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/etMessageText" />

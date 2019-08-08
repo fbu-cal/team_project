@@ -27,18 +27,18 @@ import java.util.Map;
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
 
     private ArrayList<Map<String, Object>> mSearches;
-    private Context context;
+    private Context mContext;
 
     // pass in the Posts array in the constructor
     public SearchAdapter(Context context, ArrayList<Map<String, Object>> searches) {
-        this.context = context;
+        this.mContext = context;
         this.mSearches = searches;
     }
 
     // for each row, inflate the layout and cache references into ViewHolder
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int i) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_search, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_search, parent, false);
         return new ViewHolder(view);
 //        return viewHolder;
     }
@@ -84,7 +84,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
                 final Map<String, Object> targetUser = mSearches.get(position);
 
                 Log.i("SearchAdapter", "Username" + targetUser.get("username") );
-                Intent intent = new Intent(context, MessageDetailsActivity.class);
+                Intent intent = new Intent(mContext, MessageDetailsActivity.class);
                 intent.putExtra("username", targetUser.get("username").toString());
                 intent.putExtra("uid", targetUser.get("uid").toString());
 
@@ -127,7 +127,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
                 });
 
                 // show the activity
-                context.startActivity(intent);
+                mContext.startActivity(intent);
             }
         }
     }

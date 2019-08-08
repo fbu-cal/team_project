@@ -145,32 +145,4 @@ public class ComposeMessageActivity extends AppCompatActivity {
             }
         });
     }
-
-//    public void findUser () {
-//        Query query = FirebaseDatabase.getInstance().getReference("users")
-//                .orderByChild("username");
-//        query.addChildEventListener(new ChildEventListener() {// Retrieve new posts as they are added to Firebase
-//            @Override
-//            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-//                Map<String, Object> newUser = (Map<String, Object>) snapshot.getValue();
-//                if (newUser.get("uid").toString().equals(uid)) {
-//                    uid = newUser.get("uid").toString();
-//                    username = newUser.get("username").toString();
-//                    //mUsername.setText(username);
-//                }
-//            }
-//            @Override
-//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//            }
-//            @Override
-//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-//            }
-//            @Override
-//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//            }
-//        });
-//    }
 }

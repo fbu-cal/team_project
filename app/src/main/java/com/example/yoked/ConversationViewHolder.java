@@ -35,23 +35,22 @@ import java.util.Map;
 
 public class ConversationViewHolder extends RecyclerView.ViewHolder {
 
-    public TextView mUsername;
+    public TextView mUsernameTextView;
     public TextView mLastMessage;
     public ImageView mProfilePicture;
     public TextView mTimeStamp;
-    public String otherUser;
     private DatabaseReference mDatabaseReference;
-    String username;
-    String currentUserId;
+    String mUsername;
+    String mCurrentUserId;
 
 
     public ConversationViewHolder(View itemView) {
         super(itemView);
 
-        mUsername = itemView.findViewById(R.id.tvUsername);
+        mUsernameTextView = itemView.findViewById(R.id.tvUsername);
         mTimeStamp = itemView.findViewById(R.id.tvDate);
         mProfilePicture = itemView.findViewById(R.id.ivProfileImage);
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mCurrentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         mLastMessage = itemView.findViewById(R.id.tvConversationText);
     }
@@ -88,8 +87,8 @@ public class ConversationViewHolder extends RecyclerView.ViewHolder {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
                 Log.i("find user", "" + newUser);
-                username = newUser.get("username").toString();
-                mUsername.setText(username);
+                mUsername = newUser.get("username").toString();
+                mUsernameTextView.setText(mUsername);
                 Log.i("finddd user", "" + newUser);
                 String imageUrl = newUser.get("profile_picture").toString();
                 // if profile pic is already set

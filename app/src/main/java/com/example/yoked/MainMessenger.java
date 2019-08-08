@@ -41,8 +41,8 @@ public class MainMessenger extends AppCompatActivity {
     FloatingActionButton mComposeMessageButton;
     ArrayList<Map<String,Object>> mConversations;
     private DatabaseReference mDatabaseReference;
-    String username;
-    String currentUserId;
+    String mUsername;
+    String mCurrentUserId;
     private LinearLayoutManager mLinearLayoutManager;
     private ImageButton mBackButton;
 
@@ -92,13 +92,13 @@ public class MainMessenger extends AppCompatActivity {
         actionBar.setTitle("");
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mCurrentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         // populateConversations(currentUserId);
 
-        Log.i("MainMessenger", getQuery(mDatabaseReference, currentUserId).toString());
+        Log.i("MainMessenger", getQuery(mDatabaseReference, mCurrentUserId).toString());
 
         mAdapter = new FirebaseRecyclerAdapter<Conversation, ConversationViewHolder>(Conversation.class, R.layout.item_conversation,
-                ConversationViewHolder.class, getQuery(mDatabaseReference, currentUserId)) {
+                ConversationViewHolder.class, getQuery(mDatabaseReference, mCurrentUserId)) {
             @Override
             protected void populateViewHolder(ConversationViewHolder viewHolder,final Conversation model, final int position) {
                 final DatabaseReference postRef = getRef(position);
@@ -173,9 +173,9 @@ public class MainMessenger extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String, Object> newUser = (Map<String, Object>) dataSnapshot.getValue();
-                username = newUser.get("username").toString();
+                mUsername = newUser.get("username").toString();
                 Intent intent = new Intent(MainMessenger.this, MessageDetailsActivity.class);
-                intent.putExtra("username", username);
+                intent.putExtra("username", mUsername);
                 intent.putExtra("uid", userId);
                 startActivity(intent);
             }
