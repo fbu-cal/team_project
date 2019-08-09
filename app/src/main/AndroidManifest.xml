@@ -31,7 +31,7 @@
         <!-- </service> -->
         <activity
             android:name=".MessageDetailsActivity"/>
-            <!--android:theme="@style/DetailsTheme">-->
+        <!--android:theme="@style/DetailsTheme">-->
 
         <activity
             android:name=".MainActivity"

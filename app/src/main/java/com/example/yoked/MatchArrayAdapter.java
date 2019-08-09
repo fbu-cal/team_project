@@ -131,13 +131,13 @@ public class MatchArrayAdapter extends ArrayAdapter<Match> {
             return "Saturday Evening";
         }
 
-        if (freeTime.equals("SundayMorning")) {
+        if (freeTime.equals("sundayMorning")) {
             return "Sunday Morning";
         }
-        if (freeTime.equals("SundayAfternoon")) {
+        if (freeTime.equals("sundayAfternoon")) {
             return "Sunday Afternoon";
         }
-        if (freeTime.equals("SundayEvening")) {
+        if (freeTime.equals("sundayEvening")) {
             return "Sunday Evening";
         }
         return " ";

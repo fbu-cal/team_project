@@ -55,7 +55,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="8dp"
-        android:text="Full Name"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         app:layout_constraintStart_toEndOf="@+id/profile_image_view"
         app:layout_constraintTop_toTopOf="@+id/profile_image_view" />
@@ -66,7 +65,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:text="\@username"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
         app:layout_constraintTop_toTopOf="@+id/post_image_view" />
@@ -89,7 +87,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="9dp"
-        android:text="Time"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
         app:layout_constraintTop_toBottomOf="@+id/background_text_view" />
 
@@ -102,7 +99,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
         android:layout_marginRight="24dp"
-        android:text="Body"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/post_image_view"
@@ -153,7 +149,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:text="Likes"
         app:layout_constraintBottom_toBottomOf="@+id/like_image_button"
         app:layout_constraintStart_toEndOf="@+id/like_image_button"
         app:layout_constraintTop_toTopOf="@+id/like_image_button" />
@@ -164,7 +159,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:text="Comments"
         app:layout_constraintBottom_toBottomOf="@+id/comment_image_button"
         app:layout_constraintStart_toEndOf="@+id/comment_image_button"
         app:layout_constraintTop_toTopOf="@+id/comment_image_button" />

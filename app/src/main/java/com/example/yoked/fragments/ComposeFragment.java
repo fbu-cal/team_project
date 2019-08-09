@@ -99,7 +99,7 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onClick(View v) {
                 if (mFreeTime.size() != 0 || deleteCount > 0) {
-                    getCurrentUserData();
+                    //getCurrentUserData();
                     writeNewCalendarCheck(userId, mFreeTime);
                     //Toast.makeText(getActivity(), "data inserted successfully", Toast.LENGTH_LONG).show();
                 }
@@ -270,7 +270,7 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
     /**
      * This is where I can get current user info like friends
      */
-    private void getCurrentUserData() {
+    /*private void getCurrentUserData() {
         mReference.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -297,13 +297,13 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
         });
     }
 
-    /**
+    *//**
      * In this method I just want to get the current users free time
      * and the one they are communicating with, this calls make complete
      * which sets the times they are not free to false to not get
      * a null pointer, checkFunc checks overlapping times and adds to
      * the array to display
-     */
+     *//*
 
     private void getUserCalendar(final String otherUserId, final String friendName, final String currentName) {
         mReference.child("user-calendar/").
@@ -353,10 +353,10 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
                 });
     }
 
-    /**
+    *//**
      * This puts false on the times the users is not free,
      * so there is no null pointer, this is called by getUserCalendar
-     */
+     *//*
 
     private void makeCompleteCheck(HashMap currentUserFreeTime, HashMap otherUserTime, String otherUserId,
                               String friendName, String currentName) {
@@ -419,14 +419,14 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
         checkFuncNotif(currentUserFreeTime, otherUserTime, otherUserId, friendName, currentName);
     }
 
-    /**
+    *//**
      * anyMatchCheck is an int that checks if they have any times they can hang
      * if they can't then it puts the status as denied, this helps because it cuts
      * loops short and helps performance, so the first if checks if they have that
      * matching time, if they do i add the user to an array, the next loop checks
      * if it is in it for that time already, if it is not then it wont add it,
      * this is important bc we only want it the first time it runs and catches it
-     */
+     *//*
 
     private void checkFuncNotif(HashMap currentUserFreeTime, HashMap otherUserTime, String otherUserId,
                            String friendName, String currentName) {
@@ -471,9 +471,9 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
     }
 
 
-    /**
+    *//**
      * mOtherUserStatus would be a hash map of their user comparing with status with all users
-     */
+     *//*
 
     private void getOtherUserStatus(final String otherUserId, final String freeTime) {
         //String matchKey = mReference.child("user-match/" + userId).push().getKey();
@@ -516,9 +516,9 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
         mReference.updateChildren(childUpdates);
     }
 
-    /**
+    *//**
      * @param userId - checks current user
-     */
+     *//*
 
     private void writeNewCalendarCheck(String userId, String otherUserId, String freeTime,
                                        Boolean currentUserStatus, Boolean otherUserStatus, Boolean finished) {
@@ -565,4 +565,4 @@ public class ComposeFragment extends Fragment implements View.OnClickListener {
         // update user-feed
     }
 
-}
+*/}

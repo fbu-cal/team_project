@@ -457,7 +457,7 @@ public class PostsFragment extends Fragment {
 
         for (String timeKey : mAllTimesList) {
             if (freeTime == null) {
-                if ( (Boolean) currentUserFreeTime.get(timeKey) && (Boolean) otherUserTime.get(timeKey)) {
+                if ((Boolean) currentUserFreeTime.get(timeKey) && (Boolean) otherUserTime.get(timeKey)) {
                     freeTime = timeKey;
                     anyMatchCheck++;
                 }
