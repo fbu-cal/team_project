@@ -174,9 +174,9 @@ public class MatchActivity extends Activity {
                                     Match match = new Match(userId, otherUserId, freeTime, currentUserStatus, otherUserStatus, finished);
                                     mMatches.add(match);
                                     arrayAdapter.notifyDataSetChanged();
-                                } else {
+                                } /*else {
                                     deleteNotif(otherUserId);
-                                }
+                                }*/
 
                                 Log.i("MatchActivity", "match info loop: " + matchValueCurrent);
                             }
@@ -201,14 +201,25 @@ public class MatchActivity extends Activity {
                         if (mUserId.equals(notifInfo.get("toUid"))) {
                             if (otherUserId.equals(notifInfo.get("fromUid"))) {
                                 String notifKey = data.getKey();
-                                DatabaseReference deleteUserNotif = FirebaseDatabase.getInstance().getReference
+                                //HashMap<String, Object> message = (HashMap<String, Object>) notifInfo.get(notifKey);
+                                //TODO check
+                                //Log.e("MatchActivity", "check" + message);
+                                if (notifInfo.get("body").equals("Click here to swipe")) {
+                                    notifKey = data.getKey();
+                                    DatabaseReference deleteUserNotif = FirebaseDatabase.getInstance().getReference
                                         ("user-notifications").child(mUserId).child(notifKey);
-                                deleteUserNotif.removeValue();
+                                    deleteUserNotif.removeValue();
+                            }
                             }
                         }
                     }
                 }
+               /* @Override
+                public void onCancelled (@NonNull DatabaseError databaseError){
+
+                }*/
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
