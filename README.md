@@ -8,7 +8,9 @@ Time spent: **5** weeks spent in total
 
 ### Team Roles
 **Cecilia: User Profiles, Posts, Newsfeed, and Notification**
+
 **Lizandro: User Calendar and Matching**
+
 **Alexei: User Messaging**
 
 The following **required** functionality is completed:
